@@ -1,5 +1,5 @@
 Name: akb
-Version: 0
+Version: 0.1.0
 Release: 1
 
 Summary: Asana-based kanban board
