@@ -13,6 +13,7 @@ setuptools.setup(
         'zc.recipe.deployment',
         'zc.recipe.rhrc',
         'zc.zdaemonrecipe',
+        'zdaemon',
         ],
     entry_points = entry_points,
     )
