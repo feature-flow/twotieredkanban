@@ -75,8 +75,6 @@ class API:
         for task_summary in self.get("projects/%s/tasks" % project):
             task = self.get("tasks/%s" % task_summary['id'])
             tags = [t['name'] for t in task['tags']]
-            if 'release' not in tags:
-                continue
             state = [t for t in active_tags if t in tags]
             if state:
                 task['state'] = state[0]
