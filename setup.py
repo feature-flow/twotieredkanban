@@ -10,6 +10,9 @@ setuptools.setup(
     py_modules=["akbrecipe"],
     install_requires=[
         'zc.zk [static]',
+        'zc.recipe.deployment',
+        'zc.recipe.rhrc',
+        'zc.zdaemonrecipe',
         ],
     entry_points = entry_points,
     )
