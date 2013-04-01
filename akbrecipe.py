@@ -1,4 +1,5 @@
-
+import hashlib
+import pprint
 import zc.zk
 
 class Recipe:
@@ -26,7 +27,7 @@ class Recipe:
            <runner>
               transcript ${deployment:log-directory}/web.log
            </runner>
-        start-test-program = nc -z localhost ${port}s
+        start-test-program = nc -z localhost %(port)s
 
         [rc]
         recipe = zc.recipe.rhrc
@@ -38,6 +39,6 @@ class Recipe:
         """ % dict(
             port=port,
             digest=hashlib.sha224(
-                      pprint.pformat(dict(zk_options))).hexdigest())))
+                               pprint.pformat(dict(zk_options))).hexdigest()))
 
     install = update = lambda self: ()
