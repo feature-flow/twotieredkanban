@@ -28,6 +28,7 @@ def index_js():
 active_tags = 'development', 'demo', 'deploy'
 dev_tags = 'doing', 'nr', 'review', 'done'
 
+tag_ids = {}
 
 @bobo.subroute("/api/:key", scan=True)
 class API:
@@ -52,6 +53,7 @@ class API:
             data=json.dumps(dict(data=data)),
             headers={'Content-Type': 'application/json'},
             )
+        print 'post', url, data, r.ok
         if not r.ok:
             error(r.json()['errors'][0]['message'])
         return r.json()['data']
@@ -94,38 +96,49 @@ class API:
                 result['backlog'].append(task)
         return result
 
-    tag_ids = {}
+    @bobo.query("/tasks/:task_id/subtasks", content_type="application/json")
+    def subtasks(self, task_id):
+        subtasks = [
+            self.get("tasks/%s" % subtask_summary['id'])
+            for subtask_summary in self.get("tasks/%s/subtasks" % task_id)
+            ]
+        for subtask in subtasks:
+            tags = [t['name'] for t in subtask['tags']]
+            state = [t for t in dev_tags if t in tags]
+            subtask['state'] = state[0] if state else 'ready'
+        return dict(subtasks=subtasks)
 
-    def get_tags_ids():
+    def get_tags_ids(self):
         global tag_ids
         tag_ids = dict((t['name'], t['id']) for t in self.get("tags"))
 
-    @bobo.post("/moved")
-    def moved(source, target, nodes):
-        old_state = source.split("_")[0]
-        new_state = target.split("_")[0]
 
-        if new_state not in tag_ids:
-            get_tags_ids()
-            if new_state not in tag_ids:
-                error("Invalid new state, " + new_state)
+    def check_state(self, state):
+        if state == 'ready':
+            return state
+        if state not in tag_ids:
+            self.get_tags_ids()
+            if state not in tag_ids:
+                error("Invalid state, " + state)
+        return state
 
-        if old_state != 'ready':
-            if old_state not in tag_ids:
-                error("Invalid old state, " + old_state)
+    @bobo.post("/moved", content_type='application/json')
+    def moved(self, source, target, task_ids):
+        old_state = self.check_state(source.split("_")[0])
+        new_state = self.check_state(target.split("_")[0])
 
-        if isinstance(nodes, basestring):
-            nodes = nodes,
+        if isinstance(task_ids, basestring):
+            task_ids = task_ids,
 
-        for node in nodes:
-            task_id = node.split("_")[1]
+        for task_id in task_ids:
             if old_state != 'ready':
                 self.post("tasks/%s/removeTag" % task_id,
                           dict(tag=tag_ids[old_state]))
-            self.post("tasks/%s/addTag" % task_id,
-                      dict(tag=tag_ids[new_state]))
+            if new_state != 'ready':
+                self.post("tasks/%s/addTag" % task_id,
+                          dict(tag=tag_ids[new_state]))
 
-        return 'ok'
+        return {}
 
     @bobo.query("/workspaces", content_type='application/json')
     def workspaces(self):

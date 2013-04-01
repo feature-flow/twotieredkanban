@@ -1,5 +1,6 @@
 require(
     [ "dojo/dnd/Source",
+      "dojo/dom-style",
       "dojo/ready",
       "dijit",
       "dijit/form/Button",
@@ -9,7 +10,7 @@ require(
       "dojo/topic",
       "dojo/domReady!" ],
     function(
-        Source, ready, dijit, Button, Select, TextBox, Dialog, topic) {
+        Source, style, ready, dijit, Button, Select, TextBox, Dialog, topic) {
 
         if (! localStorage.api_key) {
             var dialog = new Dialog(
@@ -63,9 +64,23 @@ require(
                     handleAs: "json",
                     load: load,
                     error: function (data) {
-
+                        alert(data);
                     }
                 });
+        }
+
+        function post(url, content, load) {
+            return dojo.xhrPost(
+                {
+                    url: 'api/' + localStorage.api_key + '/' + url,
+                    handleAs: "json",
+                    content: content,
+                    load: load,
+                    error: function (data) {
+                        alert(data);
+                    }
+                    });
+
         }
 
         get("workspaces",
@@ -128,12 +143,23 @@ require(
                 });
 
 
-        function item_creator(task) {
+        function item_creator(task, hint) {
+            if (hint == 'avatar') {
+                return {
+                    node: dojo.create(
+                        'span',
+                        {
+                            innerHTML: task.name
+                        }),
+                    data: task,
+                    type: [task.dnd_class]
+                };
+            }
             return {
                 node: dojo.create(
                     'div',
                     {
-                        id: 'task_'+task.id,
+                        task_id: task.id,
                         innerHTML: task.name
                     }),
                 data: task,
@@ -154,19 +180,20 @@ require(
         function make_detail(parent, task) {
             dojo.create(
                 "table", {
+                    id: 'table_'+task.id,
                     border: 1,
                     innerHTML: (
-                        "<table><thead>" +
+                        "<thead>" +
                             "<th>Ready</th>" +
                             "<th>Doing</th>" +
                             "<th>Needs Review</th>" +
                             "<th>Review</th>" +
                             "<th>Done</th>" +
-                            "</thead><tbody id='detail" + task.id +
-                            "'></tbody></table>")
+                            "</thead><tbody id='subtasks_" + task.id +
+                            "'></tbody>")
                 },
                 parent);
-            var id = "detail" + task.id;
+            var id = "subtasks_" + task.id;
             var tr = dojo.create("tr", null, id);
             var stages = {};
             stages.ready = td_source(tr, id, 'ready');
@@ -186,7 +213,7 @@ require(
             var tr = dojo.create("tr", null, "projects");
             var stages = {};
             stages.development = td_source(tr, task.id, 'development');
-            var detail = dojo.create("td", null, tr);
+            var detail = dojo.create("td", {id: "detail_"+task.id}, tr);
             stages.demo = td_source(tr, task.id, 'demo');
             stages.deploy = td_source(tr, task.id, 'deploy');
             task.dnd_class = task.id;
@@ -217,19 +244,40 @@ require(
         topic.subscribe(
             "/dnd/drop",
             function(source, nodes, copy, target) {
-                dojo.xhrPost(
+                if (source.node.id.substring(0, 11) == "development") {
+                    var task_id = nodes[0].attributes.task_id.value;
+                    var table_node = dojo.byId("table_"+task_id);
+                    style.set(table_node, "visibility", "hidden");
+                }
+                if (target.node.id.substring(0, 11) == "development") {
+                    var task_id = nodes[0].attributes.task_id.value;
+                    var table_node = dojo.byId("table_"+task_id);
+                    if (table_node == null) {
+                        get("tasks/" + task_id + "/subtasks",
+                            function (data) {
+                                var task = {
+                                    id: task_id,
+                                    name: nodes[0].textContent,
+                                    subtasks: data.subtasks
+                                };
+                                make_detail(dojo.byId("detail_"+task_id), task);
+                            });
+                    }
+                    else {
+                        style.set(table_node, "visibility", "visible");
+                    }
+                }
+                post(
+                    "moved",
                     {
-                        url: "moved",
-                        handleAs: "json",
-                        content: {
-                            source: source.node.id,
-                            target: target.node.id,
-                            nodes: dojo.map(
-                                nodes,
-                                function (node) {
-                                    return node.id;
-                                })
-                        }
+                        source: source.node.id,
+                        target: target.node.id,
+                        task_ids: dojo.map(
+                            nodes,
+                            function (node) {
+                                // Task id
+                                return nodes[0].attributes.task_id.value;
+                            })
                     });
             });
     });
