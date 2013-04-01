@@ -1,17 +1,132 @@
 require(
     [ "dojo/dnd/Source",
+      "dojo/ready",
+      "dijit",
+      "dijit/form/Button",
+      "dijit/form/Select",
+      "dijit/form/TextBox",
+      "dijit/Dialog",
       "dojo/topic",
       "dojo/domReady!" ],
-    function(Source, topic) {
+    function(
+        Source, ready, dijit, Button, Select, TextBox, Dialog, topic) {
+
+        if (! localStorage.api_key) {
+            var dialog = new Dialog(
+                {
+                    title: 'API Key:'
+                });
+            dialog.containerNode.appendChild(
+                new TextBox(
+                    {
+                        onChange: function (val) {
+                            localStorage.api_key = val;
+                        },
+                        style: 'width: 30em'
+                    }).domNode);
+            dialog.containerNode.appendChild(
+                new dijit.form.Button(
+                    {
+                        label: 'Cancel',
+                        onClick: function () {
+                            dialog.hide();
+                        }
+                    }).domNode);
+            dialog.containerNode.appendChild(
+                new dijit.form.Button(
+                    {
+                        label: 'OK',
+                        onClick: function () {
+                            window.location.reload();
+                        }
+                    }).domNode);
+            dialog.show();
+        }
+
+        dojo.byId("top").appendChild(
+            new Button(
+                {
+                    label: "Logout",
+                    style: "float: right;",
+                    onClick: function () {
+                        delete localStorage.api_key;
+                        delete localStorage.workspace_id;
+                        delete localStorage.project_id;
+                        window.location.reload();
+                    }
+                }).domNode);
 
         function get(url, load) {
-            dojo.xhrGet(
+            return dojo.xhrGet(
                 {
-                    url: url,
+                    url: 'api/' + localStorage.api_key + '/' + url,
                     handleAs: "json",
-                    load: load
+                    load: load,
+                    error: function (data) {
+
+                    }
                 });
         }
+
+        get("workspaces",
+            function (data) {
+                data = data.data;
+                if (! localStorage.workspace_id) {
+                    localStorage.workspace_id = data[0].id;
+                }
+                dojo.create("label", {innerHTML: "Workspace:"}, 'top');
+                dojo.byId('top').appendChild(
+                    new Select(
+                        {
+                            options: dojo.map(
+                                data,
+                                function (w) {
+                                    return {
+                                        label: w.name,
+                                        value: w.id.toString(),
+                                        selected:
+                                        w.id == localStorage.workspace_id
+                                    };
+                                }),
+                            onChange: function (v) {
+                                localStorage.workspace_id = v;
+                                window.location.reload();
+                            }
+                        }).domNode);
+            }).then(
+                function () {
+                    get(
+                        "workspaces/"+localStorage.workspace_id+"/projects",
+                        function(data) {
+                            data = data.data;
+                            if (! localStorage.project_id) {
+                                localStorage.project_id = data[0].id;
+                            }
+                            dojo.create(
+                                "label", {innerHTML: "Project:"}, 'top');
+                            dojo.byId('top').appendChild(
+                                new Select(
+                                    {
+                                        options: dojo.map(
+                                            data,
+                                            function (p) {
+                                                return {
+                                                    label: p.name,
+                                                    value: p.id.toString(),
+                                                    selected:
+                                                    p.id ==
+                                                        localStorage.project_id
+                                                };
+                                            }),
+                                        onChange: function (v) {
+                                            localStorage.project_id = v;
+                                            window.location.reload();
+                                        }
+                                    }).domNode);
+                        }
+                    ).then(new_project);
+                });
+
 
         function item_creator(task) {
             return {
@@ -81,20 +196,23 @@ require(
             }
         }
 
-        get("releases",
-            function (resp) {
-                dojo.forEach(
-                    resp.active,
-                    function (release) {
-                        make_release(release);
-                    });
-                dojo.forEach(
-                    resp.backlog,
-                    function (release) {
-                        dojo.create('li', {innerHTML: release.name}, "backlog");
-                    });
-            }
-           );
+        function new_project() {
+            get("releases",
+                function (resp) {
+                    dojo.forEach(
+                        resp.active,
+                        function (release) {
+                            make_release(release);
+                        });
+                    dojo.forEach(
+                        resp.backlog,
+                        function (release) {
+                            dojo.create(
+                                'li', {innerHTML: release.name}, "backlog");
+                        });
+                }
+               );
+        }
 
         topic.subscribe(
             "/dnd/drop",
