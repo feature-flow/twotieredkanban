@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+sudo yum -y install cleanpython26
+
+cd `dirname $0`
+/opt/cleanpython26/bin/python bootstrap.py
+
+bin/buildout -Uc rpm.cfg
