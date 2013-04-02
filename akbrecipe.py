@@ -22,7 +22,7 @@ class Recipe:
         recipe = zc.zdaemonrecipe
         deployment = deployment
         d = ${buildout:directory}
-        program = ${:d}/bin/bobo ${:d}/akb.py -p %(port)s
+        program = ${:d}/bin/bobo -f ${:d}/akb.py -p %(port)s
         zdaemon.conf =
            <runner>
               transcript ${deployment:log-directory}/web.log
