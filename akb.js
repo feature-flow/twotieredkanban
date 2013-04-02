@@ -222,6 +222,7 @@ require([
             var detail = dojo.create("td", {id: "detail_"+task.id}, tr);
             stages.demo = td_source(tr, task.id, 'demo');
             stages.deploy = td_source(tr, task.id, 'deploy');
+            stages.deployed = td_source(tr, task.id, 'deployed');
             task.dnd_class = task.id;
             stages[task.state].insertNodes(false, [task]);
             if (task.state == "development") {

@@ -26,10 +26,16 @@ def index_html():
 def index_js():
     return read_file("akb.js")
 
-active_tags = 'analysis', 'devready', 'development', 'demo', 'deploy'
+analysis = 'analysis'
+ready = 'ready'
+deployed = 'deployed'
+
+active_tags = analysis, 'devready', 'development', 'demo', 'deploy'
 dev_tags = 'doing', 'nr', 'review', 'done'
 
 tag_ids = {}
+
+
 
 @bobo.subroute("/api/:key", scan=True)
 class API:
@@ -75,6 +81,8 @@ class API:
         result = dict(active = [], backlog = [])
         for task_summary in self.get("projects/%s/tasks" % project):
             task = self.get("tasks/%s" % task_summary['id'])
+            if task['completed']:
+                continue
             tags = [t['name'] for t in task['tags']]
             state = [t for t in active_tags if t in tags]
             if state:
@@ -88,7 +96,7 @@ class API:
                     for subtask in task['subtasks']:
                         tags = [t['name'] for t in subtask['tags']]
                         state = [t for t in dev_tags if t in tags]
-                        subtask['state'] = state[0] if state else 'ready'
+                        subtask['state'] = state[0] if state else ready
 
                 result['active'].append(task)
             else:
@@ -104,7 +112,7 @@ class API:
         for subtask in subtasks:
             tags = [t['name'] for t in subtask['tags']]
             state = [t for t in dev_tags if t in tags]
-            subtask['state'] = state[0] if state else 'ready'
+            subtask['state'] = state[0] if state else ready
         return dict(subtasks=subtasks)
 
     def get_tags_ids(self):
@@ -113,7 +121,7 @@ class API:
 
 
     def check_state(self, state):
-        if state == 'ready':
+        if state == ready:
             return state
         if state not in tag_ids:
             self.get_tags_ids()
@@ -130,18 +138,21 @@ class API:
             task_ids = task_ids,
 
         for task_id in task_ids:
-            if old_state != 'ready':
+            if old_state != ready:
                 self.post("tasks/%s/removeTag" % task_id,
                           dict(tag=tag_ids[old_state]))
-            if new_state != 'ready':
+            if new_state != ready:
                 self.post("tasks/%s/addTag" % task_id,
                           dict(tag=tag_ids[new_state]))
+            if old_state == deployed or new_state == deployed:
+                self.put("tasks/%s" % task_id,
+                         data=dict(completed = new_state == deployed))
 
         return {}
 
     @bobo.post("/start_working", content_type='application/json')
     def start_working(self, task_id):
-        state = self.check_state("analysis")
+        state = self.check_state(analysis)
         self.post("tasks/%s/addTag" % task_id,
                   dict(tag=tag_ids[state]))
 
