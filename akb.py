@@ -17,7 +17,8 @@ def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
 
-@bobo.query("/akb.html")
+
+@bobo.query("/")
 def index_html():
     return read_file("akb.html")
 
@@ -69,8 +70,8 @@ class API:
             error(r.json()['errors'][0]['message'])
         return r.json()['data']
 
-    @bobo.query("/releases", content_type="application/json")
-    def releases(self):
+    @bobo.query("/releases/:project", content_type="application/json")
+    def releases(self, project):
         result = dict(active = [], backlog = [])
         for task_summary in self.get("projects/%s/tasks" % project):
             task = self.get("tasks/%s" % task_summary['id'])

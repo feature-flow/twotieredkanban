@@ -224,7 +224,7 @@ require(
         }
 
         function new_project() {
-            get("releases",
+            get("releases/" + localStorage.project_id,
                 function (resp) {
                     dojo.forEach(
                         resp.active,
