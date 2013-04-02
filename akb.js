@@ -1,16 +1,21 @@
-require(
-    [ "dojo/dnd/Source",
-      "dojo/dom-style",
-      "dojo/ready",
-      "dijit",
-      "dijit/form/Button",
-      "dijit/form/Select",
-      "dijit/form/TextBox",
-      "dijit/Dialog",
-      "dojo/topic",
-      "dojo/domReady!" ],
+require([
+            "dojo/dnd/Source",
+            "dojo/dom-construct",
+            "dojo/dom-style",
+            "dojo/ready",
+            "dijit",
+            "dijit/form/Button",
+            "dijit/form/Select",
+            "dijit/form/TextBox",
+            "dijit/Dialog",
+            "dijit/Menu",
+            "dijit/MenuItem",
+            "dojo/topic",
+            "dojo/domReady!"],
     function(
-        Source, style, ready, dijit, Button, Select, TextBox, Dialog, topic) {
+        Source, dom_construct, style, ready,
+        dijit, Button, Select, TextBox, Dialog,
+        Menu, MenuItem, topic) {
 
         if (! localStorage.api_key) {
             var dialog = new Dialog(
@@ -142,7 +147,6 @@ require(
                     ).then(new_project);
                 });
 
-
         function item_creator(task, hint) {
             if (hint == 'avatar') {
                 return {
@@ -212,6 +216,8 @@ require(
         function make_release(task) {
             var tr = dojo.create("tr", null, "projects");
             var stages = {};
+            stages.analysis = td_source(tr, task.id, 'analysis');
+            stages.devready = td_source(tr, task.id, 'devready');
             stages.development = td_source(tr, task.id, 'development');
             var detail = dojo.create("td", {id: "detail_"+task.id}, tr);
             stages.demo = td_source(tr, task.id, 'demo');
@@ -223,6 +229,33 @@ require(
             }
         }
 
+        function setup_backlog_item(release) {
+            var node = dojo.create(
+                'li',
+                { innerHTML: release.name },
+                "backlog");
+            var backlog_menu = new Menu(
+                { targetNodeIds: [node] });
+            backlog_menu.addChild(
+                new MenuItem(
+                    {
+                        label: "Start: "+release.name,
+                        onClick: function () {
+                            post(
+                                "start_working", {
+                                    task_id: release.id
+                                },
+                                function () {
+                                    release.state = 'analysis';
+                                    make_release(release);
+                                    backlog_menu.destroyRecursive();
+                                    dom_construct.destroy(node);
+                                });
+                        }
+                    }));
+            backlog_menu.startup();
+        }
+
         function new_project() {
             get("releases/" + localStorage.project_id,
                 function (resp) {
@@ -231,12 +264,7 @@ require(
                         function (release) {
                             make_release(release);
                         });
-                    dojo.forEach(
-                        resp.backlog,
-                        function (release) {
-                            dojo.create(
-                                'li', {innerHTML: release.name}, "backlog");
-                        });
+                    dojo.forEach(resp.backlog, setup_backlog_item);
                 }
                );
         }
@@ -267,6 +295,7 @@ require(
                         style.set(table_node, "visibility", "visible");
                     }
                 }
+                target.selectNone();
                 post(
                     "moved",
                     {

@@ -26,7 +26,7 @@ def index_html():
 def index_js():
     return read_file("akb.js")
 
-active_tags = 'development', 'demo', 'deploy'
+active_tags = 'analysis', 'devready', 'development', 'demo', 'deploy'
 dev_tags = 'doing', 'nr', 'review', 'done'
 
 tag_ids = {}
@@ -136,6 +136,14 @@ class API:
             if new_state != 'ready':
                 self.post("tasks/%s/addTag" % task_id,
                           dict(tag=tag_ids[new_state]))
+
+        return {}
+
+    @bobo.post("/start_working", content_type='application/json')
+    def start_working(self, task_id):
+        state = self.check_state("analysis")
+        self.post("tasks/%s/addTag" % task_id,
+                  dict(tag=tag_ids[state]))
 
         return {}
 
