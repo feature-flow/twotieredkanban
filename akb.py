@@ -29,9 +29,12 @@ def index_js():
 analysis = 'analysis'
 ready = 'ready'
 deployed = 'deployed'
+done = 'done'
 
 active_tags = analysis, 'devready', 'development', 'demo', 'deploy'
-dev_tags = 'doing', 'nr', 'review', 'done'
+dev_tags = 'doing', 'nr', 'review', done
+
+done_states = done, deployed
 
 tag_ids = {}
 
@@ -144,19 +147,17 @@ class API:
             if new_state != ready:
                 self.post("tasks/%s/addTag" % task_id,
                           dict(tag=tag_ids[new_state]))
-            if old_state == deployed or new_state == deployed:
+            if old_state in done_states or new_state in done_states:
                 self.put("tasks/%s" % task_id,
-                         data=dict(completed = new_state == deployed))
+                         data=dict(completed = new_state in done_states))
 
         return {}
 
     @bobo.post("/start_working", content_type='application/json')
     def start_working(self, task_id):
         state = self.check_state(analysis)
-        self.post("tasks/%s/addTag" % task_id,
-                  dict(tag=tag_ids[state]))
-
-        return {}
+        return self.post("tasks/%s/addTag" % task_id,
+                         dict(tag=tag_ids[state]))
 
     @bobo.query("/workspaces", content_type='application/json')
     def workspaces(self):
@@ -166,3 +167,7 @@ class API:
                 content_type='application/json')
     def projects(self, workspace):
         return dict(data=self.get('workspaces/%s/projects' % workspace))
+
+    @bobo.post("/take", content_type='application/json')
+    def take(self, task_id):
+        return self.put("tasks/%s" % task_id, data=dict(assignee = "me"))

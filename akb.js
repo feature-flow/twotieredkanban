@@ -1,8 +1,11 @@
 require([
+            "dojo/aspect",
             "dojo/dnd/Source",
             "dojo/dom-construct",
+            "dojo/query",
             "dojo/dom-style",
             "dojo/ready",
+            "dojo/string",
             "dijit",
             "dijit/form/Button",
             "dijit/form/Select",
@@ -13,9 +16,11 @@ require([
             "dojo/topic",
             "dojo/domReady!"],
     function(
-        Source, dom_construct, style, ready,
+        aspect, Source, dom_construct, query, style, ready, string,
         dijit, Button, Select, TextBox, Dialog,
         Menu, MenuItem, topic) {
+
+        var all_tasks = {};              // task id -> task
 
         if (! localStorage.api_key) {
             var dialog = new Dialog(
@@ -147,38 +152,98 @@ require([
                     ).then(new_project);
                 });
 
+        var item_template =
+            "<div class='task'>${name}</div>" +
+            "<div>Assigned: <span class='assignee'>${assignee}</span></div>";
         function item_creator(task, hint) {
             if (hint == 'avatar') {
                 return {
-                    node: dojo.create(
-                        'span',
-                        {
-                            innerHTML: task.name
-                        }),
+                    node: dojo.create('span', { innerHTML: task.name }),
                     data: task,
                     type: [task.dnd_class]
                 };
+            }
+            var assignee = "";
+            if (task.assignee != null) {
+                assignee = task.assignee.name;
             }
             return {
                 node: dojo.create(
                     'div',
                     {
                         task_id: task.id,
-                        innerHTML: task.name
+                        innerHTML: string.substitute(
+                            item_template,
+                            {
+                                name: task.name,
+                                assignee: assignee
+                            })
                     }),
                 data: task,
                 type: [task.dnd_class]
             };
         }
 
+        var selected_task;
+        var selected_node;
+        dojo.byId("selected_task_assignee_div").appendChild(
+            new Button(
+                {
+                    label: "Take",
+                    onClick: function () {
+                        if (selected_task == null) {
+                            return;
+                        }
+                        post("take",
+                             { task_id: selected_task.id },
+                             function (task) {
+                                 // XXX maybe other attrs changed
+                                 selected_task.assignee = task.assignee;
+                                 query('span', selected_node)[0].textContent =
+                                     task.assignee.name;
+                                 select_task(selected_task);
+                             });
+
+                    }
+                }).domNode);
+
+        function select_task(task) {
+            selected_task = task;
+            dojo.byId("selected_task_title").textContent = task.name;
+            if (task.assignee != null) {
+                dojo.byId("selected_task_assignee"
+                         ).textContent = task.assignee.name;
+            }
+            else {
+                dojo.byId("selected_task_assignee").textContent = "";
+            }
+            dojo.byId("asana_link").setAttribute(
+                "href",
+                "https://app.asana.com/0/" +
+                    localStorage.project_id + "/" + task.id
+            );
+        }
+
         function td_source(parent, dnd_class, state) {
-            return new Source(
+            var source = new Source(
                 dojo.create(
                     "td", {id: state + '_' + dnd_class}, parent),
                 {
                     accept: [dnd_class],
                     creator: item_creator
                 });
+            aspect.after(
+                source, 'onMouseUp', function (e) {
+                    var nodes = source.getSelectedNodes();
+                    if (nodes.length > 0) {
+                        selected_node = nodes[0];
+                        select_task(
+                            all_tasks[
+                                nodes[0].attributes['task_id'].textContent
+                            ]);
+                    }
+                }, true);
+            return source;
         }
 
         function make_detail(parent, task) {
@@ -208,6 +273,7 @@ require([
             dojo.forEach(
                 task.subtasks,
                 function (subtask) {
+                    all_tasks[subtask.id.toString()] = subtask;
                     subtask.dnd_class = id;
                     stages[subtask.state].insertNodes(false, [subtask]);
                 });
@@ -263,6 +329,7 @@ require([
                     dojo.forEach(
                         resp.active,
                         function (release) {
+                            all_tasks[release.id.toString()] = release;
                             make_release(release);
                         });
                     dojo.forEach(resp.backlog, setup_backlog_item);
@@ -284,11 +351,8 @@ require([
                     if (table_node == null) {
                         get("tasks/" + task_id + "/subtasks",
                             function (data) {
-                                var task = {
-                                    id: task_id,
-                                    name: nodes[0].textContent,
-                                    subtasks: data.subtasks
-                                };
+                                var task = all_tasks[task_id];
+                                task.subtasks = data.subtasks;
                                 make_detail(dojo.byId("detail_"+task_id), task);
                             });
                     }
