@@ -1,37 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>dojo.dnd :: Step 0</title>
-	<meta charset="utf-8">
-	<style>
-		@import url("http://downloads.dojotoolkit.org/release-1.7.0/dojo-release-1.7.0/dojo/resources/dojo.css");
-		@import url("http://downloads.dojotoolkit.org/release-1.7.0/dojo-release-1.7.0/dijit/themes/claro/claro.css");
-		@import url("http://downloads.dojotoolkit.org/release-1.7.0/dojo-release-1.7.0/dojo/resources/dnd.css");
+  <head>
+    <title>Asana Kanban</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dojo/resources/dojo.css">
+    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dojo/resources/dnd.css">
+    <script src="//ajax.googleapis.com/ajax/libs/dojo/1.8.3/dojo/dojo.js"
+            data-dojo-config="async: true"></script>
+    <script src="akb.js">
+    </script>
+  </head>
+  <body class="claro">
 
-		@import url("http://sitepen.github.com/sp-dnd-demo/dnd.css");
-</style>
-	<script data-dojo-config="async: 1"
-          src="http://downloads.dojotoolkit.org/release-1.7.0/dojo-release-1.7.0/dojo/dojo.js">
-  </script>
-	<script src="akb.js">
-  </script>
-</head>
-<body class="claro">
+    <div id="top"></div>
 
-  <div id="top"></div>
+    <h1>Work in progress</h1>
+    <table border="1">
+      <thead>
+        <tr><th colspan=2>Development</th><th>Demo</th><th>Deployment</th></tr>
+      </thead>
+      <tbody id="projects">
+      </tbody>
+    </table>
 
-  <h1>Work in progress</h1>
-  <table border="1">
-    <thead>
-      <tr><th colspan=2>Development</th><th>Demo</th><th>Deployment</th></tr>
-    </thead>
-    <tbody id="projects">
-    </tbody>
-  </table>
+    <h1>Backlog</h1>
+    <ul id="backlog">
+    </ul>
 
-  <h1>Backlog</h1>
-  <ul id="backlog">
-  </ul>
-
-</body>
+  </body>
 </html>
