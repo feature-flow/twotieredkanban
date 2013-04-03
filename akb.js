@@ -54,6 +54,7 @@ require([
                         }
                     }).domNode);
             dialog.show();
+            return;
         }
 
         dojo.byId("top").appendChild(
@@ -127,7 +128,17 @@ require([
                         function(data) {
                             data = data.data;
                             if (! localStorage.project_id) {
-                                localStorage.project_id = data[0].id;
+                                var development = dojo.filter(
+                                    data,
+                                    function (p) {
+                                        return p.name == "Development";
+                                    });
+                                if (development.length > 0) {
+                                    localStorage.project_id = development[0].id;
+                                }
+                                else {
+                                    localStorage.project_id = data[0].id;
+                                }
                             }
                             dojo.create(
                                 "label", {innerHTML: "Project:"}, 'top');
@@ -351,6 +362,7 @@ require([
         }
 
         function setup_backlog_item(release) {
+            all_tasks[release.id] = release;
             var node = dojo.create(
                 'li',
                 { innerHTML: release.name },
