@@ -1,9 +1,9 @@
 require([
             "dojo/aspect",
             "dojo/dnd/Source",
+            "dojo/dom-class",
             "dojo/dom-construct",
             "dojo/query",
-            "dojo/dom-style",
             "dojo/ready",
             "dojo/string",
             "dijit",
@@ -16,11 +16,12 @@ require([
             "dojo/topic",
             "dojo/domReady!"],
     function(
-        aspect, Source, dom_construct, query, style, ready, string,
+        aspect, Source, dom_class, dom_construct, query, ready, string,
         dijit, Button, Select, TextBox, Dialog,
         Menu, MenuItem, topic) {
 
         var all_tasks = {};              // task id -> task
+        dom_class.add("task_detail", "hidden");
 
         if (! localStorage.api_key) {
             var dialog = new Dialog(
@@ -163,14 +164,30 @@ require([
                     type: [task.dnd_class]
                 };
             }
+            if (task.parent == null) {
+                return {
+                    node: dojo.create(
+                        'div',
+                        {
+                            class: 'release',
+                            task_id: task.id,
+                            innerHTML: task.name
+                        }),
+                    data: task,
+                    type: [task.dnd_class]
+                };
+            }
             var assignee = "";
+            var class_ = 'task';
             if (task.assignee != null) {
                 assignee = task.assignee.name;
+                class_ += " assigned";
             }
             return {
                 node: dojo.create(
                     'div',
                     {
+                        class: class_,
                         task_id: task.id,
                         innerHTML: string.substitute(
                             item_template,
@@ -210,18 +227,26 @@ require([
         function select_task(task) {
             selected_task = task;
             dojo.byId("selected_task_title").textContent = task.name;
-            if (task.assignee != null) {
-                dojo.byId("selected_task_assignee"
-                         ).textContent = task.assignee.name;
+            if (task.parent == null) {
+                // release
+                dom_class.add("selected_task_assignee_div", "hidden");
             }
             else {
-                dojo.byId("selected_task_assignee").textContent = "";
+                dom_class.remove("selected_task_assignee_div", "hidden");
+                if (task.assignee != null) {
+                    dojo.byId("selected_task_assignee"
+                             ).textContent = task.assignee.name;
+                }
+                else {
+                    dojo.byId("selected_task_assignee").textContent = "";
+                }
             }
             dojo.byId("asana_link").setAttribute(
                 "href",
                 "https://app.asana.com/0/" +
                     localStorage.project_id + "/" + task.id
             );
+            dom_class.remove("task_detail", "hidden");
         }
 
         function td_source(parent, dnd_class, state) {
@@ -343,7 +368,7 @@ require([
                 if (source.node.id.substring(0, 11) == "development") {
                     var task_id = nodes[0].attributes.task_id.value;
                     var table_node = dojo.byId("table_"+task_id);
-                    style.set(table_node, "visibility", "hidden");
+                    dom_class.add(table_node, "hidden");
                 }
                 if (target.node.id.substring(0, 11) == "development") {
                     var task_id = nodes[0].attributes.task_id.value;
@@ -357,7 +382,7 @@ require([
                             });
                     }
                     else {
-                        style.set(table_node, "visibility", "visible");
+                        dom_class.remove(table_node, "hidden");
                     }
                 }
                 target.selectNone();

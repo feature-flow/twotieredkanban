@@ -23,8 +23,12 @@ def index_html():
     return read_file("akb.html")
 
 @bobo.query("/akb.js", content_type="application/javascript")
-def index_js():
+def akb_js():
     return read_file("akb.js")
+
+@bobo.query("/akb.css", content_type="text/css")
+def akb_css():
+    return read_file("akb.css")
 
 analysis = 'analysis'
 ready = 'ready'
