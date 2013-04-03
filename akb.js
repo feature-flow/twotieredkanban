@@ -234,6 +234,7 @@ require([
                                  selected_task.assignee = task.assignee;
                                  query('span', selected_node)[0].textContent =
                                      task.assignee.name;
+                                 dom_class.add(selected_node, 'assigned');
                                  select_task(selected_task);
                              });
 
