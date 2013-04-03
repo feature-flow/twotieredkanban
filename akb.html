@@ -28,9 +28,13 @@
   <body class="claro">
 
     <div id="top"></div>
+    <a
+       id="feedback"
+       href="https://bitbucket.org/zc/asanakanban/issues?status=new&status=open"
+       >Feedback</a>
 
     <h1>Work in progress</h1>
-    <table border="1">
+    <table id="board">
       <thead>
         <tr>
           <th>Analysis</th>
@@ -55,9 +59,9 @@
         <label>Assigned</label>
         <span id="selected_task_assignee"></span>
       </div>
-      <!-- <div> -->
-      <!--   <label>Blocked</label> -->
-      <!-- </div> -->
+      <div id="blocked_div">
+        <label>Blocked</label>
+      </div>
       <div>
         <a id="asana_link" href="">View in Asana</a>
       </div>

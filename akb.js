@@ -8,6 +8,7 @@ require([
             "dojo/string",
             "dijit",
             "dijit/form/Button",
+            "dijit/form/CheckBox",
             "dijit/form/Select",
             "dijit/form/TextBox",
             "dijit/Dialog",
@@ -17,7 +18,7 @@ require([
             "dojo/domReady!"],
     function(
         aspect, Source, dom_class, dom_construct, query, ready, string,
-        dijit, Button, Select, TextBox, Dialog,
+        dijit, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic) {
 
         var all_tasks = {};              // task id -> task
@@ -154,7 +155,7 @@ require([
                 });
 
         var item_template =
-            "<div class='task'>${name}</div>" +
+            "<div>${name}</div>" +
             "<div>Assigned: <span class='assignee'>${assignee}</span></div>";
         function item_creator(task, hint) {
             if (hint == 'avatar') {
@@ -164,12 +165,16 @@ require([
                     type: [task.dnd_class]
                 };
             }
+            var class_ = task.state;
+            if (task.blocked) {
+                class_ += ' blocked';
+            }
             if (task.parent == null) {
                 return {
                     node: dojo.create(
                         'div',
                         {
-                            class: 'release',
+                            class: 'release '+class_,
                             task_id: task.id,
                             innerHTML: task.name
                         }),
@@ -177,8 +182,8 @@ require([
                     type: [task.dnd_class]
                 };
             }
+            class_ += ' task';
             var assignee = "";
-            var class_ = 'task';
             if (task.assignee != null) {
                 assignee = task.assignee.name;
                 class_ += " assigned";
@@ -224,6 +229,29 @@ require([
                     }
                 }).domNode);
 
+        dom_construct.place(
+            new CheckBox(
+                {
+                    onChange: function (v) {
+                        post(
+                            "blocked",
+                            {
+                                task_id: selected_task.id,
+                                is_blocked: v
+                            }).then(
+                                function () {
+                                    if (v) {
+                                        dom_class.add(
+                                            selected_node, "blocked");
+                                    }
+                                    else {
+                                        dom_class.remove(
+                                            selected_node, "blocked");
+                                    }
+                                });
+                    }
+                }).domNode, 'blocked_div', 'first');
+
         function select_task(task) {
             selected_task = task;
             dojo.byId("selected_task_title").textContent = task.name;
@@ -262,6 +290,7 @@ require([
                     var nodes = source.getSelectedNodes();
                     if (nodes.length > 0) {
                         selected_node = nodes[0];
+                        source.selectNone();
                         select_task(
                             all_tasks[
                                 nodes[0].attributes['task_id'].textContent
@@ -275,7 +304,7 @@ require([
             dojo.create(
                 "table", {
                     id: 'table_'+task.id,
-                    border: 1,
+                    class: 'task_detail',
                     innerHTML: (
                         "<thead>" +
                             "<th>Ready</th>" +

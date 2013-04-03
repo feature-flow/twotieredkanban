@@ -34,6 +34,7 @@ analysis = 'analysis'
 ready = 'ready'
 deployed = 'deployed'
 done = 'done'
+blocked = 'blocked'
 
 active_tags = analysis, 'devready', 'development', 'demo', 'deploy'
 dev_tags = 'doing', 'nr', 'review', done
@@ -92,26 +93,18 @@ class API:
                 continue
             tags = [t['name'] for t in task['tags']]
             state = [t for t in active_tags if t in tags]
+            task[blocked] = blocked in tags
             if state:
                 task['state'] = state[0]
                 if task['state'] == 'development':
-                    task['subtasks'] = [
-                        self.get("tasks/%s" % subtask_summary['id'])
-                        for subtask_summary in self.get(
-                            "tasks/%s/subtasks" % task["id"])
-                        ]
-                    for subtask in task['subtasks']:
-                        tags = [t['name'] for t in subtask['tags']]
-                        state = [t for t in dev_tags if t in tags]
-                        subtask['state'] = state[0] if state else ready
+                    task['subtasks'] = self.get_subtasks(task['id'])
 
                 result['active'].append(task)
             else:
                 result['backlog'].append(task)
         return result
 
-    @bobo.query("/tasks/:task_id/subtasks", content_type="application/json")
-    def subtasks(self, task_id):
+    def get_subtasks(self, task_id):
         subtasks = [
             self.get("tasks/%s" % subtask_summary['id'])
             for subtask_summary in self.get("tasks/%s/subtasks" % task_id)
@@ -120,7 +113,12 @@ class API:
             tags = [t['name'] for t in subtask['tags']]
             state = [t for t in dev_tags if t in tags]
             subtask['state'] = state[0] if state else ready
-        return dict(subtasks=subtasks)
+            subtask[blocked] = blocked in tags
+        return subtasks
+
+    @bobo.query("/tasks/:task_id/subtasks", content_type="application/json")
+    def subtasks(self, task_id):
+        return dict(subtasks=self.get_subtasks(task_id))
 
     def get_tags_ids(self):
         global tag_ids
@@ -175,3 +173,13 @@ class API:
     @bobo.post("/take", content_type='application/json')
     def take(self, task_id):
         return self.put("tasks/%s" % task_id, data=dict(assignee = "me"))
+
+    @bobo.post("/blocked", content_type='application/json')
+    def blocked(self, task_id, is_blocked):
+        self.check_state(blocked)
+        if is_blocked:
+            return self.post("tasks/%s/addTag" % task_id,
+                             dict(tag=tag_ids[blocked]))
+        else:
+            return self.post("tasks/%s/removeTag" % task_id,
+                             dict(tag=tag_ids[blocked]))
