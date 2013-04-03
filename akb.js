@@ -240,8 +240,7 @@ require([
                     }
                 }).domNode);
 
-        dom_construct.place(
-            new CheckBox(
+        var blocked_checkbox = new CheckBox(
                 {
                     onChange: function (v) {
                         post(
@@ -261,7 +260,8 @@ require([
                                     }
                                 });
                     }
-                }).domNode, 'blocked_div', 'first');
+                });
+        dom_construct.place(blocked_checkbox.domNode, 'blocked_div', 'first');
 
         function select_task(task) {
             selected_task = task;
@@ -285,6 +285,7 @@ require([
                 "https://app.asana.com/0/" +
                     localStorage.project_id + "/" + task.id
             );
+            blocked_checkbox.set('value', task.blocked);
             dom_class.remove("task_detail", "hidden");
         }
 

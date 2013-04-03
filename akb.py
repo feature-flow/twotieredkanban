@@ -177,7 +177,7 @@ class API:
     @bobo.post("/blocked", content_type='application/json')
     def blocked(self, task_id, is_blocked):
         self.check_state(blocked)
-        if is_blocked:
+        if is_blocked == 'true':
             return self.post("tasks/%s/addTag" % task_id,
                              dict(tag=tag_ids[blocked]))
         else:
