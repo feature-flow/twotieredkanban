@@ -293,7 +293,10 @@ require([
         function td_source(parent, dnd_class, state) {
             var source = new Source(
                 dojo.create(
-                    "td", {id: state + '_' + dnd_class}, parent),
+                    "td", {
+                        class: state+"_td",
+                        id: state + '_' + dnd_class
+                    }, parent),
                 {
                     accept: [dnd_class],
                     creator: item_creator
@@ -352,7 +355,12 @@ require([
             stages.analysis = td_source(tr, task.id, 'analysis');
             stages.devready = td_source(tr, task.id, 'devready');
             stages.development = td_source(tr, task.id, 'development');
-            var detail = dojo.create("td", {id: "detail_"+task.id}, tr);
+            var detail = dojo.create(
+                "td",
+                {
+                    class: "detail_td",
+                    id: "detail_"+task.id
+                }, tr);
             stages.demo = td_source(tr, task.id, 'demo');
             stages.deploy = td_source(tr, task.id, 'deploy');
             stages.deployed = td_source(tr, task.id, 'deployed');

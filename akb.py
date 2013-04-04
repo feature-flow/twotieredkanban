@@ -6,6 +6,17 @@ import os
 import re
 import requests
 
+try:
+    cache
+except NameError:
+    cache = None
+
+def dev_mode(data):
+    print "Running in development mode."
+    global cache
+    if cache is None:
+        cache = {}
+
 def error(message):
     raise bobo.BoboException(
         403,
@@ -53,13 +64,21 @@ class API:
         self.key = key
 
     def get(self, url):
+        if cache is not None and url in cache:
+            return cache[url]
+
         r = requests.get(
             'https://app.asana.com/api/1.0/' + url,
             auth=(self.key, ''),
             )
         if not r.ok:
             error(r.json()['errors'][0]['message'])
-        return r.json()['data']
+
+        r = r.json()['data']
+        if cache is not None:
+            cache[url] = r
+
+        return r
 
     def post(self, url, data):
         r = requests.post(
@@ -68,6 +87,8 @@ class API:
             data=json.dumps(dict(data=data)),
             headers={'Content-Type': 'application/json'},
             )
+        if cache is not None:
+            cache.clear()
         print 'post', url, data, r.ok
         if not r.ok:
             error(r.json()['errors'][0]['message'])
@@ -80,6 +101,8 @@ class API:
             data=json.dumps(dict(data=data)),
             headers={'Content-Type': 'application/json'},
             )
+        if cache is not None:
+            cache.clear()
         if not r.ok:
             error(r.json()['errors'][0]['message'])
         return r.json()['data']
