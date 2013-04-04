@@ -254,3 +254,9 @@ class API:
         else:
             return self.post("tasks/%s/removeTag" % task_id,
                              dict(tag=tag_ids[blocked]))
+
+    @bobo.post("/stop_working", content_type='application/json')
+    def stop_working(self, task_id, state):
+        self.check_state(state)
+        self.post("tasks/%s/removeTag" % task_id,
+                  dict(tag=tag_ids[state]))

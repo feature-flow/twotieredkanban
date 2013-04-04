@@ -305,8 +305,10 @@ require([
             if (task.parent == null) {
                 // release
                 dom_class.add("selected_task_assignee_div", "hidden");
+                dom_class.remove("stop_working", "hidden");
             }
             else {
+                dom_class.add("stop_working", "hidden");
                 dom_class.remove("selected_task_assignee_div", "hidden");
                 if (task.assignee != null) {
                     dojo.byId("selected_task_assignee"
@@ -386,24 +388,30 @@ require([
         }
 
         function make_release(task) {
-            var tr = dojo.create("tr", null, "projects");
-            var stages = {};
-            stages.analysis = td_source(tr, task.id, 'analysis');
-            stages.devready = td_source(tr, task.id, 'devready');
-            stages.development = td_source(tr, task.id, 'development');
-            var detail = dojo.create(
-                "td",
-                {
-                    class: "detail_td",
-                    id: "detail_"+task.id
-                }, tr);
-            stages.demo = td_source(tr, task.id, 'demo');
-            stages.deploy = td_source(tr, task.id, 'deploy');
-            stages.deployed = td_source(tr, task.id, 'deployed');
-            task.dnd_class = task.id;
-            stages[task.state].insertNodes(false, [task]);
-            if (task.state == "development") {
-                make_detail(detail, task);
+            if (task.tr == undefined) {
+                var tr = dojo.create("tr", null, "projects");
+                var stages = {};
+                stages.analysis = td_source(tr, task.id, 'analysis');
+                stages.devready = td_source(tr, task.id, 'devready');
+                stages.development = td_source(tr, task.id, 'development');
+                var detail = dojo.create(
+                    "td",
+                    {
+                        class: "detail_td",
+                        id: "detail_"+task.id
+                    }, tr);
+                stages.demo = td_source(tr, task.id, 'demo');
+                stages.deploy = td_source(tr, task.id, 'deploy');
+                stages.deployed = td_source(tr, task.id, 'deployed');
+                task.dnd_class = task.id;
+                stages[task.state].insertNodes(false, [task]);
+                if (task.state == "development") {
+                    make_detail(detail, task);
+                }
+                task.tr = tr;
+            }
+            else {
+                dom_class.remove(task.tr, "hidden");
             }
         }
 
@@ -448,6 +456,26 @@ require([
                 }
                );
         }
+
+        dom_construct.place(
+            new Button(
+                {
+                    id: "stop_working",
+                    label: "Stop working on this task",
+                    onClick: function () {
+                        post(
+                            "stop_working",
+                            {
+                                task_id: selected_task.id,
+                                state: selected_task.state
+                            }).then(
+                                function () {
+                                    dom_class.add("task_detail", "hidden");
+                                    dom_class.add(selected_task.tr, "hidden");
+                                    setup_backlog_item(selected_task);
+                                });
+                    }
+                }).domNode, "task_detail");
 
         topic.subscribe(
             "/dnd/drop",
