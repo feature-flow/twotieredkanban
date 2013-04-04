@@ -2,33 +2,53 @@
 {
   display: none;
   }
-.release
-{
-  border: 1px solid black !important;
-  }
 .task
 { 
+  background-color: #fff473;
+  }
+
+.task,.release
+{ 
   border: 1px solid black !important;
-  background-color: yellow;
+  margin: 4px;
   }
 
 table
 {
   border-collapse:collapse;
   }
-table, td, th
+
+table,td,th
+{ 
+  border: 1px solid grey;
+  }
+
+th
 {
-  border:1px solid black;
+  border-bottom: 2px solid black;
+  text-align: center;
+  padding: 3px;
+  background-color: #eee;
+  }
+
+.development_td
+{ 
+  border-right: None;
+  }
+.detail_td
+{ 
+  border-left: None;
   }
 
 .task_detail
 { 
-  margin: 3px;
+  margin: 4px;
+  border: 1px solid black;
   }
 
 .assigned
 { 
-  background-color: #cfc;
+  background-color: #dfd;
   }
 
 .blocked
