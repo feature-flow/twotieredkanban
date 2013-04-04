@@ -30,7 +30,7 @@ This is very much a work in progress:
   probably generalize it to let you specify your own work states and
   singly nested processes.
 
-- We have to make lots of requests to Asana making startup fairly slow
+- We have to make lots of requests to Asana, making startup fairly slow
   and making it impractical to poll for updates efficiently. Updates
   to the Asana APIs will likely allow us to greatly speed loads and
   provide live updates.
