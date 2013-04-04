@@ -168,6 +168,41 @@ require([
         var item_template =
             "<div>${name}</div>" +
             "<div>Assigned: <span class='assignee'>${assignee}</span></div>";
+        var release_template =
+            "<span class='size'>${size}</span>" +
+            "<span class='name'>${name}</span>";
+        var dev_template =
+            "<span class='remaining'>${remaining}</span>" +
+            "<span class='size'>${size}</span>" +
+            "<span class='name'>${name}</span>";
+        function update_task_node(task) {
+            if (task.parent == null) {
+                var template = release_template;
+                if (task.state == "development") {
+                    template = dev_template;
+                }
+                task.node.innerHTML = string.substitute(
+                    template,
+                    {
+                        size: task.size,
+                        remaining: task.remaining || task.size,
+                        name: task.name
+                    });
+            }
+            else {
+                var assignee = "";
+                if (task.assignee != null) {
+                    assignee = task.assignee.name;
+                }
+                task.node.innerHTML = string.substitute(
+                    item_template,
+                    {
+                        name: task.name,
+                        assignee: assignee
+                    });
+            }
+        }
+
         function item_creator(task, hint) {
             if (hint == 'avatar') {
                 return {
@@ -181,14 +216,15 @@ require([
                 class_ += ' blocked';
             }
             if (task.parent == null) {
+                task.node = dojo.create(
+                    'div',
+                    {
+                        class: 'release '+class_,
+                        task_id: task.id
+                    });
+                update_task_node(task);
                 return {
-                    node: dojo.create(
-                        'div',
-                        {
-                            class: 'release '+class_,
-                            task_id: task.id,
-                            innerHTML: task.name
-                        }),
+                    node: task.node,
                     data: task,
                     type: [task.dnd_class]
                 };
@@ -196,22 +232,17 @@ require([
             class_ += ' task';
             var assignee = "";
             if (task.assignee != null) {
-                assignee = task.assignee.name;
                 class_ += " assigned";
             }
+            task.node = dojo.create(
+                'div',
+                {
+                    class: class_,
+                    task_id: task.id
+                });
+            update_task_node(task);
             return {
-                node: dojo.create(
-                    'div',
-                    {
-                        class: class_,
-                        task_id: task.id,
-                        innerHTML: string.substitute(
-                            item_template,
-                            {
-                                name: task.name,
-                                assignee: assignee
-                            })
-                    }),
+                node: task.node,
                 data: task,
                 type: [task.dnd_class]
             };
@@ -274,8 +305,10 @@ require([
             if (task.parent == null) {
                 // release
                 dom_class.add("selected_task_assignee_div", "hidden");
+                dom_class.remove("stop_working", "hidden");
             }
             else {
+                dom_class.add("stop_working", "hidden");
                 dom_class.remove("selected_task_assignee_div", "hidden");
                 if (task.assignee != null) {
                     dojo.byId("selected_task_assignee"
@@ -303,7 +336,8 @@ require([
                     }, parent),
                 {
                     accept: [dnd_class],
-                    creator: item_creator
+                    creator: item_creator,
+                    task_state: state
                 });
             aspect.after(
                 source, 'onMouseUp', function (e) {
@@ -354,24 +388,30 @@ require([
         }
 
         function make_release(task) {
-            var tr = dojo.create("tr", null, "projects");
-            var stages = {};
-            stages.analysis = td_source(tr, task.id, 'analysis');
-            stages.devready = td_source(tr, task.id, 'devready');
-            stages.development = td_source(tr, task.id, 'development');
-            var detail = dojo.create(
-                "td",
-                {
-                    class: "detail_td",
-                    id: "detail_"+task.id
-                }, tr);
-            stages.demo = td_source(tr, task.id, 'demo');
-            stages.deploy = td_source(tr, task.id, 'deploy');
-            stages.deployed = td_source(tr, task.id, 'deployed');
-            task.dnd_class = task.id;
-            stages[task.state].insertNodes(false, [task]);
-            if (task.state == "development") {
-                make_detail(detail, task);
+            if (task.tr == undefined) {
+                var tr = dojo.create("tr", null, "projects");
+                var stages = {};
+                stages.analysis = td_source(tr, task.id, 'analysis');
+                stages.devready = td_source(tr, task.id, 'devready');
+                stages.development = td_source(tr, task.id, 'development');
+                var detail = dojo.create(
+                    "td",
+                    {
+                        class: "detail_td",
+                        id: "detail_"+task.id
+                    }, tr);
+                stages.demo = td_source(tr, task.id, 'demo');
+                stages.deploy = td_source(tr, task.id, 'deploy');
+                stages.deployed = td_source(tr, task.id, 'deployed');
+                task.dnd_class = task.id;
+                stages[task.state].insertNodes(false, [task]);
+                if (task.state == "development") {
+                    make_detail(detail, task);
+                }
+                task.tr = tr;
+            }
+            else {
+                dom_class.remove(task.tr, "hidden");
             }
         }
 
@@ -379,7 +419,7 @@ require([
             all_tasks[release.id] = release;
             var node = dojo.create(
                 'li',
-                { innerHTML: release.name },
+                { innerHTML: "["+release.size+"] "+release.name },
                 "backlog");
             var backlog_menu = new Menu(
                 { targetNodeIds: [node] });
@@ -417,22 +457,62 @@ require([
                );
         }
 
+        dom_construct.place(
+            new Button(
+                {
+                    id: "stop_working",
+                    label: "Stop working on this task",
+                    onClick: function () {
+                        post(
+                            "stop_working",
+                            {
+                                task_id: selected_task.id,
+                                state: selected_task.state
+                            }).then(
+                                function () {
+                                    dom_class.add("task_detail", "hidden");
+                                    dom_class.add(selected_task.tr, "hidden");
+                                    setup_backlog_item(selected_task);
+                                });
+                    }
+                }).domNode, "task_detail");
+
         topic.subscribe(
             "/dnd/drop",
             function(source, nodes, copy, target) {
+                var task_ids = dojo.map(
+                    nodes,
+                    function (node) {
+                        // Task id
+                        var task_id = nodes[0].attributes.task_id.value;
+                        var task = all_tasks[task_id];
+                        dom_class.remove(node, source.task_state);
+                        dom_class.add(node, target.task_state);
+                        task.state = target.task_state;
+                        return task_id;
+                    });
                 if (source.node.id.substring(0, 11) == "development") {
                     var task_id = nodes[0].attributes.task_id.value;
                     var table_node = dojo.byId("table_"+task_id);
                     dom_class.add(table_node, "hidden");
                 }
-                if (target.node.id.substring(0, 11) == "development") {
-                    var task_id = nodes[0].attributes.task_id.value;
+                else if (target.node.id.substring(0, 11) == "development") {
+                    var task_id = task_ids[0]; // There can be only one
                     var table_node = dojo.byId("table_"+task_id);
                     if (table_node == null) {
                         get("tasks/" + task_id + "/subtasks",
                             function (data) {
                                 var task = all_tasks[task_id];
                                 task.subtasks = data.subtasks;
+                                task.remaining = task.size;
+                                dojo.forEach(
+                                    task.subtasks,
+                                    function (subtask) {
+                                        if (subtask.state == "done") {
+                                            task.remaining -= subtask.size;
+                                        }
+                                    });
+                                update_task_node(task);
                                 make_detail(dojo.byId("detail_"+task_id), task);
                             });
                     }
@@ -440,18 +520,33 @@ require([
                         dom_class.remove(table_node, "hidden");
                     }
                 }
+                else if (source.node.id.substring(0, 4) == "done") {
+                    dojo.forEach(
+                        task_ids,
+                        function (task_id) {
+                            var subtask = all_tasks[task_id];
+                            var task = all_tasks[subtask.parent.id];
+                            task.remaining += subtask.size;
+                            update_task_node(task);
+                        });
+                }
+                else if (target.node.id.substring(0, 4) == "done") {
+                    dojo.forEach(
+                        task_ids,
+                        function (task_id) {
+                            var subtask = all_tasks[task_id];
+                            var task = all_tasks[subtask.parent.id];
+                            task.remaining -= subtask.size;
+                            update_task_node(task);
+                        });
+                }
                 target.selectNone();
                 post(
                     "moved",
                     {
                         source: source.node.id,
                         target: target.node.id,
-                        task_ids: dojo.map(
-                            nodes,
-                            function (node) {
-                                // Task id
-                                return nodes[0].attributes.task_id.value;
-                            })
+                        task_ids: task_ids
                     });
             });
     });
