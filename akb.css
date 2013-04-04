@@ -56,7 +56,14 @@ th
   background-color: #f99;
   }
 
-
+.release .remaining
+{ 
+  font-weight: bold;
+  }
+.release .size:before { content: "[" }
+.release .size:after  { content: "] " }
+.release.development .size:before { content: " / " }
+.release.development .remaining:before { content: "[" } 
 
 .zc-fieldset
 {

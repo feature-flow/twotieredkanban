@@ -108,13 +108,17 @@ class API:
             error(r.json()['errors'][0]['message'])
         return r.json()['data']
 
-    def get_tasks_in_threads(self, tasks, filter=lambda task: True):
+    def get_tasks_in_threads(self, tasks, subtasks=False):
         threads = []
 
         for task in tasks:
-            @zc.thread.Thread
-            def thread():
-                return self.get("tasks/%s" % task['id'])
+            @zc.thread.Thread(args=(task,))
+            def thread(task):
+                task = self.get("tasks/%s" % task['id'])
+                if subtasks:
+                    task['subtasks'] = self.get(
+                        "tasks/%s/subtasks" % task['id'])
+                return task
             threads.append(thread)
 
         for thread in threads:
@@ -125,23 +129,46 @@ class API:
             task = thread.value
             if not task['name'].strip():
                 continue  # Nameless tasks are just noise
+
+            if task['parent']:
+                task['size'] = self.subtask_size(task['name'])
+
             yield task
+
+    size_match=re.compile(r'\s*\[\s*(\d+)\s*\]').match
+    def subtask_size(self, name):
+        m = self.size_match(name)
+        if m is not None:
+            return int(m.group(1))
+        else:
+            if name.strip():
+                return 1
+            else:
+                return 0
 
     @bobo.query("/releases/:project", content_type="application/json")
     def releases(self, project):
         result = dict(active = [], backlog = [])
         for task in self.get_tasks_in_threads(
-            self.get("projects/%s/tasks" % project)
+            self.get("projects/%s/tasks" % project),
+            subtasks=True
             ):
             if task['completed']:
                 continue
+            task['size'] = sum(
+                self.subtask_size(s['name'])
+                for s in task['subtasks'])
             tags = [t['name'] for t in task['tags']]
             state = [t for t in active_tags if t in tags]
             task[blocked] = blocked in tags
             if state:
                 task['state'] = state[0]
                 if task['state'] == 'development':
-                    task['subtasks'] = self.get_subtasks(task['id'])
+                    task['subtasks'] = self.get_subtasks(
+                        task['id'], task['subtasks'])
+                    task['remaining'] = task['size'] - sum(
+                        s['size'] for s in task['subtasks']
+                        if s['state'] == 'done')
 
                 result['active'].append(task)
             else:
@@ -149,9 +176,10 @@ class API:
 
         return result
 
-    def get_subtasks(self, task_id):
-        subtasks = list(self.get_tasks_in_threads(
-            self.get("tasks/%s/subtasks" % task_id)))
+    def get_subtasks(self, task_id, subtasks=None):
+        if subtasks is None:
+            subtasks = self.get("tasks/%s/subtasks" % task_id)
+        subtasks = list(self.get_tasks_in_threads(subtasks))
         for subtask in subtasks:
             tags = [t['name'] for t in subtask['tags']]
             state = [t for t in dev_tags if t in tags]
