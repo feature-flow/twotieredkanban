@@ -121,7 +121,11 @@ class API:
             thread.join(99)
             if thread.exception is not None:
                 raise thread.exception
-            yield thread.value
+
+            task = thread.value
+            if not task['name'].strip():
+                continue  # Nameless tasks are just noise
+            yield task
 
     @bobo.query("/releases/:project", content_type="application/json")
     def releases(self, project):
