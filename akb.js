@@ -242,27 +242,31 @@ require([
                 }).domNode);
 
         var blocked_checkbox = new CheckBox(
-                {
-                    onChange: function (v) {
-                        post(
-                            "blocked",
-                            {
-                                task_id: selected_task.id,
-                                is_blocked: v
-                            }).then(
-                                function () {
-                                    if (v) {
-                                        dom_class.add(
-                                            selected_node, "blocked");
-                                    }
-                                    else {
-                                        dom_class.remove(
-                                            selected_node, "blocked");
-                                    }
-                                });
+            {
+                class: 'zc-widget',
+                onChange: function (v) {
+                    if (v == selected_task.blocked) {
+                        return;
                     }
-                });
-        dom_construct.place(blocked_checkbox.domNode, 'blocked_div', 'first');
+                    post(
+                        "blocked",
+                        {
+                            task_id: selected_task.id,
+                            is_blocked: v
+                        }).then(
+                            function () {
+                                if (v) {
+                                    dom_class.add(
+                                        selected_node, "blocked");
+                                }
+                                else {
+                                    dom_class.remove(
+                                        selected_node, "blocked");
+                                }
+                            });
+                }
+            });
+        dom_construct.place(blocked_checkbox.domNode, 'blocked_div');
 
         function select_task(task) {
             selected_task = task;
