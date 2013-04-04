@@ -5,6 +5,7 @@ import json
 import os
 import re
 import requests
+import zc.thread
 
 try:
     cache
@@ -107,11 +108,27 @@ class API:
             error(r.json()['errors'][0]['message'])
         return r.json()['data']
 
+    def get_tasks_in_threads(self, tasks, filter=lambda task: True):
+        threads = []
+
+        for task in tasks:
+            @zc.thread.Thread
+            def thread():
+                return self.get("tasks/%s" % task['id'])
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join(99)
+            if thread.exception is not None:
+                raise thread.exception
+            yield thread.value
+
     @bobo.query("/releases/:project", content_type="application/json")
     def releases(self, project):
         result = dict(active = [], backlog = [])
-        for task_summary in self.get("projects/%s/tasks" % project):
-            task = self.get("tasks/%s" % task_summary['id'])
+        for task in self.get_tasks_in_threads(
+            self.get("projects/%s/tasks" % project)
+            ):
             if task['completed']:
                 continue
             tags = [t['name'] for t in task['tags']]
@@ -125,13 +142,12 @@ class API:
                 result['active'].append(task)
             else:
                 result['backlog'].append(task)
+
         return result
 
     def get_subtasks(self, task_id):
-        subtasks = [
-            self.get("tasks/%s" % subtask_summary['id'])
-            for subtask_summary in self.get("tasks/%s/subtasks" % task_id)
-            ]
+        subtasks = list(self.get_tasks_in_threads(
+            self.get("tasks/%s/subtasks" % task_id)))
         for subtask in subtasks:
             tags = [t['name'] for t in subtask['tags']]
             state = [t for t in dev_tags if t in tags]
