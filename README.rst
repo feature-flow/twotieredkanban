@@ -1,6 +1,24 @@
 Two-tiered Kanban on Asana
 ==========================
 
+A two-tiered kanban models processes with nested subprocesses.  A
+typical example is a product-develolpment process with a nested
+software-development process.
+
+Why two-tiered kanban?  The goal of a lean organization is to provide
+value to its stakeholders.  The efforts of the organization must
+remain focussed on providing value.  Typical kanban boards focus on
+development, but products don't provide value until their in the hands
+of customers.  In the case of software development, software doesn't
+provide value until it's deployed to and being used by customers.
+While in the development cycle, it's important to track the progress
+of individual components, it's also critical to track the progress of
+a product after development to get it in the hands of users as soon as
+possible.  Two-tiered kanban allows us to track progress of individual
+components during development and also allows us to track the full
+lifecycle of a product or feature until it's in the hands of
+customers.
+
 This application uses an Asana *project* to model a development team.
 Top level *tasks* model *releases*. *Subtasks* model release tasks.
 
