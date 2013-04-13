@@ -1,5 +1,3 @@
-# Asana proxy. sigh.
-
 import bobo
 import json
 import os
@@ -10,13 +8,7 @@ import zc.thread
 try:
     cache
 except NameError:
-    cache = None
-
-def dev_mode(data):
-    print "Running in development mode."
-    global cache
-    if cache is None:
-        cache = {}
+    cache = {}
 
 def error(message):
     raise bobo.BoboException(
