@@ -1,14 +1,55 @@
 import bobo
+import gevent.queue
 import json
+import logging
 import os
 import re
 import requests
+import sys
 import zc.thread
+
+logger = logging.getLogger(__name__)
+
+class Cache:
+
+    def __init__(self):
+        self.tasks = {}
+        self.puts = {}
+        self.get = self.tasks.get
+
+    def get(self, task_id, getter, uuid):
+        tasks = self.tasks
+        try:
+            return tasks[task_id]
+        except KeyError:
+            task = getter("tasks/%s" % task_id)
+            self.get_subtasks(task, getter)
+            return task
+
+    def send(self, task, uuid):
+        tasks = self.tasks
+        task_id = task['id']
+        try:
+            old = tasks[task_id]
+        except KeyError:
+            # Not in cache
+            tasks[task_id] = task
+        else:
+            if task['modified_at'] > old['modified_at']:
+                old.update(task)
+            task = old
+
+        task = json.dumps(task)
+        self.puts[uuid](task)
+
+    def invalidate(self, task):
+        for uuid in self.puts:
+            self.send(task, uuid)
 
 try:
     cache
 except NameError:
-    cache = {}
+    cache = Cache()
 
 def error(message):
     raise bobo.BoboException(
@@ -16,6 +57,13 @@ def error(message):
         json.dumps(dict(error=message)),
         content_type='application/json',
         )
+
+def asana_error(r):
+    if "application/json" in r.headers['content-type']:
+        message = r.json()['errors'][0]['message']
+    else:
+        message = "Asana call failed"
+    error(message)
 
 def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
@@ -34,83 +82,117 @@ def akb_js():
 def akb_css():
     return read_file("akb.css")
 
-analysis = 'analysis'
-ready = 'ready'
-deployed = 'deployed'
-done = 'done'
-blocked = 'blocked'
+done_states = set()
+working_states = set()
 
-active_tags = analysis, 'devready', 'development', 'demo', 'deploy'
-dev_tags = 'doing', 'nr', 'review', done
+def normalize_state(state):
+    if isinstance(state, basestring):
+        state = dict(
+            label = state,
+            )
 
-done_states = done, deployed
+    if 'tag' not in state:
+        state['tag'] = state['label'].lower() # XXX for now
 
-tag_ids = {}
+    if state.get('complete'):
+        done_states.add(state['tag'])
 
+    if state.get('working'):
+        working_states.add(state['tag'])
 
+    if 'substates' in state:
+        state['substates'] = map(normalize_state, state['substates'])
 
-@bobo.subroute("/api/:key", scan=True)
+    return state
+
+states = map(normalize_state, json.loads(read_file('model.json')))
+
+tag_ids = {} # {workspace_id -> {tag_name -> tag_id}}
+
+@bobo.subroute("/api", scan=True)
 class API:
 
-    def __init__(self, request, key):
+    def __init__(self, request):
         self.request = request
-        self.key = key
+        self.key = request.cookies["X-API-key"]
+
+    @property
+    def workspace_id(self):
+        return self.request.cookies["X-Workspace-ID"]
+
+    @property
+    def project_id(self):
+        return self.request.cookies["X-Project-ID"]
+
+    @property
+    def uuid(self):
+        return self.request.cookies["X-UUID"]
 
     def get(self, url):
-        if cache is not None and url in cache:
-            return cache[url]
-
         r = requests.get(
             'https://app.asana.com/api/1.0/' + url,
             auth=(self.key, ''),
             )
         if not r.ok:
-            error(r.json()['errors'][0]['message'])
+            asana_error(r)
 
-        r = r.json()['data']
-        if cache is not None:
-            cache[url] = r
+        return r.json()['data']
 
-        return r
-
-    def post(self, url, data):
+    def post(self, url, **data):
         r = requests.post(
             'https://app.asana.com/api/1.0/' + url,
             auth=(self.key, ''),
             data=json.dumps(dict(data=data)),
             headers={'Content-Type': 'application/json'},
             )
-        if cache is not None:
-            cache.clear()
         print 'post', url, data, r.ok
         if not r.ok:
-            error(r.json()['errors'][0]['message'])
+            asana_error(r)
         return r.json()['data']
 
-    def put(self, url, data):
+    def put(self, url, **data):
         r = requests.put(
             'https://app.asana.com/api/1.0/' + url,
             auth=(self.key, ''),
             data=json.dumps(dict(data=data)),
             headers={'Content-Type': 'application/json'},
             )
-        if cache is not None:
-            cache.clear()
         if not r.ok:
-            error(r.json()['errors'][0]['message'])
+            asana_error(r)
         return r.json()['data']
 
-    def get_tasks_in_threads(self, tasks, subtasks=False):
+    @bobo.query("/workspaces", content_type='application/json')
+    def workspaces(self):
+        return dict(data=self.get('workspaces'))
+
+    @bobo.query("/workspaces/:workspace/projects",
+                content_type='application/json')
+    def projects(self, workspace):
+        return dict(data=self.get('workspaces/%s/projects' % workspace))
+
+    @bobo.query("/model.json", content_type="application/json")
+    def model_json(self):
+        return dict(states=states)
+
+    def get_task(self, task_id):
+        task = self.get("tasks/%s" % task_id)
+        if not task.get('parent'):
+            task['subtasks'] = self.get(
+                "tasks/%s/subtasks" % task_id)
+        return task
+
+    def get_tasks_in_threads(self, tasks):
         threads = []
 
         for task in tasks:
             @zc.thread.Thread(args=(task,))
-            def thread(task):
-                task = self.get("tasks/%s" % task['id'])
-                if subtasks:
-                    task['subtasks'] = self.get(
-                        "tasks/%s/subtasks" % task['id'])
+            def thread(task_summary):
+                task_id = task_summary['id']
+                task = cache.get(task_id)
+                if task is None:
+                    task = self.get_task(task_id)
                 return task
+
             threads.append(thread)
 
         for thread in threads:
@@ -122,133 +204,96 @@ class API:
             if not task['name'].strip():
                 continue  # Nameless tasks are just noise
 
-            if task['parent']:
-                task['size'] = self.subtask_size(task['name'])
-
             yield task
 
-    size_match=re.compile(r'\s*\[\s*(\d+)\s*\]').match
-    def subtask_size(self, name):
-        m = self.size_match(name)
-        if m is not None:
-            return int(m.group(1))
-        else:
-            if name.strip():
-                return 1
-            else:
-                return 0
+    @bobo.query("/project", content_type="application/json")
+    def project(self):
+        try:
+            ws = self.request.environ["wsgi.websocket"]
+            uuid = self.uuid
+            queue = gevent.queue.Queue()
+            get = queue.get
+            try:
+                cache.puts[uuid] = queue.put
+                for task in self.get_tasks_in_threads(
+                    self.get("projects/%s/tasks" % self.project_id)
+                    ):
+                    if not task.get('completed'):
+                        cache.send(task, uuid)
+                        ws.send(get())
 
-    @bobo.query("/releases/:project", content_type="application/json")
-    def releases(self, project):
-        result = dict(active = [], backlog = [])
-        for task in self.get_tasks_in_threads(
-            self.get("projects/%s/tasks" % project),
-            subtasks=True
-            ):
-            if task['completed']:
-                continue
-            task['size'] = sum(
-                self.subtask_size(s['name'])
-                for s in task['subtasks'])
-            tags = [t['name'] for t in task['tags']]
-            state = [t for t in active_tags if t in tags]
-            task[blocked] = blocked in tags
-            if state:
-                task['state'] = state[0]
-                if task['state'] == 'development':
-                    task['subtasks'] = self.get_subtasks(
-                        task['id'], task['subtasks'])
-                    task['remaining'] = task['size'] - sum(
-                        s['size'] for s in task['subtasks']
-                        if s['state'] == 'done')
+                while 1:
+                    ws.send(get())
+            finally:
+                cache.puts.pop(uuid, None)
+        except:
+            logger.exception("/project")
+            raise
 
-                result['active'].append(task)
-            else:
-                result['backlog'].append(task)
-
-        return result
-
-    def get_subtasks(self, task_id, subtasks=None):
-        if subtasks is None:
-            subtasks = self.get("tasks/%s/subtasks" % task_id)
-        subtasks = list(self.get_tasks_in_threads(subtasks))
-        for subtask in subtasks:
-            tags = [t['name'] for t in subtask['tags']]
-            state = [t for t in dev_tags if t in tags]
-            subtask['state'] = state[0] if state else ready
-            subtask[blocked] = blocked in tags
-        return subtasks
-
-    @bobo.query("/tasks/:task_id/subtasks", content_type="application/json")
+    @bobo.query("/subtasks/:task_id", content_type="application/json")
     def subtasks(self, task_id):
-        return dict(subtasks=self.get_subtasks(task_id))
+        uuid = self.uuid
+        for task in self.get_tasks_in_threads(
+            self.get("tasks/%s/subtasks" % task_id)
+            ):
+            cache.send(task, uuid)
 
-    def get_tags_ids(self):
-        global tag_ids
-        tag_ids = dict((t['name'], t['id']) for t in self.get("tags"))
+    def tag_id(self, state):
+        workspace_id = self.workspace_id
+        ids = tag_ids.get(workspace_id)
+        if not ids:
+            ids = tag_ids[workspace_id] = dict(
+                (t['name'], t['id'])
+                for t in self.get("workspaces/%s/tags" % workspace_id)
+                )
 
+        if state not in ids:
+            data = self.post("workspaces/%s/tags" % workspace_id,
+                             name=state)
+            ids[state] = data['id']
 
-    def check_state(self, state):
-        if state == ready:
-            return state
-        if state not in tag_ids:
-            self.get_tags_ids()
-            if state not in tag_ids:
-                error("Invalid state, " + state)
-        return state
+        return ids[state]
+
+    def move_data(self, node_id):
+        if node_id:
+            state = node_id.split('_')[0]
+            return state, self.tag_id(state)
+        else:
+            return "", ""
 
     @bobo.post("/moved", content_type='application/json')
     def moved(self, source, target, task_ids):
-        old_state = self.check_state(source.split("_")[0])
-        new_state = self.check_state(target.split("_")[0])
-
+        source_state, source_id = self.move_data(source)
+        target_state, target_id = self.move_data(target)
         if isinstance(task_ids, basestring):
             task_ids = task_ids,
 
         for task_id in task_ids:
-            if old_state != ready:
-                self.post("tasks/%s/removeTag" % task_id,
-                          dict(tag=tag_ids[old_state]))
-            if new_state != ready:
-                self.post("tasks/%s/addTag" % task_id,
-                          dict(tag=tag_ids[new_state]))
-            if old_state in done_states or new_state in done_states:
-                self.put("tasks/%s" % task_id,
-                         data=dict(completed = new_state in done_states))
+            if source:
+                self.post("tasks/%s/removeTag" % task_id, tag=source_id)
+            if target:
+                self.post("tasks/%s/addTag" % task_id, tag=target_id)
+
+            task = self.put("tasks/%s" % task_id,
+                            completed = target_state in done_states,
+                            assignee = ("me"
+                                        if target_state in working_states
+                                        else None))
+            cache.invalidate(task)
 
         return {}
 
-    @bobo.post("/start_working", content_type='application/json')
-    def start_working(self, task_id):
-        state = self.check_state(analysis)
-        return self.post("tasks/%s/addTag" % task_id,
-                         dict(tag=tag_ids[state]))
-
-    @bobo.query("/workspaces", content_type='application/json')
-    def workspaces(self):
-        return dict(data=self.get('workspaces'))
-
-    @bobo.query("/workspaces/:workspace/projects",
-                content_type='application/json')
-    def projects(self, workspace):
-        return dict(data=self.get('workspaces/%s/projects' % workspace))
-
     @bobo.post("/take", content_type='application/json')
     def take(self, task_id):
-        return self.put("tasks/%s" % task_id, data=dict(assignee = "me"))
+        cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
 
     @bobo.post("/blocked", content_type='application/json')
     def blocked(self, task_id, is_blocked):
-        self.check_state(blocked)
+        tag_id = self.tag_id('blocked')
         if is_blocked == 'true':
-            return self.post("tasks/%s/addTag" % task_id,
-                             dict(tag=tag_ids[blocked]))
+             self.post("tasks/%s/addTag" % task_id,
+                       tag=tag_ids[blocked])
         else:
             return self.post("tasks/%s/removeTag" % task_id,
-                             dict(tag=tag_ids[blocked]))
-
-    @bobo.post("/stop_working", content_type='application/json')
-    def stop_working(self, task_id, state):
-        self.check_state(state)
-        self.post("tasks/%s/removeTag" % task_id,
-                  dict(tag=tag_ids[state]))
+                             tag=tag_ids[blocked])
+        cache.invalidate(self.get("tasks/%s" % task_id))

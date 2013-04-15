@@ -1,5 +1,7 @@
 require([
+            "dojo/_base/lang",
             "dojo/aspect",
+            "dojo/cookie",
             "dojo/dnd/Source",
             "dojo/dom-class",
             "dojo/dom-construct",
@@ -15,16 +17,25 @@ require([
             "dijit/Menu",
             "dijit/MenuItem",
             "dojo/topic",
+            "dojox/uuid/generateTimeBasedUuid",
+            "dojox/socket",
             "dojo/domReady!"],
     function(
-        aspect, Source, dom_class, dom_construct, query, ready, string,
+        lang, aspect, cookie, Source, dom_class, dom_construct, query, ready,
+        string,
         dijit, Button, CheckBox, Select, TextBox, Dialog,
-        Menu, MenuItem, topic) {
+        Menu, MenuItem, topic, generateTimeBasedUuid, socket
+    ) {
 
         var all_tasks = {};              // task id -> task
+        var model;
         dom_class.add("task_detail", "hidden");
 
-        if (! localStorage.api_key) {
+        if (localStorage.api_key) {
+            cookie("X-API-key", localStorage.api_key);
+            get_workspace();
+        }
+        else {
             var dialog = new Dialog(
                 {
                     title: 'API Key:'
@@ -73,7 +84,7 @@ require([
         function get(url, load) {
             return dojo.xhrGet(
                 {
-                    url: 'api/' + localStorage.api_key + '/' + url,
+                    url: "/api/"+url,
                     handleAs: "json",
                     load: load,
                     error: function (data) {
@@ -85,85 +96,146 @@ require([
         function post(url, content, load) {
             return dojo.xhrPost(
                 {
-                    url: 'api/' + localStorage.api_key + '/' + url,
+                    url: "/api/"+url,
                     handleAs: "json",
                     content: content,
                     load: load,
                     error: function (data) {
                         alert(data);
                     }
-                    });
+                });
 
         }
 
-        get("workspaces",
-            function (data) {
-                data = data.data;
-                if (! localStorage.workspace_id) {
-                    localStorage.workspace_id = data[0].id;
-                }
-                dojo.create("label", {innerHTML: "Workspace:"}, 'top');
-                dojo.byId('top').appendChild(
-                    new Select(
-                        {
-                            options: dojo.map(
-                                data,
-                                function (w) {
-                                    return {
-                                        label: w.name,
-                                        value: w.id.toString(),
-                                        selected:
-                                        w.id == localStorage.workspace_id
-                                    };
-                                }),
-                            onChange: function (v) {
-                                localStorage.workspace_id = v;
-                                window.location.reload();
-                            }
-                        }).domNode);
-            }).then(
-                function () {
-                    get(
-                        "workspaces/"+localStorage.workspace_id+"/projects",
-                        function(data) {
-                            data = data.data;
-                            if (! localStorage.project_id) {
-                                var development = dojo.filter(
+        function get_workspace() {
+            get("workspaces",
+                function (data) {
+                    data = data.data;
+                    if (data.length == 1) {
+                        localStorage.workspace_id = data[0].id;
+                    }
+                    dojo.create("label", {innerHTML: "Workspace:"}, 'top');
+                    dojo.byId('top').appendChild(
+                        new Select(
+                            {
+                                options: dojo.map(
+                                    data,
+                                    function (w) {
+                                        return {
+                                            label: w.name,
+                                            value: w.id.toString(),
+                                            selected:
+                                            w.id == localStorage.workspace_id
+                                        };
+                                    }),
+                                onChange: function (v) {
+                                    localStorage.workspace_id = v;
+                                    window.location.reload();
+                                }
+                            }).domNode);
+                    if (localStorage.workspace_id) {
+                        cookie("X-Workspace-ID", localStorage.workspace_id);
+                        get_project();
+                    }
+                    else {
+                        dojo.create(
+                            "span",
+                            {
+                                innerHTML:
+                                "Select a workspace. (One that can have tags.)"
+                            },
+                            "top");
+                    }
+
+                });
+        }
+
+        function get_project() {
+            get(
+                "workspaces/"+localStorage.workspace_id+"/projects",
+                function(data) {
+                    data = data.data;
+                    if (data.length == 1) {
+                        localStorage.project_id = data[0].id;
+                    }
+                    if (! localStorage.project_id) {
+                        var development = dojo.filter(
+                            data,
+                            function (p) {
+                                return p.name == "Development";
+                            });
+                        if (development.length > 0) {
+                            localStorage.project_id = development[0].id;
+                        }
+                    }
+                    dojo.create(
+                        "label", {innerHTML: "Project:"}, 'top');
+                    dojo.byId('top').appendChild(
+                        new Select(
+                            {
+                                options: dojo.map(
                                     data,
                                     function (p) {
-                                        return p.name == "Development";
-                                    });
-                                if (development.length > 0) {
-                                    localStorage.project_id = development[0].id;
+                                        return {
+                                            label: p.name,
+                                            value: p.id.toString(),
+                                            selected:
+                                            p.id ==
+                                                localStorage.project_id
+                                        };
+                                    }),
+                                onChange: function (v) {
+                                    localStorage.project_id = v;
+                                    window.location.reload();
                                 }
-                                else {
-                                    localStorage.project_id = data[0].id;
-                                }
-                            }
-                            dojo.create(
-                                "label", {innerHTML: "Project:"}, 'top');
-                            dojo.byId('top').appendChild(
-                                new Select(
-                                    {
-                                        options: dojo.map(
-                                            data,
-                                            function (p) {
-                                                return {
-                                                    label: p.name,
-                                                    value: p.id.toString(),
-                                                    selected:
-                                                    p.id ==
-                                                        localStorage.project_id
-                                                };
-                                            }),
-                                        onChange: function (v) {
-                                            localStorage.project_id = v;
-                                            window.location.reload();
-                                        }
-                                    }).domNode);
-                        }
-                    ).then(new_project);
+                            }).domNode);
+                    if (localStorage.project_id) {
+                        cookie("X-Project-ID", localStorage.project_id);
+                        get_model();
+                    }
+                    else {
+                        dojo.create(
+                            "span",
+                            {
+                                innerHTML: "Select a project."
+                            },
+                            "top");
+                        return;
+                    }
                 });
+        }
+
+        function get_model() {
+            get("model.json",
+                function (data) {
+                    model = data;
+                    model.release_tags = {};
+                    dojo.forEach(
+                        model.states,
+                        function (state) {
+                            dojo.create(
+                                "th",
+                                {
+                                    colspan: state.substates ? 2 : 1,
+                                    innerHTML: state.label
+                                },
+                                board_headers);
+                            model.release_tags[state.tag] = state;
+                            if (state.substates) {
+                                state.tags = {};
+                                dojo.forEach(
+                                    state.substates,
+                                    function (substate) {
+                                        if (! state.default_state) {
+                                            state.default_state = substate.tag;
+                                        }
+                                        state.tags[substate.tag] = substate;
+                                    });
+                            }
+                        });
+                    new_project();
+                });
+        }
 
         var item_template =
             "<div>${name}</div>" +
@@ -355,64 +427,31 @@ require([
         }
 
         function make_detail(parent, task) {
+            var thead = "<thead>";
+            dojo.forEach(
+                model.release_tags[task.state].substates,
+                function (substate) {
+                    thead += "<th>" + substate.label + "</th>";
+                }
+            );
+            var id = "subtasks_" + task.state + "_" + task.id;
             dojo.create(
                 "table", {
-                    id: 'table_'+task.id,
+                    id: 'table_' + task.state + "_" + task.id,
                     class: 'task_detail',
-                    innerHTML: (
-                        "<thead>" +
-                            "<th>Ready</th>" +
-                            "<th>Doing</th>" +
-                            "<th>Needs Review</th>" +
-                            "<th>Review</th>" +
-                            "<th>Done</th>" +
-                            "</thead><tbody id='subtasks_" + task.id +
-                            "'></tbody>")
+                    innerHTML:
+                    thead + "</thead><tbody id='" + id + "'></tbody>"
                 },
                 parent);
-            var id = "subtasks_" + task.id;
             var tr = dojo.create("tr", null, id);
             var stages = {};
-            stages.ready = td_source(tr, id, 'ready');
-            stages.doing = td_source(tr, id, 'doing');
-            stages.nr = td_source(tr, id, 'nr');
-            stages.review = td_source(tr, id, 'review');
-            stages.done = td_source(tr, id, 'done');
             dojo.forEach(
-                task.subtasks,
-                function (subtask) {
-                    all_tasks[subtask.id.toString()] = subtask;
-                    subtask.dnd_class = id;
-                    stages[subtask.state].insertNodes(false, [subtask]);
-                });
-        }
-
-        function make_release(task) {
-            if (task.tr == undefined) {
-                var tr = dojo.create("tr", null, "projects");
-                var stages = {};
-                stages.analysis = td_source(tr, task.id, 'analysis');
-                stages.devready = td_source(tr, task.id, 'devready');
-                stages.development = td_source(tr, task.id, 'development');
-                var detail = dojo.create(
-                    "td",
-                    {
-                        class: "detail_td",
-                        id: "detail_"+task.id
-                    }, tr);
-                stages.demo = td_source(tr, task.id, 'demo');
-                stages.deploy = td_source(tr, task.id, 'deploy');
-                stages.deployed = td_source(tr, task.id, 'deployed');
-                task.dnd_class = task.id;
-                stages[task.state].insertNodes(false, [task]);
-                if (task.state == "development") {
-                    make_detail(detail, task);
+                model.release_tags[task.state].substates,
+                function (substate) {
+                    stages[substate.tag] = td_source(tr, id, substate.tag);
                 }
-                task.tr = tr;
-            }
-            else {
-                dom_class.remove(task.tr, "hidden");
-            }
+            );
+            task.substages = stages;
         }
 
         function setup_backlog_item(release) {
@@ -443,18 +482,124 @@ require([
             backlog_menu.startup();
         }
 
-        function new_project() {
-            get("releases/" + localStorage.project_id,
-                function (resp) {
-                    dojo.forEach(
-                        resp.active,
-                        function (release) {
-                            all_tasks[release.id.toString()] = release;
-                            make_release(release);
-                        });
-                    dojo.forEach(resp.backlog, setup_backlog_item);
+        function get_task_state(task, tags, default_state) {
+            var state = dojo.filter(
+                task.tags,
+                function (tag) {
+                    return tag.name in tags;
+                });
+            if (state.length > 0) {
+                task.state = state[0].name;
+            }
+            else {
+                task.state = default_state;
+            }
+        }
+
+        function get_task_blocked(task) {
+            task.blocked = dojo.filter(
+                task.tags,
+                function (tag) {
+                    return tag.name == "blocked";
                 }
-               );
+            ).length > 0;
+        }
+
+        var size_re = /^\s*\[\s*(\d+)\s*\]/;
+        function get_task_size(task) {
+            var m = size_re.exec(task.name);
+            if (m) {
+                task.size = parseInt(m[1]);
+            }
+            else {
+                task.size = 1;
+            }
+        }
+
+        function get_release_size(release) {
+            var size = 0;
+            dojo.forEach(
+                release.subtasks,
+                function (task) {
+                    get_task_size(task);
+                    size += task.size;
+                });
+            release.size = size;
+        }
+
+        function setup_release_views(task) {
+            var tr = dojo.create("tr", null, "projects");
+            var stages = {};
+            dojo.forEach(
+                model.states,
+                function (state) {
+                    stages[state.tag] = td_source(tr, task.id, state.tag);
+                    if (state.substates) {
+                        var detail = dojo.create(
+                            "td",
+                            {
+                                class: state.tag+"_detail",
+                                id: state.tag+"_detail_"+task.id
+                            }, tr);
+                        if (task.state == state.tag) {
+                            make_detail(detail, task);
+                            get("subtasks/"+task.id);
+                        }
+                    }
+                });
+            task.stages = stages;
+            task.dnd_class = task.id;
+            stages[task.state].insertNodes(false, [task]);
+            task.tr = tr;
+        }
+
+        function receive(event) {
+            var task = JSON.parse(event.data);
+            get_task_blocked(task);
+            if (task.parent) {
+                var super_state = model.release_tags[
+                    all_tasks[task.parent.id].state];
+                get_task_state(
+                    task, super_state.tags, super_state.default_state);
+                get_task_size(task);
+            }
+            else {
+                get_task_state(task, model.release_tags);
+                get_release_size(task);
+            }
+            if (task.id in all_tasks) {
+                var old = all_tasks[task.id];
+                lang.mixin(old, task);
+                update_task_node(old);
+                // XXX update views
+            }
+            else {
+                // New task
+                all_tasks[task.id] = task;
+                if (task.parent == null) {
+                    // Release
+                    task.remaining = task.size;
+                    if (task.state) {
+                        setup_release_views(task);
+                    }
+                    else {
+                        // Backlog
+                        setup_backlog_item(task);
+                    }
+                }
+                else {
+                    // Release task
+                    var parent = all_tasks[task.parent.id];
+                    task.dnd_class = (
+                        'subtasks_' + parent.state + "_" + parent.id);
+                    parent.substages[task.state].insertNodes(false, [task]);
+                }
+            }
+        }
+
+        function new_project() {
+            cookie("X-UUID", generateTimeBasedUuid());
+            dojox.socket("/api/project").on("message", receive);
         }
 
         dom_construct.place(
@@ -549,4 +694,5 @@ require([
                         task_ids: task_ids
                     });
             });
+
     });

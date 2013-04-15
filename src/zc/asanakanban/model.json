@@ -1,0 +1,35 @@
+[
+    {
+        "label": "Analysis",
+        "working": true
+    },
+    {
+        "tag": "devready",
+        "label": "Ready"
+    },
+    {
+        "label": "Development",
+        "substates": [
+            "Ready",
+            {
+                "label": "Doing",
+                "working": true,
+            },
+            {
+                "tag": "nr",
+                "label": "Needs Review"
+            },
+            {
+                "label": "Review",
+                "working": true
+            },
+            "Done"
+        ]
+    },
+    "Demo",
+    "Deploy",
+    {
+        "label": "Deployed",
+        "complete": true
+    }
+]
