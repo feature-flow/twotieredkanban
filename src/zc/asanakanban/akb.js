@@ -569,6 +569,22 @@ require([
             }
             if (task.id in all_tasks) {
                 var old = all_tasks[task.id];
+                if (task.state != old.state) {
+                    // Move task to new dnd source
+                    if (task.parent) {
+                        var parent = all_tasks[task.parent.id];
+                        var old_source = parent.substages[old.state];
+                        old_source.selectNone(); // make sure it's clear
+                        // select the old node, dirtily cuz dojo doesn't
+                        // provide an API.
+                        old_source.selection[old.node.id] = 1;
+                        old_source.deleteSelectedNodes();
+                        parent.substages[task.state].insertNodes(false, [old]);
+                    }
+                    else {
+                        // XXX need to handle release case.
+                    }
+                }
                 lang.mixin(old, task);
                 update_task_node(old);
                 // XXX update views
