@@ -23,7 +23,10 @@
                 "label": "Review",
                 "working": true
             },
-            "Done"
+            {
+                "label": "Done",
+                "complete": true
+            }
         ]
     },
     "Demo",
