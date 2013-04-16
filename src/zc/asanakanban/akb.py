@@ -274,22 +274,22 @@ class API:
             return "", ""
 
     @bobo.post("/moved", content_type='application/json')
-    def moved(self, source, target, task_ids):
-        source_state, source_id = self.move_data(source)
-        target_state, target_id = self.move_data(target)
+    def moved(self, old_state, new_state, task_ids):
+        old_state_id = self.tag_id(old_state) if old_state else ""
+        new_state_id = self.tag_id(new_state) if new_state else ""
         if isinstance(task_ids, basestring):
             task_ids = task_ids,
 
         for task_id in task_ids:
-            if source:
-                self.post("tasks/%s/removeTag" % task_id, tag=source_id)
-            if target:
-                self.post("tasks/%s/addTag" % task_id, tag=target_id)
+            if old_state:
+                self.post("tasks/%s/removeTag" % task_id, tag=old_state_id)
+            if new_state:
+                self.post("tasks/%s/addTag" % task_id, tag=new_state_id)
 
             task = self.put("tasks/%s" % task_id,
-                            completed = target_state in done_states,
+                            completed = new_state in done_states,
                             assignee = ("me"
-                                        if target_state in working_states
+                                        if new_state in working_states
                                         else None))
             cache.invalidate(task)
 
