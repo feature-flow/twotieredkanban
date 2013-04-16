@@ -572,6 +572,11 @@ require([
 
             task.state = new_state;
             dom_class.add(task, task.state);
+
+            if (task.parent) {
+                return;
+            }
+
             if (model.release_tags[new_state].substates) {
                 make_detail(dojo.byId(new_state+"_detail_"+task.id), task);
                 dojo.forEach(
@@ -681,6 +686,7 @@ require([
             "/dnd/drop",
             function(source, nodes, copy, target) {
 
+                var old_state = source.node.id.split("_")[0];
                 var new_state = target.node.id.split("_")[0];
 
                 // Collect task ids.
@@ -698,8 +704,8 @@ require([
                 post(
                     "moved",
                     {
-                        source: source.node.id,
-                        target: target.node.id,
+                        old_state: old_state,
+                        new_state: new_state,
                         task_ids: task_ids
                     });
             });
