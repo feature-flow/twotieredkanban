@@ -250,7 +250,7 @@ require([
         function update_task_node(task) {
             if (task.parent == null) {
                 var template = release_template;
-                if (task.state == "development") {
+                if (model.release_tags[task.state].substates) {
                     template = dev_template;
                 }
                 task.node.innerHTML = string.substitute(
@@ -426,34 +426,6 @@ require([
             return source;
         }
 
-        function make_detail(parent, task) {
-            var thead = "<thead>";
-            dojo.forEach(
-                model.release_tags[task.state].substates,
-                function (substate) {
-                    thead += "<th>" + substate.label + "</th>";
-                }
-            );
-            var id = "subtasks_" + task.state + "_" + task.id;
-            dojo.create(
-                "table", {
-                    id: 'table_' + task.state + "_" + task.id,
-                    class: 'task_detail',
-                    innerHTML:
-                    thead + "</thead><tbody id='" + id + "'></tbody>"
-                },
-                parent);
-            var tr = dojo.create("tr", null, id);
-            var stages = {};
-            dojo.forEach(
-                model.release_tags[task.state].substates,
-                function (substate) {
-                    stages[substate.tag] = td_source(tr, id, substate.tag);
-                }
-            );
-            task.substages = stages;
-        }
-
         function setup_backlog_item(release) {
             all_tasks[release.id] = release;
             var node = dojo.create(
@@ -527,6 +499,44 @@ require([
             release.size = size;
         }
 
+        function make_detail(parent, task) {
+            var thead = "<thead>";
+            dojo.forEach(
+                model.release_tags[task.state].substates,
+                function (substate) {
+                    thead += "<th>" + substate.label + "</th>";
+                }
+            );
+            var id = "subtasks_" + task.state + "_" + task.id;
+            dojo.create(
+                "table", {
+                    id: 'table_' + task.state + "_" + task.id,
+                    class: 'task_detail',
+                    innerHTML:
+                    thead + "</thead><tbody id='" + id + "'></tbody>"
+                },
+                parent);
+            var tr = dojo.create("tr", null, id);
+            var stages = {};
+            dojo.forEach(
+                model.release_tags[task.state].substates,
+                function (substate) {
+                    stages[substate.tag] = td_source(tr, id, substate.tag);
+                }
+            );
+            task.substages = stages;
+        }
+
+        function destroy_detail(task) {
+            dojo.forEach(
+                task.substages,
+                function (substage) {
+                    substage.destroy();
+                });
+            delete task.substages;
+            dom_construct.destroy('table_' + task.state + "_" + task.id);
+        }
+
         function setup_release_views(task) {
             var tr = dojo.create("tr", null, "projects");
             var stages = {};
@@ -553,6 +563,30 @@ require([
             task.tr = tr;
         }
 
+        function change_state(task, new_state) {
+            dom_class.remove(task, task.state);
+            // clean up details
+            if (task.substages) {
+                destroy_detail(task);
+            }
+
+            task.state = new_state;
+            dom_class.add(task, task.state);
+            if (model.release_tags[new_state].substates) {
+                make_detail(dojo.byId(new_state+"_detail_"+task.id), task);
+                dojo.forEach(
+                    task.subtasks,
+                    function (subtask) {
+                        subtask = all_tasks[subtask.id];
+                        if (subtask) {
+                            task.substages[subtask.state].insertNodes(
+                                false, [subtask]);
+                        }
+                    });
+            }
+
+        }
+
         function receive(event) {
             var task = JSON.parse(event.data);
             get_task_blocked(task);
@@ -574,20 +608,23 @@ require([
                     if (task.parent) {
                         var parent = all_tasks[task.parent.id];
                         var old_source = parent.substages[old.state];
-                        old_source.selectNone(); // make sure it's clear
-                        // select the old node, dirtily cuz dojo doesn't
-                        // provide an API.
-                        old_source.selection[old.node.id] = 1;
-                        old_source.deleteSelectedNodes();
-                        parent.substages[task.state].insertNodes(false, [old]);
+                        var new_source = parent.substages[task.state];
                     }
                     else {
-                        // XXX need to handle release case.
+                        var old_source = old.stages[old.state];
+                        var new_source = old.stages[task.state];
                     }
+                    old_source.selectNone(); // make sure it's clear
+                    // select the old node, dirtily cuz dojo doesn't
+                    // provide an API.
+                    old_source.selection[old.node.id] = 1;
+                    old_source.deleteSelectedNodes();
+                    new_source.insertNodes(false, [old]);
+
+                    change_state(old, task.state);
                 }
                 lang.mixin(old, task);
                 update_task_node(old);
-                // XXX update views
             }
             else {
                 // New task
@@ -608,7 +645,9 @@ require([
                     var parent = all_tasks[task.parent.id];
                     task.dnd_class = (
                         'subtasks_' + parent.state + "_" + parent.id);
-                    parent.substages[task.state].insertNodes(false, [task]);
+                    if (parent.substages) {
+                        parent.substages[task.state].insertNodes(false, [task]);
+                    }
                 }
             }
         }
@@ -641,66 +680,20 @@ require([
         topic.subscribe(
             "/dnd/drop",
             function(source, nodes, copy, target) {
+
+                var new_state = target.node.id.split("_")[0];
+
+                // Collect task ids.
+                // While we're at it, Update the task states
                 var task_ids = dojo.map(
                     nodes,
                     function (node) {
                         // Task id
                         var task_id = nodes[0].attributes.task_id.value;
-                        var task = all_tasks[task_id];
-                        dom_class.remove(node, source.task_state);
-                        dom_class.add(node, target.task_state);
-                        task.state = target.task_state;
+                        change_state(all_tasks[task_id], new_state);
                         return task_id;
                     });
-                if (source.node.id.substring(0, 11) == "development") {
-                    var task_id = nodes[0].attributes.task_id.value;
-                    var table_node = dojo.byId("table_"+task_id);
-                    dom_class.add(table_node, "hidden");
-                }
-                else if (target.node.id.substring(0, 11) == "development") {
-                    var task_id = task_ids[0]; // There can be only one
-                    var table_node = dojo.byId("table_"+task_id);
-                    if (table_node == null) {
-                        get("tasks/" + task_id + "/subtasks",
-                            function (data) {
-                                var task = all_tasks[task_id];
-                                task.subtasks = data.subtasks;
-                                task.remaining = task.size;
-                                dojo.forEach(
-                                    task.subtasks,
-                                    function (subtask) {
-                                        if (subtask.state == "done") {
-                                            task.remaining -= subtask.size;
-                                        }
-                                    });
-                                update_task_node(task);
-                                make_detail(dojo.byId("detail_"+task_id), task);
-                            });
-                    }
-                    else {
-                        dom_class.remove(table_node, "hidden");
-                    }
-                }
-                else if (source.node.id.substring(0, 4) == "done") {
-                    dojo.forEach(
-                        task_ids,
-                        function (task_id) {
-                            var subtask = all_tasks[task_id];
-                            var task = all_tasks[subtask.parent.id];
-                            task.remaining += subtask.size;
-                            update_task_node(task);
-                        });
-                }
-                else if (target.node.id.substring(0, 4) == "done") {
-                    dojo.forEach(
-                        task_ids,
-                        function (task_id) {
-                            var subtask = all_tasks[task_id];
-                            var task = all_tasks[subtask.parent.id];
-                            task.remaining -= subtask.size;
-                            update_task_node(task);
-                        });
-                }
+
                 target.selectNone();
                 post(
                     "moved",
