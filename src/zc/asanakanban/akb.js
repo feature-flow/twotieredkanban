@@ -237,6 +237,10 @@ require([
                 });
         }
 
+        function get_parent(task) {
+            return all_tasks[task.parent.id];
+        }
+
         var item_template =
             "<div>${name}</div>" +
             "<div>Assigned: <span class='assignee'>${assignee}</span></div>";
@@ -253,11 +257,22 @@ require([
                 if (model.release_tags[task.state].substates) {
                     template = dev_template;
                 }
+
+                var remaining = task.size;
+                dojo.forEach(
+                    task.subtasks,
+                    function (subtask) {
+                        subtask = all_tasks[subtask.id];
+                        if (subtask && subtask.completed) {
+                            remaining -= 1;
+                        }
+                    });
+
                 task.node.innerHTML = string.substitute(
                     template,
                     {
                         size: task.size,
-                        remaining: task.remaining || task.size,
+                        remaining: remaining,
                         name: task.name
                     });
             }
@@ -636,7 +651,6 @@ require([
                 all_tasks[task.id] = task;
                 if (task.parent == null) {
                     // Release
-                    task.remaining = task.size;
                     if (task.state) {
                         setup_release_views(task);
                     }
@@ -653,6 +667,13 @@ require([
                     if (parent.substages) {
                         parent.substages[task.state].insertNodes(false, [task]);
                     }
+                }
+            }
+
+            if (task.parent) {
+                var parent = get_parent(task);
+                if (parent) {
+                    update_task_node(parent);
                 }
             }
         }
