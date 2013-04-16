@@ -129,34 +129,46 @@ class API:
         return self.request.cookies["X-UUID"]
 
     def get(self, url):
-        r = requests.get(
-            'https://app.asana.com/api/1.0/' + url,
-            auth=(self.key, ''),
-            )
+        try:
+            r = requests.get(
+                'https://app.asana.com/api/1.0/' + url,
+                auth=(self.key, ''),
+                )
+        except Exception:
+            error("Couldn't connect to Asana")
+
         if not r.ok:
             asana_error(r)
 
         return r.json()['data']
 
     def post(self, url, **data):
-        r = requests.post(
-            'https://app.asana.com/api/1.0/' + url,
-            auth=(self.key, ''),
-            data=json.dumps(dict(data=data)),
-            headers={'Content-Type': 'application/json'},
-            )
+        try:
+            r = requests.post(
+                'https://app.asana.com/api/1.0/' + url,
+                auth=(self.key, ''),
+                data=json.dumps(dict(data=data)),
+                headers={'Content-Type': 'application/json'},
+                )
+        except Exception:
+            error("Couldn't connect to Asana")
+
         print 'post', url, data, r.ok
         if not r.ok:
             asana_error(r)
         return r.json()['data']
 
     def put(self, url, **data):
-        r = requests.put(
-            'https://app.asana.com/api/1.0/' + url,
-            auth=(self.key, ''),
-            data=json.dumps(dict(data=data)),
-            headers={'Content-Type': 'application/json'},
-            )
+        try:
+            r = requests.put(
+                'https://app.asana.com/api/1.0/' + url,
+                auth=(self.key, ''),
+                data=json.dumps(dict(data=data)),
+                headers={'Content-Type': 'application/json'},
+                )
+        except Exception:
+            error("Couldn't connect to Asana")
+
         if not r.ok:
             asana_error(r)
         return r.json()['data']
