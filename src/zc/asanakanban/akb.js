@@ -253,6 +253,11 @@ require([
             "<span class='name'>${name}</span>";
         function update_task_node(task) {
             if (task.parent == null) {
+
+                if (! task.state) {
+                    return;
+                }
+
                 var template = release_template;
                 if (model.release_tags[task.state].substates) {
                     template = dev_template;
@@ -454,19 +459,21 @@ require([
                     {
                         label: "Start: "+release.name,
                         onClick: function () {
+                            var new_state = model.states[0].tag;
                             post(
-                                "start_working", {
-                                    task_id: release.id
+                                "moved", {
+                                    old_state: "",
+                                    new_state: new_state,
+                                    task_ids: release.id
                                 },
                                 function () {
-                                    release.state = 'analysis';
-                                    make_release(release);
-                                    backlog_menu.destroyRecursive();
-                                    dom_construct.destroy(node);
+                                    change_state(release, new_state);
                                 });
                         }
                     }));
             backlog_menu.startup();
+            release.node = node;
+            release.menu = backlog_menu;
         }
 
         function get_task_state(task, tags, default_state) {
@@ -578,31 +585,65 @@ require([
             task.tr = tr;
         }
 
+        function destroy_release_views(task) {
+            dojo.forEach(
+                task.stages,
+                function (substage) {
+                    substage.destroy();
+                });
+            delete task.stages;
+            dom_construct.destroy(task.tr);
+            delete task.tr;
+        }
+
         function change_state(task, new_state) {
-            dom_class.remove(task, task.state);
-            // clean up details
-            if (task.substages) {
-                destroy_detail(task);
+
+            var old_state = task.state;
+            if (old_state) {
+                dom_class.remove(task, task.state);
+                // clean up details
+                if (task.substages) {
+                    destroy_detail(task);
+                }
+            }
+            else {
+                // backlog
+                task.menu.destroyRecursive();
+                dom_construct.destroy(task.node);
             }
 
             task.state = new_state;
-            dom_class.add(task, task.state);
+
+            if (task.state) {
+                dom_class.add(task, task.state);
+            }
 
             if (task.parent) {
                 return;
             }
 
-            if (model.release_tags[new_state].substates) {
-                make_detail(dojo.byId(new_state+"_detail_"+task.id), task);
-                dojo.forEach(
-                    task.subtasks,
-                    function (subtask) {
-                        subtask = all_tasks[subtask.id];
-                        if (subtask) {
-                            task.substages[subtask.state].insertNodes(
-                                false, [subtask]);
-                        }
-                    });
+            if (task.state) {
+                if (! old_state) {
+                    // This was in backlog, we we need to add the release row.
+                    setup_release_views(task);
+                }
+
+                if (model.release_tags[new_state].substates) {
+                    make_detail(dojo.byId(new_state+"_detail_"+task.id), task);
+                    dojo.forEach(
+                        task.subtasks,
+                        function (subtask) {
+                            subtask = all_tasks[subtask.id];
+                            if (subtask) {
+                                task.substages[subtask.state].insertNodes(
+                                    false, [subtask]);
+                            }
+                        });
+                }
+            }
+            else {
+                // backlog
+                setup_backlog_item(task);
             }
 
         }
@@ -622,6 +663,7 @@ require([
                 get_release_size(task);
             }
             if (task.id in all_tasks) {
+                // Update to existing task
                 var old = all_tasks[task.id];
                 if (task.state != old.state) {
                     // Move task to new dnd source
@@ -631,16 +673,27 @@ require([
                         var new_source = parent.substages[task.state];
                     }
                     else {
-                        var old_source = old.stages[old.state];
-                        var new_source = old.stages[task.state];
+                        if (old.stages) {
+                            // Wasn't in backlog
+                            var old_source = old.stages[old.state];
+                            var new_source = old.stages[task.state];
+                        }
+                        else {
+                            // Backlog
+                            var old_source = null;
+                            var new_source = null;
+                        }
                     }
-                    old_source.selectNone(); // make sure it's clear
-                    // select the old node, dirtily cuz dojo doesn't
-                    // provide an API.
-                    old_source.selection[old.node.id] = 1;
-                    old_source.deleteSelectedNodes();
-                    new_source.insertNodes(false, [old]);
-
+                    if (old_source) {
+                        old_source.selectNone(); // make sure it's clear
+                        // select the old node, dirtily cuz dojo doesn't
+                        // provide an API.
+                        old_source.selection[old.node.id] = 1;
+                        old_source.deleteSelectedNodes();
+                    }
+                    if (new_source) {
+                        new_source.insertNodes(false, [old]);
+                    }
                     change_state(old, task.state);
                 }
                 lang.mixin(old, task);
@@ -689,16 +742,15 @@ require([
                     id: "stop_working",
                     label: "Stop working on this task",
                     onClick: function () {
-                        post(
-                            "stop_working",
-                            {
-                                task_id: selected_task.id,
-                                state: selected_task.state
-                            }).then(
-                                function () {
-                                    dom_class.add("task_detail", "hidden");
-                                    dom_class.add(selected_task.tr, "hidden");
-                                    setup_backlog_item(selected_task);
+                        var task = selected_task;
+                        post("moved",
+                             {
+                                 old_state: task.state,
+                                 new_state: "",
+                                 task_ids: task.id
+                             }).then(
+                                 function () {
+                                     change_state(task, "");
                                 });
                     }
                 }).domNode, "task_detail");
