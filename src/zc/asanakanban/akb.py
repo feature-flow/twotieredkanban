@@ -22,6 +22,7 @@ class Cache:
         try:
             return tasks[task_id]
         except KeyError:
+            print 'miss', task_id
             task = getter("tasks/%s" % task_id)
             self.get_subtasks(task, getter)
             return task
@@ -223,6 +224,7 @@ class API:
         try:
             ws = self.request.environ["wsgi.websocket"]
             uuid = self.uuid
+            print 'project start', uuid
             queue = gevent.queue.Queue()
             get = queue.get
             try:
@@ -236,10 +238,11 @@ class API:
 
                 while 1:
                     ws.send(get())
+                    print 'sent', uuid
             finally:
                 cache.puts.pop(uuid, None)
         except:
-            logger.exception("/project")
+            logger.exception("/project %s" % uuid)
             raise
 
     @bobo.query("/subtasks/:task_id", content_type="application/json")
@@ -275,6 +278,7 @@ class API:
 
     @bobo.post("/moved", content_type='application/json')
     def moved(self, old_state, new_state, task_ids):
+        print 'moved', self.uuid, old_state, new_state, task_ids
         old_state_id = self.tag_id(old_state) if old_state else ""
         new_state_id = self.tag_id(new_state) if new_state else ""
         if isinstance(task_ids, basestring):
