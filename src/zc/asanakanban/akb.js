@@ -1,4 +1,5 @@
 require([
+            "dojo/_base/declare",
             "dojo/_base/lang",
             "dojo/aspect",
             "dojo/cookie",
@@ -21,11 +22,489 @@ require([
             "dojox/socket",
             "dojo/domReady!"],
     function(
-        lang, aspect, cookie, Source, dom_class, dom_construct, query, ready,
+        declare, lang, aspect, cookie,
+        Source, dom_class, dom_construct, query, ready,
         string,
         dijit, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, socket
     ) {
+
+        var BaseTask = {
+
+            change_state: function(new_state) {
+                if (this.node) {
+                    if (this.state) {
+                        dom_class.remove(this.node, this.state);
+                    }
+                    if (new_state) {
+                        dom_class.add(this.node, new_state);
+                    }
+                }
+                this.state = new_state;
+            },
+
+            constructor: function(args){
+                dojo.safeMixin(this, args);
+                all_tasks[args.id] = this;
+                this.updated();
+            },
+
+            create_card: function (hint) {
+                if (hint == 'avatar') {
+                    return {
+                        node: dojo.create('span', { innerHTML: this.name }),
+                        data: this,
+                        type: [this.dnd_class]
+                    };
+                }
+                this.node = dojo.create(
+                    'div', {
+                        "class": this.type_class,
+                        task_id: this.id
+                    });
+                this.update_card();
+                return {
+                    node: this.node,
+                    data: this,
+                    type: [this.dnd_class]
+                };
+            },
+
+            get_blocked: function() {
+                this.blocked = dojo.filter(
+                    this.tags,
+                    function (tag) {
+                        return tag.name == "blocked";
+                    }
+                ).length > 0;
+            },
+
+            get_innerHTML: function () {
+                return string.substitute(
+                    "<div>${name}</div>" +
+                        "<div class='assignment'>" +
+                        "Assigned: <span class='assignee'>" +
+                        "${assignee}</span></div>",
+                    {
+                        name: this.name,
+                        assignee: (this.assignee != null) ?
+                            this.assignee.name : ""
+                    });
+            },
+
+            get_state: function () {
+                this.change_state(this.get_state_helper(this));
+            },
+
+            get_state_helper: function (task) {
+                var states = this.get_states();
+                var state = dojo.filter(
+                    task.tags,
+                    function (tag) {
+                        return tag.name in states;
+                    });
+                if (state.length > 0) {
+                    return state[0].name;
+                }
+                else {
+                    return null;
+                }
+            },
+
+            size_re: /^\s*\[\s*(\d+)\s*\]/,
+            get_subtask_size_helper: function(task) {
+                var m = this.size_re.exec(task.name);
+                if (m) {
+                    task.size = parseInt(m[1]);
+                }
+                else {
+                    task.size = 1;
+                }
+            },
+
+            selected: function () {
+                selected_task = this;
+                dojo.byId("selected_task_title").textContent = this.name;
+                dojo.byId("asana_link").setAttribute(
+                    "href",
+                    "https://app.asana.com/0/" +
+                        localStorage.project_id + "/" + this.id
+                );
+                blocked_checkbox.set('value', this.blocked);
+                dom_class.remove("task_detail", "hidden");
+            },
+
+            update_card: function () {
+                this.node.innerHTML = this.get_innerHTML();
+                this.update_flag_class(this.blocked, "blocked");
+                this.update_flag_class(this.assignee, "assigned");
+                this.update_flag_class(
+                    this.get_states()[this.state].working, "working");
+                this.update_flag_class(this.completed, "completed");
+                dom_class.add(this.node, this.state);
+            },
+
+            update_flag_class: function(cond, class_) {
+                if (cond) {
+                    dom_class.add(this.node, class_);
+                }
+                else {
+                    dom_class.remove(this.node, class_);
+                }
+            },
+
+            update: function(data) {
+                var new_state = this.get_state_helper(data);
+                if (new_state != this.state) {
+                    this.move(new_state);
+                }
+                dojo.safeMixin(this, data);
+                this.updated();
+                this.update_card();
+            },
+
+            updated: function () {
+                this.get_blocked();
+                this.get_state();
+            }
+
+        };
+        BaseTask = declare("zc.asanakanban.BaseTask", null, BaseTask);
+
+        var Release = {
+
+            add: function(task) {
+                if (this.state) {
+                    task.dnd_class = (
+                        'subtasks_' + this.state + "_" + this.id);
+                    if (this.substages) {
+                        this.substages[task.state].insertNodes(false, [task]);
+                    }
+                }
+            },
+
+            change_state: function(new_state) {
+                self = this;
+                var old_state = self.state;
+                if (old_state) {
+                    if (self.substages) {
+                        self.destroy_detail();
+                    }
+                }
+                else {
+                    if (self.menu) {
+                        // It's in the backlog
+                        self.menu.destroyRecursive();
+                        delete self.menu;
+                        dom_construct.destroy(self.node);
+                        delete self.node;
+                    }
+                }
+
+                self.inherited(arguments);
+
+                if (new_state) {
+                    if (! old_state) {
+                        self.create_working_views();
+                    }
+                    if (model.release_tags[new_state].substates) {
+                        self.create_detail(
+                            dojo.byId(new_state+"_detail_"+self.id));
+                        get("subtasks/"+self.id);
+                        dojo.forEach(
+                            self.subtasks,
+                            function (subtask) {
+                                subtask = all_tasks[subtask.id];
+                                if (subtask) {
+                                    self.substages[subtask.state].insertNodes(
+                                        false, [subtask]);
+                                }
+                            });
+                    }
+                }
+                else {
+                    this.destroy_working_views();
+                    self.create_backlog_view();
+                }
+
+            },
+
+            create_backlog_view: function () {
+                self = this;
+                var node = dojo.create(
+                    'li',
+                    { innerHTML: "["+self.size+"] "+self.name },
+                    "backlog");
+                var backlog_menu = new Menu(
+                    { targetNodeIds: [node] });
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "Start: "+self.name,
+                            onClick: function () {
+                                var new_state = model.states[0].tag;
+                                post("moved", {
+                                         old_state: "",
+                                         new_state: new_state,
+                                         task_ids: self.id
+                                     });
+                            }
+                        }));
+                backlog_menu.startup();
+                self.node = node;
+                self.menu = backlog_menu;
+            },
+
+            create_detail: function(parent) {
+                var self = this;
+                var thead = "<thead>";
+                dojo.forEach(
+                    model.release_tags[self.state].substates,
+                    function (substate) {
+                        thead += "<th>" + substate.label + "</th>";
+                    }
+                );
+                var id = "subtasks_" + self.state + "_" + self.id;
+                dojo.create(
+                    "table", {
+                        id: 'table_' + self.state + "_" + self.id,
+                        class: 'task_detail',
+                        innerHTML:
+                        thead + "</thead><tbody id='" + id + "'></tbody>"
+                    },
+                    parent);
+                var tr = dojo.create("tr", null, id);
+                var stages = {};
+                dojo.forEach(
+                    model.release_tags[self.state].substates,
+                    function (substate) {
+                        stages[substate.tag] = self.create_dnd_source(
+                            tr, id, substate.tag);
+                    }
+                );
+                self.substages = stages;
+            },
+
+            create_dnd_source: function (parent_node, dnd_class, state) {
+                var source = new Source(
+                    dojo.create(
+                        "td", {
+                            class: state+"_td",
+                            id: state + '_' + dnd_class
+                        }, parent_node),
+                    {
+                        accept: [dnd_class],
+                        creator: function item_creator(task, hint) {
+                            return task.create_card(hint);
+                        }
+                    });
+                aspect.after(
+                    source, 'onMouseUp', function (e) {
+                        var nodes = source.getSelectedNodes();
+                        if (nodes.length > 0) {
+                            selected_node = nodes[0];
+                            //source.selectNone();
+                            all_tasks[nodes[0].attributes['task_id'].textContent
+                                     ].selected();
+                        }
+                    }, true);
+                return source;
+            },
+
+            create_working_views: function() {
+                var self = this;
+                var tr = dojo.create("tr", null, "projects");
+                var stages = {};
+                dojo.forEach(
+                    model.states,
+                    function (state) {
+                        stages[state.tag] = self.create_dnd_source(
+                            tr, self.id, state.tag);
+                        if (state.substates) {
+                            var detail = dojo.create(
+                                "td",
+                                {
+                                    class: state.tag+"_detail",
+                                    id: state.tag+"_detail_"+self.id
+                                }, tr);
+                        }
+                    });
+                self.stages = stages;
+                self.dnd_class = self.id;
+                stages[self.state].insertNodes(false, [self]);
+                self.tr = tr;
+            },
+
+            destroy_detail: function() {
+                dojo.forEach(
+                    this.substages,
+                    function (substage) {
+                        substage.destroy();
+                    });
+                delete this.substages;
+                dom_construct.destroy('table_' + this.state + "_" + this.id);
+            },
+
+            destroy_working_views: function() {
+                dojo.forEach(
+                    this.stages,
+                    function (substage) {
+                        substage.destroy();
+                    });
+                delete this.stages;
+                dom_construct.destroy(this.tr);
+                delete this.tr;
+            },
+
+            get_innerHTML: function () {
+                return string.substitute(
+                    "<span class='remaining'>${remaining}</span>" +
+                        "<span class='size'>${size}</span>",
+                    {
+                        size: this.size,
+                        remaining: this.remaining()
+                    }) +  this.inherited(arguments);
+
+            },
+
+            get_size: function() {
+                var self = this;
+                var size = 0;
+                dojo.forEach(
+                    self.subtasks,
+                    function (task) {
+                        self.get_subtask_size_helper(task);
+                        size += task.size;
+                    });
+                self.size = size;
+            },
+
+            get_states: function () {
+                return model.release_tags;
+            },
+
+            move: function (new_state) {
+                if (this.state && new_state) {
+                    this.move_helper(
+                        this.stages[this.state], this.stages[new_state], this);
+                }
+            },
+
+            move_helper: function(old_source, new_source, task) {
+                if (! (task.node.id in old_source.map)) {
+                    // This is a little delicate.  When a user
+                    // moves a node, we don't update the state right
+                    // then because we don't want to update the state
+                    // unless the server responds positively, at which
+                    // point, there could be a race with the update
+                    // coming in over the socket. So we
+                    // basically check here to see if the node was
+                    // already moved.
+                    return;     // already moved
+                }
+                old_source.selectNone(); // make sure it's clear
+                // select the old node, dirtily cuz dojo doesn't
+                // provide an API.
+                old_source.selection[task.node.id] = 1;
+                old_source.deleteSelectedNodes();
+                new_source.insertNodes(false, [task]);
+            },
+
+            move_subtask: function (task, new_state) {
+                if (! this.state) {
+                    return;
+                }
+                this.move_helper(
+                    this.substages[task.state],
+                    this.substages[new_state],
+                    task);
+            },
+
+            remaining: function () {
+                var remaining = this.size;
+                dojo.forEach(
+                    this.subtasks,
+                    function (subtask) {
+                        subtask = all_tasks[subtask.id];
+                        if (subtask && subtask.completed) {
+                            remaining -= 1;
+                        }
+                    });
+                return remaining;
+            },
+
+            selected: function () {
+                this.inherited(arguments);
+                dom_class.add("selected_task_assignee_div", "hidden");
+                dom_class.remove("stop_working", "hidden");
+            },
+
+            type_class: "release",
+
+            update_card: function () {
+                if (! this.state) {
+                    return; // In backlog.
+                }
+                this.inherited(arguments);
+            },
+
+            updated: function() {
+                this.get_size();
+                this.inherited(arguments);
+            }
+        };
+        Release = declare("zc.asanakanban.Release", [BaseTask], Release);
+
+        var Task = {
+
+            enter_state: function() {},
+
+            get_parent: function () {
+                return all_tasks[this.parent.id];
+            },
+
+            get_state: function () {
+                this.inherited(arguments);
+                if (! this.node) {
+                    this.get_parent().add(this);
+                }
+            },
+
+            get_state_helper: function (task) {
+                var state = this.inherited(arguments);
+                if (! state) {
+                    state = model.release_tags[this.get_parent().state
+                                         ].default_state;
+                }
+                return state;
+            },
+
+            get_states: function() {
+                return model.release_tags[this.get_parent().state
+                                         ].tags;
+            },
+
+            move: function(new_state) {
+                this.get_parent().move_subtask(this, new_state);
+            },
+
+            selected: function () {
+                this.inherited(arguments);
+                dom_class.add("stop_working", "hidden");
+                dom_class.remove("selected_task_assignee_div", "hidden");
+                if (this.assignee != null) {
+                    dojo.byId("selected_task_assignee"
+                             ).textContent = this.assignee.name;
+                }
+                else {
+                    dojo.byId("selected_task_assignee").textContent = "";
+                }
+            },
+
+            type_class: "task"
+
+        };
+        Task = declare("zc.asanakanban.Task", [BaseTask], Task);
 
         var all_tasks = {};              // task id -> task
         var model;
@@ -237,109 +716,6 @@ require([
                 });
         }
 
-        function get_parent(task) {
-            return all_tasks[task.parent.id];
-        }
-
-        var item_template =
-            "<div>${name}</div>" +
-            "<div>Assigned: <span class='assignee'>${assignee}</span></div>";
-        var release_template =
-            "<span class='size'>${size}</span>" +
-            "<span class='name'>${name}</span>";
-        var dev_template =
-            "<span class='remaining'>${remaining}</span>" +
-            "<span class='size'>${size}</span>" +
-            "<span class='name'>${name}</span>";
-        function update_task_node(task) {
-            if (task.parent == null) {
-
-                if (! task.state) {
-                    return;
-                }
-
-                var template = release_template;
-                if (model.release_tags[task.state].substates) {
-                    template = dev_template;
-                }
-
-                var remaining = task.size;
-                dojo.forEach(
-                    task.subtasks,
-                    function (subtask) {
-                        subtask = all_tasks[subtask.id];
-                        if (subtask && subtask.completed) {
-                            remaining -= 1;
-                        }
-                    });
-
-                task.node.innerHTML = string.substitute(
-                    template,
-                    {
-                        size: task.size,
-                        remaining: remaining,
-                        name: task.name
-                    });
-            }
-            else {
-                var assignee = "";
-                if (task.assignee != null) {
-                    assignee = task.assignee.name;
-                }
-                task.node.innerHTML = string.substitute(
-                    item_template,
-                    {
-                        name: task.name,
-                        assignee: assignee
-                    });
-            }
-        }
-
-        function item_creator(task, hint) {
-            if (hint == 'avatar') {
-                return {
-                    node: dojo.create('span', { innerHTML: task.name }),
-                    data: task,
-                    type: [task.dnd_class]
-                };
-            }
-            var class_ = task.state;
-            if (task.blocked) {
-                class_ += ' blocked';
-            }
-            if (task.parent == null) {
-                task.node = dojo.create(
-                    'div',
-                    {
-                        class: 'release '+class_,
-                        task_id: task.id
-                    });
-                update_task_node(task);
-                return {
-                    node: task.node,
-                    data: task,
-                    type: [task.dnd_class]
-                };
-            }
-            class_ += ' task';
-            var assignee = "";
-            if (task.assignee != null) {
-                class_ += " assigned";
-            }
-            task.node = dojo.create(
-                'div',
-                {
-                    class: class_,
-                    task_id: task.id
-                });
-            update_task_node(task);
-            return {
-                node: task.node,
-                data: task,
-                type: [task.dnd_class]
-            };
-        }
-
         var selected_task;
         var selected_node;
         dojo.byId("selected_task_assignee_div").appendChild(
@@ -350,17 +726,8 @@ require([
                         if (selected_task == null) {
                             return;
                         }
-                        post("take",
-                             { task_id: selected_task.id },
-                             function (task) {
-                                 // XXX maybe other attrs changed
-                                 selected_task.assignee = task.assignee;
-                                 query('span', selected_node)[0].textContent =
-                                     task.assignee.name;
-                                 dom_class.add(selected_node, 'assigned');
-                                 select_task(selected_task);
-                             });
-
+                        // XXX shoud display a toast here
+                        post("take", { task_id: selected_task.id });
                     }
                 }).domNode);
 
@@ -371,363 +738,24 @@ require([
                     if (v == selected_task.blocked) {
                         return;
                     }
-                    post(
-                        "blocked",
-                        {
-                            task_id: selected_task.id,
-                            is_blocked: v
-                        }).then(
-                            function () {
-                                if (v) {
-                                    dom_class.add(
-                                        selected_node, "blocked");
-                                }
-                                else {
-                                    dom_class.remove(
-                                        selected_node, "blocked");
-                                }
-                            });
+                    // XXX shoud display a toast here (and require a reason)
+                    // IOW, we'll redo this.
+                    post("blocked",
+                         { task_id: selected_task.id, is_blocked: v});
                 }
             });
         dom_construct.place(blocked_checkbox.domNode, 'blocked_div');
 
-        function select_task(task) {
-            selected_task = task;
-            dojo.byId("selected_task_title").textContent = task.name;
-            if (task.parent == null) {
-                // release
-                dom_class.add("selected_task_assignee_div", "hidden");
-                dom_class.remove("stop_working", "hidden");
-            }
-            else {
-                dom_class.add("stop_working", "hidden");
-                dom_class.remove("selected_task_assignee_div", "hidden");
-                if (task.assignee != null) {
-                    dojo.byId("selected_task_assignee"
-                             ).textContent = task.assignee.name;
-                }
-                else {
-                    dojo.byId("selected_task_assignee").textContent = "";
-                }
-            }
-            dojo.byId("asana_link").setAttribute(
-                "href",
-                "https://app.asana.com/0/" +
-                    localStorage.project_id + "/" + task.id
-            );
-            blocked_checkbox.set('value', task.blocked);
-            dom_class.remove("task_detail", "hidden");
-        }
-
-        function td_source(parent, dnd_class, state) {
-            var source = new Source(
-                dojo.create(
-                    "td", {
-                        class: state+"_td",
-                        id: state + '_' + dnd_class
-                    }, parent),
-                {
-                    accept: [dnd_class],
-                    creator: item_creator,
-                    task_state: state
-                });
-            aspect.after(
-                source, 'onMouseUp', function (e) {
-                    var nodes = source.getSelectedNodes();
-                    if (nodes.length > 0) {
-                        selected_node = nodes[0];
-                        source.selectNone();
-                        select_task(
-                            all_tasks[
-                                nodes[0].attributes['task_id'].textContent
-                            ]);
-                    }
-                }, true);
-            return source;
-        }
-
-        function setup_backlog_item(release) {
-            all_tasks[release.id] = release;
-            var node = dojo.create(
-                'li',
-                { innerHTML: "["+release.size+"] "+release.name },
-                "backlog");
-            var backlog_menu = new Menu(
-                { targetNodeIds: [node] });
-            backlog_menu.addChild(
-                new MenuItem(
-                    {
-                        label: "Start: "+release.name,
-                        onClick: function () {
-                            var new_state = model.states[0].tag;
-                            post(
-                                "moved", {
-                                    old_state: "",
-                                    new_state: new_state,
-                                    task_ids: release.id
-                                },
-                                function () {
-                                    change_state(release, new_state);
-                                });
-                        }
-                    }));
-            backlog_menu.startup();
-            release.node = node;
-            release.menu = backlog_menu;
-        }
-
-        function get_task_state(task, tags, default_state) {
-            var state = dojo.filter(
-                task.tags,
-                function (tag) {
-                    return tag.name in tags;
-                });
-            if (state.length > 0) {
-                task.state = state[0].name;
-            }
-            else {
-                task.state = default_state;
-            }
-        }
-
-        function get_task_blocked(task) {
-            task.blocked = dojo.filter(
-                task.tags,
-                function (tag) {
-                    return tag.name == "blocked";
-                }
-            ).length > 0;
-        }
-
-        var size_re = /^\s*\[\s*(\d+)\s*\]/;
-        function get_task_size(task) {
-            var m = size_re.exec(task.name);
-            if (m) {
-                task.size = parseInt(m[1]);
-            }
-            else {
-                task.size = 1;
-            }
-        }
-
-        function get_release_size(release) {
-            var size = 0;
-            dojo.forEach(
-                release.subtasks,
-                function (task) {
-                    get_task_size(task);
-                    size += task.size;
-                });
-            release.size = size;
-        }
-
-        function make_detail(parent, task) {
-            var thead = "<thead>";
-            dojo.forEach(
-                model.release_tags[task.state].substates,
-                function (substate) {
-                    thead += "<th>" + substate.label + "</th>";
-                }
-            );
-            var id = "subtasks_" + task.state + "_" + task.id;
-            dojo.create(
-                "table", {
-                    id: 'table_' + task.state + "_" + task.id,
-                    class: 'task_detail',
-                    innerHTML:
-                    thead + "</thead><tbody id='" + id + "'></tbody>"
-                },
-                parent);
-            var tr = dojo.create("tr", null, id);
-            var stages = {};
-            dojo.forEach(
-                model.release_tags[task.state].substates,
-                function (substate) {
-                    stages[substate.tag] = td_source(tr, id, substate.tag);
-                }
-            );
-            task.substages = stages;
-        }
-
-        function destroy_detail(task) {
-            dojo.forEach(
-                task.substages,
-                function (substage) {
-                    substage.destroy();
-                });
-            delete task.substages;
-            dom_construct.destroy('table_' + task.state + "_" + task.id);
-        }
-
-        function setup_release_views(task) {
-            var tr = dojo.create("tr", null, "projects");
-            var stages = {};
-            dojo.forEach(
-                model.states,
-                function (state) {
-                    stages[state.tag] = td_source(tr, task.id, state.tag);
-                    if (state.substates) {
-                        var detail = dojo.create(
-                            "td",
-                            {
-                                class: state.tag+"_detail",
-                                id: state.tag+"_detail_"+task.id
-                            }, tr);
-                        if (task.state == state.tag) {
-                            make_detail(detail, task);
-                            get("subtasks/"+task.id);
-                        }
-                    }
-                });
-            task.stages = stages;
-            task.dnd_class = task.id;
-            stages[task.state].insertNodes(false, [task]);
-            task.tr = tr;
-        }
-
-        function destroy_release_views(task) {
-            dojo.forEach(
-                task.stages,
-                function (substage) {
-                    substage.destroy();
-                });
-            delete task.stages;
-            dom_construct.destroy(task.tr);
-            delete task.tr;
-        }
-
-        function change_state(task, new_state) {
-
-            var old_state = task.state;
-            if (old_state) {
-                dom_class.remove(task, task.state);
-                // clean up details
-                if (task.substages) {
-                    destroy_detail(task);
-                }
-            }
-            else {
-                // backlog
-                task.menu.destroyRecursive();
-                dom_construct.destroy(task.node);
-            }
-
-            task.state = new_state;
-
-            if (task.state) {
-                dom_class.add(task, task.state);
-            }
-
-            if (task.parent) {
-                return;
-            }
-
-            if (task.state) {
-                if (! old_state) {
-                    // This was in backlog, we we need to add the release row.
-                    setup_release_views(task);
-                }
-
-                if (model.release_tags[new_state].substates) {
-                    make_detail(dojo.byId(new_state+"_detail_"+task.id), task);
-                    dojo.forEach(
-                        task.subtasks,
-                        function (subtask) {
-                            subtask = all_tasks[subtask.id];
-                            if (subtask) {
-                                task.substages[subtask.state].insertNodes(
-                                    false, [subtask]);
-                            }
-                        });
-                }
-            }
-            else {
-                // backlog
-                setup_backlog_item(task);
-            }
-
-        }
-
         function receive(event) {
-            var task = JSON.parse(event.data);
-            get_task_blocked(task);
-            if (task.parent) {
-                var super_state = model.release_tags[
-                    all_tasks[task.parent.id].state];
-                get_task_state(
-                    task, super_state.tags, super_state.default_state);
-                get_task_size(task);
-            }
-            else {
-                get_task_state(task, model.release_tags);
-                get_release_size(task);
-            }
-            if (task.id in all_tasks) {
-                // Update to existing task
-                var old = all_tasks[task.id];
-                if (task.state != old.state) {
-                    // Move task to new dnd source
-                    if (task.parent) {
-                        var parent = all_tasks[task.parent.id];
-                        var old_source = parent.substages[old.state];
-                        var new_source = parent.substages[task.state];
-                    }
-                    else {
-                        if (old.stages) {
-                            // Wasn't in backlog
-                            var old_source = old.stages[old.state];
-                            var new_source = old.stages[task.state];
-                        }
-                        else {
-                            // Backlog
-                            var old_source = null;
-                            var new_source = null;
-                        }
-                    }
-                    if (old_source) {
-                        old_source.selectNone(); // make sure it's clear
-                        // select the old node, dirtily cuz dojo doesn't
-                        // provide an API.
-                        old_source.selection[old.node.id] = 1;
-                        old_source.deleteSelectedNodes();
-                    }
-                    if (new_source) {
-                        new_source.insertNodes(false, [old]);
-                    }
-                    change_state(old, task.state);
-                }
-                lang.mixin(old, task);
-                update_task_node(old);
-            }
-            else {
-                // New task
-                all_tasks[task.id] = task;
-                if (task.parent == null) {
-                    // Release
-                    if (task.state) {
-                        setup_release_views(task);
-                    }
-                    else {
-                        // Backlog
-                        setup_backlog_item(task);
-                    }
-                }
-                else {
-                    // Release task
-                    var parent = all_tasks[task.parent.id];
-                    task.dnd_class = (
-                        'subtasks_' + parent.state + "_" + parent.id);
-                    if (parent.substages) {
-                        parent.substages[task.state].insertNodes(false, [task]);
-                    }
-                }
-            }
+            var data = JSON.parse(event.data);
 
-            if (task.parent) {
-                var parent = get_parent(task);
-                if (parent) {
-                    update_task_node(parent);
-                }
+            if (data.id in all_tasks) {
+                all_tasks[data.id].update(data);
+            }
+            else {
+                data.parent ?
+                    new zc.asanakanban.Task(data) :
+                    new zc.asanakanban.Release(data);
             }
         }
 
@@ -748,39 +776,34 @@ require([
                                  old_state: task.state,
                                  new_state: "",
                                  task_ids: task.id
-                             }).then(
-                                 function () {
-                                     change_state(task, "");
-                                });
+                             });
                     }
                 }).domNode, "task_detail");
 
-        topic.subscribe(
-            "/dnd/drop",
-            function(source, nodes, copy, target) {
+        function move_handler(source, nodes, copy, target) {
 
-                var old_state = source.node.id.split("_")[0];
-                var new_state = target.node.id.split("_")[0];
+            var old_state = source.node.id.split("_")[0];
+            var new_state = target.node.id.split("_")[0];
 
-                // Collect task ids.
-                // While we're at it, Update the task states
-                var task_ids = dojo.map(
-                    nodes,
-                    function (node) {
-                        // Task id
-                        var task_id = nodes[0].attributes.task_id.value;
-                        change_state(all_tasks[task_id], new_state);
-                        return task_id;
-                    });
+            // Collect task ids.
+            // While we're at it, Update the task states
+            var task_ids = dojo.map(
+                nodes,
+                function (node) {
+                    var task_id = nodes[0].attributes.task_id.value;
+                    //all_tasks[task_id].change_state(new_state);
+                    return task_id;
+                });
 
-                target.selectNone();
-                post(
-                    "moved",
-                    {
-                        old_state: old_state,
-                        new_state: new_state,
-                        task_ids: task_ids
-                    });
-            });
+            target.selectNone();
+            post(
+                "moved",
+                {
+                    old_state: old_state,
+                    new_state: new_state,
+                    task_ids: task_ids
+                });
+        };
+        topic.subscribe("/dnd/drop", move_handler);
 
     });
