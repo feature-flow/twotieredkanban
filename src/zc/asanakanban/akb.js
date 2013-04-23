@@ -112,14 +112,16 @@ require([
                 ).length > 0;
             },
 
+            get_notes_html: function () {
+                return this.notes ?
+                    ("<div class='notes'>" +
+                     this.notes.replace(/\n/g, '<br>') +
+                     "</div>") : '';
+            },
+
             get_innerHTML: function () {
                 var html = "<div>" + this.name + "</div>";
-                if (this.notes) {
-                    html += (
-                        "<div class='notes'>" +
-                            this.notes.replace(/\n/g, '<br>') +
-                            "</div>");
-                }
+                html += this.get_notes_html();
                 if (this.assignee) {
                     html += (
                         "<div class='assignment'>" +
@@ -291,17 +293,40 @@ require([
             },
 
             create_backlog_view: function () {
+                var html =  "["+this.size+"] "+this.name;
+                if (this.notes || this.subtasks) {
+                    html += "<div class='backlog_detail'>";
+                    html += this.get_notes_html();
+                    if (this.subtasks) {
+                        html += 'Subtasks: <ul>';
+                        dojo.forEach(
+                            this.subtasks,
+                            function (subtask) {
+                               html += '<li>' + subtask.name + '</li>';
+                            });
+                        html += '</ul>';
+                    }
+                    html += "</div>";
+                }
                 var node = dojo.create(
                     'li',
-                    { innerHTML: "["+this.size+"] "+this.name },
+                    {
+                        "class": "backlog_item",
+                        innerHTML: html
+                    },
                     "backlog");
-                var backlog_menu = new Menu(
-                    { targetNodeIds: [node] });
+                var backlog_menu = new Menu( { targetNodeIds: [node] });
                 backlog_menu.addChild(
                     new MenuItem(
                         {
                             label: "Start: "+this.name,
                             onClick: lang.hitch(this, "start_working")
+                        }));
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "View in Asana",
+                            onClick: lang.hitch(this, "view_in_asana")
                         }));
                 backlog_menu.startup();
                 this.node = node;

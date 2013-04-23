@@ -78,9 +78,16 @@ th
   margin-bottom: 1ex;
  }
 
+.backlog_item:hover .backlog_detail
+{ 
+  display: block;
+  margin-left: 1em;
+ }
 
-
-
+.backlog_detail
+{ 
+  display: none;
+  }
 
 
 
