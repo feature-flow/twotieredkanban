@@ -574,7 +574,6 @@ require([
 
         var all_tasks = {};              // task id -> task
         var model;
-        dom_class.add("task_detail", "hidden");
 
         if (localStorage.api_key) {
             cookie("X-API-key", localStorage.api_key);
