@@ -307,9 +307,7 @@ class API:
     def blocked(self, task_id, is_blocked):
         tag_id = self.tag_id('blocked')
         if is_blocked == 'true':
-             self.post("tasks/%s/addTag" % task_id,
-                       tag=tag_ids[blocked])
+            self.post("tasks/%s/addTag" % task_id, tag=tag_id)
         else:
-            return self.post("tasks/%s/removeTag" % task_id,
-                             tag=tag_ids[blocked])
+            self.post("tasks/%s/removeTag" % task_id, tag=tag_id)
         cache.invalidate(self.get("tasks/%s" % task_id))
