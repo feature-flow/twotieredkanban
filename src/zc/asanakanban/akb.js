@@ -10,6 +10,7 @@ require([
             "dojo/ready",
             "dojo/string",
             "dijit",
+            "dijit/CheckedMenuItem",
             "dijit/form/Button",
             "dijit/form/CheckBox",
             "dijit/form/Select",
@@ -25,10 +26,9 @@ require([
         declare, lang, aspect, cookie,
         Source, dom_class, dom_construct, query, ready,
         string,
-        dijit, Button, CheckBox, Select, TextBox, Dialog,
+        dijit, CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, socket
     ) {
-
         var BaseTask = {
 
             change_state: function(new_state) {
@@ -49,24 +49,57 @@ require([
                 this.updated();
             },
 
+            context_menu_items: function() {
+                return [
+                new MenuItem(
+                    {
+                        label: "View in Asana",
+                        onClick: lang.hitch(this, "view_in_asana")
+                    }),
+                new CheckedMenuItem(
+                    {
+                        label: "Blocked",
+                        onChange: lang.hitch(this, "set_blocked"),
+                        checked: this.blocked
+                    }
+                ),
+                new MenuItem(
+                    {
+                        label: "Take",
+                        onClick: lang.hitch(this, "take")
+                    }
+                )
+                ];
+            },
+
             create_card: function (hint) {
+                self = this;
                 if (hint == 'avatar') {
                     return {
-                        node: dojo.create('span', { innerHTML: this.name }),
-                        data: this,
-                        type: [this.dnd_class]
+                        node: dojo.create('span', { innerHTML: self.name }),
+                        data: self,
+                        type: [self.dnd_class]
                     };
                 }
-                this.node = dojo.create(
+                if (self.menu) {
+                    self.menu.destroyRecursive();
+                }
+                self.node = dojo.create(
                     'div', {
-                        "class": this.type_class,
-                        task_id: this.id
+                        "class": self.type_class,
+                        task_id: self.id
                     });
-                this.update_card();
+                self.update_card();
+                self.menu = new Menu({ targetNodeIds: [self.node] });
+                dojo.forEach(
+                    this.context_menu_items(),
+                    function (item) {
+                        self.menu.addChild(item);
+                    });
                 return {
-                    node: this.node,
-                    data: this,
-                    type: [this.dnd_class]
+                    node: self.node,
+                    data: self,
+                    type: [self.dnd_class]
                 };
             },
 
@@ -122,16 +155,18 @@ require([
                 }
             },
 
-            selected: function () {
-                selected_task = this;
-                dojo.byId("selected_task_title").textContent = this.name;
-                dojo.byId("asana_link").setAttribute(
-                    "href",
-                    "https://app.asana.com/0/" +
-                        localStorage.project_id + "/" + this.id
-                );
-                blocked_checkbox.set('value', this.blocked);
-                dom_class.remove("task_detail", "hidden");
+            set_blocked: function(v) {
+                if (v == this.blocked) {
+                    return;
+                }
+                // XXX shoud display a toast here (and require a reason)
+                // IOW, we'll redo this.
+                post("blocked", { task_id: this.id, is_blocked: v});
+            },
+
+            take: function () {
+                // XXX shoud display a toast here
+                post("take", { task_id: this.id });
             },
 
             update_card: function () {
@@ -166,6 +201,11 @@ require([
             updated: function () {
                 this.get_blocked();
                 this.get_state();
+            },
+
+            view_in_asana: function() {
+                window.open("https://app.asana.com/0/" +
+                            localStorage.project_id + "/" + this.id);
             }
 
         };
@@ -184,75 +224,82 @@ require([
             },
 
             change_state: function(new_state) {
-                self = this;
-                var old_state = self.state;
+                var old_state = this.state;
                 if (old_state) {
-                    if (self.substages) {
-                        self.destroy_detail();
+                    if (this.substages) {
+                        this.destroy_detail();
                     }
                 }
                 else {
-                    if (self.menu) {
+                    if (this.menu) {
                         // It's in the backlog
-                        self.menu.destroyRecursive();
-                        delete self.menu;
-                        dom_construct.destroy(self.node);
-                        delete self.node;
+                        this.menu.destroyRecursive();
+                        delete this.menu;
+                        dom_construct.destroy(this.node);
+                        delete this.node;
                     }
                 }
 
-                self.inherited(arguments);
+                this.inherited(arguments);
 
                 if (new_state) {
                     if (! old_state) {
-                        self.create_working_views();
+                        this.create_working_views();
                     }
                     if (model.release_tags[new_state].substates) {
-                        self.create_detail(
-                            dojo.byId(new_state+"_detail_"+self.id));
-                        get("subtasks/"+self.id);
+                        this.create_detail(
+                            dojo.byId(new_state+"_detail_"+this.id));
+                        get("subtasks/"+this.id);
                         dojo.forEach(
-                            self.subtasks,
-                            function (subtask) {
-                                subtask = all_tasks[subtask.id];
-                                if (subtask) {
-                                    self.substages[subtask.state].insertNodes(
-                                        false, [subtask]);
-                                }
-                            });
+                            this.subtasks,
+                            lang.hitch(
+                                this,
+                                function (subtask) {
+                                    subtask = all_tasks[subtask.id];
+                                    if (subtask) {
+                                        this.substages[subtask.state
+                                                      ].insertNodes(
+                                                          false,
+                                                          [subtask]);
+                                    }
+                                }));
                     }
                 }
                 else {
                     this.destroy_working_views();
-                    self.create_backlog_view();
+                    this.create_backlog_view();
                 }
 
             },
 
+            context_menu_items: function () {
+                var items = this.inherited(arguments);
+                items.push(
+                    new MenuItem(
+                        {
+                            label: "Move to backlog",
+                            onClick: lang.hitch(this, "stop_working")
+                        }
+                    ));
+                return items;
+            },
+
             create_backlog_view: function () {
-                self = this;
                 var node = dojo.create(
                     'li',
-                    { innerHTML: "["+self.size+"] "+self.name },
+                    { innerHTML: "["+this.size+"] "+this.name },
                     "backlog");
                 var backlog_menu = new Menu(
                     { targetNodeIds: [node] });
                 backlog_menu.addChild(
                     new MenuItem(
                         {
-                            label: "Start: "+self.name,
-                            onClick: function () {
-                                var new_state = model.states[0].tag;
-                                post("moved", {
-                                         old_state: "",
-                                         new_state: new_state,
-                                         task_ids: self.id
-                                     });
-                            }
+                            label: "Start: "+this.name,
+                            onClick: lang.hitch(this, "start_working")
                         }));
                 backlog_menu.startup();
-                self.node = node;
-                self.menu = backlog_menu;
+                this.node = node;
+                this.menu = backlog_menu;
             },
 
             create_detail: function(parent) {
@@ -298,16 +345,6 @@ require([
                             return task.create_card(hint);
                         }
                     });
-                aspect.after(
-                    source, 'onMouseUp', function (e) {
-                        var nodes = source.getSelectedNodes();
-                        if (nodes.length > 0) {
-                            selected_node = nodes[0];
-                            //source.selectNone();
-                            all_tasks[nodes[0].attributes['task_id'].textContent
-                                     ].selected();
-                        }
-                    }, true);
                 return source;
             },
 
@@ -336,24 +373,55 @@ require([
             },
 
             destroy_detail: function() {
+                // Clean up card menus
+                this.for_subtasks(
+                    function (task) {
+                        if (task.menu) {
+                            task.menu.destroyRecursive();
+                        }
+                    }
+                );
+
+                // Clean up sources
                 dojo.forEach(
                     this.substages,
                     function (substage) {
                         substage.destroy();
                     });
                 delete this.substages;
+
                 dom_construct.destroy('table_' + this.state + "_" + this.id);
             },
 
             destroy_working_views: function() {
+
+                if (this.menu) {
+                    this.menu.destroy();
+                }
+
+                // Clean up sources
                 dojo.forEach(
                     this.stages,
                     function (substage) {
                         substage.destroy();
                     });
                 delete this.stages;
+
+                // And the tr
                 dom_construct.destroy(this.tr);
                 delete this.tr;
+            },
+
+            for_subtasks: function (f) {
+                dojo.forEach(
+                    this.subtasks,
+                    function (task) {
+                        if (task.id in all_tasks) {
+                            f(all_tasks[task.id]);
+                        }
+                    }
+                );
+
             },
 
             get_innerHTML: function () {
@@ -433,10 +501,21 @@ require([
                 return remaining;
             },
 
-            selected: function () {
-                this.inherited(arguments);
-                dom_class.add("selected_task_assignee_div", "hidden");
-                dom_class.remove("stop_working", "hidden");
+            start_working: function () {
+                post("moved", {
+                         old_state: "",
+                         new_state: model.states[0].tag,
+                         task_ids: this.id
+                     });
+            },
+
+            stop_working: function() {
+                post("moved",
+                     {
+                         old_state: this.state,
+                         new_state: "",
+                         task_ids: this.id
+                     });
             },
 
             type_class: "release",
@@ -486,19 +565,6 @@ require([
 
             move: function(new_state) {
                 this.get_parent().move_subtask(this, new_state);
-            },
-
-            selected: function () {
-                this.inherited(arguments);
-                dom_class.add("stop_working", "hidden");
-                dom_class.remove("selected_task_assignee_div", "hidden");
-                if (this.assignee != null) {
-                    dojo.byId("selected_task_assignee"
-                             ).textContent = this.assignee.name;
-                }
-                else {
-                    dojo.byId("selected_task_assignee").textContent = "";
-                }
             },
 
             type_class: "task"
@@ -716,36 +782,6 @@ require([
                 });
         }
 
-        var selected_task;
-        var selected_node;
-        dojo.byId("selected_task_assignee_div").appendChild(
-            new Button(
-                {
-                    label: "Take",
-                    onClick: function () {
-                        if (selected_task == null) {
-                            return;
-                        }
-                        // XXX shoud display a toast here
-                        post("take", { task_id: selected_task.id });
-                    }
-                }).domNode);
-
-        var blocked_checkbox = new CheckBox(
-            {
-                class: 'zc-widget',
-                onChange: function (v) {
-                    if (v == selected_task.blocked) {
-                        return;
-                    }
-                    // XXX shoud display a toast here (and require a reason)
-                    // IOW, we'll redo this.
-                    post("blocked",
-                         { task_id: selected_task.id, is_blocked: v});
-                }
-            });
-        dom_construct.place(blocked_checkbox.domNode, 'blocked_div');
-
         function receive(event) {
             var data = JSON.parse(event.data);
 
@@ -763,22 +799,6 @@ require([
             cookie("X-UUID", generateTimeBasedUuid());
             dojox.socket("/api/project").on("message", receive);
         }
-
-        dom_construct.place(
-            new Button(
-                {
-                    id: "stop_working",
-                    label: "Stop working on this task",
-                    onClick: function () {
-                        var task = selected_task;
-                        post("moved",
-                             {
-                                 old_state: task.state,
-                                 new_state: "",
-                                 task_ids: task.id
-                             });
-                    }
-                }).domNode, "task_detail");
 
         function move_handler(source, nodes, copy, target) {
 
