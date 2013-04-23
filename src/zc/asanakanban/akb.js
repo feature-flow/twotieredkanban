@@ -86,7 +86,7 @@ require([
                 }
                 self.node = dojo.create(
                     'div', {
-                        "class": self.type_class,
+                        "class": "card " + self.type_class,
                         task_id: self.id
                     });
                 self.update_card();
@@ -113,16 +113,22 @@ require([
             },
 
             get_innerHTML: function () {
-                return string.substitute(
-                    "<div>${name}</div>" +
+                var html = "<div>" + this.name + "</div>";
+                if (this.notes) {
+                    html += (
+                        "<div class='notes'>" +
+                            this.notes.replace(/\n/g, '<br>') +
+                            "</div>");
+                }
+                if (this.assignee) {
+                    html += (
                         "<div class='assignment'>" +
-                        "Assigned: <span class='assignee'>" +
-                        "${assignee}</span></div>",
-                    {
-                        name: this.name,
-                        assignee: (this.assignee != null) ?
-                            this.assignee.name : ""
-                    });
+                            "Assigned: <span class='assignee'>" +
+                            this.assignee.name +
+                            "</span></div>"
+                    );
+                }
+                return html;
             },
 
             get_state: function () {

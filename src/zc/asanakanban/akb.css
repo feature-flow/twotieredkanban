@@ -65,6 +65,47 @@ th
 .release.development .size:before { content: " / " }
 .release.development .remaining:before { content: "[" } 
 
+
+.card .notes
+{
+  display: none;
+ }
+
+.card:hover .notes
+{
+  display: block;
+  margin-top: 1ex;
+  margin-bottom: 1ex;
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .zc-fieldset
 {
   margin: .5em; 
