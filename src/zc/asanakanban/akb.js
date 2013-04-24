@@ -21,13 +21,14 @@ require([
             "dojo/topic",
             "dojox/uuid/generateTimeBasedUuid",
             "dojox/socket",
+            "zc.dojo",
             "dojo/domReady!"],
     function(
         declare, lang, aspect, cookie,
         Source, dom_class, dom_construct, query, ready,
         string,
         dijit, CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
-        Menu, MenuItem, topic, generateTimeBasedUuid, socket
+        Menu, MenuItem, topic, generateTimeBasedUuid, socket, dojoform
     ) {
         var BaseTask = {
 

@@ -6,6 +6,7 @@ import os
 import re
 import requests
 import sys
+import zc.dojoform
 import zc.thread
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,17 @@ def akb_js():
 @bobo.query("/akb.css", content_type="text/css")
 def akb_css():
     return read_file("akb.css")
+
+@bobo.query("/dojo/zc.dojo.js", content_type="application/javascript")
+def zc_dojo_js():
+    return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
+                                  "resources/zc.dojo.js"))
+
+@bobo.query("/zc.dojo.css", content_type="text/css")
+def zc_dojo_css():
+    return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
+                                  "resources/zc.dojo.css"))
+
 
 done_states = set()
 working_states = set()
