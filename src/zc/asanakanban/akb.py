@@ -335,10 +335,16 @@ class API:
 
     @bobo.post("/add_task", content_type='application/json')
     def add_task(self, name, description, parent):
-        parent = dict(parent=parent) if parent else {}
+        options = dict(parent=parent) if parent else {}
         t = self.post("tasks",
                       workspace=self.workspace_id,
                       name=name,
                       notes=description,
-                      **parent)
+                      **options)
         self.cache.invalidate(t)
+        if parent:
+            self.cache.invalidate(self.get_task(parent))
+
+    @bobo.query("/refresh", content_type='application/json')
+    def refresh(self, task_id):
+        self.cache.invalidate(self.get_task(task_id))

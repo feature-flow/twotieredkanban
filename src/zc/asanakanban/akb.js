@@ -30,6 +30,19 @@ require([
         dijit, CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, socket, dojoform
     ) {
+
+        var task_widgets = [
+                {
+                    name: "Name",
+                    required: true,
+                    widget_constructor: "zope.schema.TextLine"
+                },
+                {
+                    name: "Description",
+                    widget_constructor: "zope.schema.Text"
+                }
+            ];
+
         var BaseTask = {
 
             change_state: function(new_state) {
@@ -232,18 +245,6 @@ require([
                 }
             },
 
-            widgets: [
-                {
-                    name: "Name",
-                    required: true,
-                    widget_constructor: "zope.schema.TextLine"
-                },
-                {
-                    name: "Description",
-                    widget_constructor: "zope.schema.Text"
-                }
-            ],
-
             add_subtask: function () {
                 var dialog = new Dialog(
                     {
@@ -251,7 +252,7 @@ require([
                         content: dojoform.build_form2(
                             {
                                 actions: [{name: "Add"}, {name: "Cancel"}],
-                                widgets: this.widgets,
+                                widgets: task_widgets,
                                 handler: lang.hitch(
                                     this,
                                     function (data, action) {
@@ -273,6 +274,53 @@ require([
                               dialog.destroyRecursive();
                           });
                 dialog.show();
+            },
+
+            backlog_create_view: function () {
+                var node = dojo.create(
+                    'li', { "class": "backlog_item" }, "backlog");
+                this.node = node;
+                this.backlog_update();
+                var backlog_menu = new Menu( { targetNodeIds: [node] });
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "Start: "+this.name,
+                            onClick: lang.hitch(this, "start_working")
+                        }));
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "View in Asana",
+                            onClick: lang.hitch(this, "view_in_asana")
+                        }));
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "Add subtask",
+                            onClick: lang.hitch(this, "add_subtask")
+                        }));
+                backlog_menu.startup();
+                this.menu = backlog_menu;
+            },
+
+            backlog_update: function () {
+                var html =  "["+this.size+"] "+this.name;
+                if (this.notes || this.subtasks) {
+                    html += "<div class='backlog_detail'>";
+                    html += this.get_notes_html();
+                    if (this.subtasks) {
+                        html += 'Subtasks: <ul>';
+                        dojo.forEach(
+                            this.subtasks,
+                            function (subtask) {
+                               html += '<li>' + subtask.name + '</li>';
+                            });
+                        html += '</ul>';
+                    }
+                    html += "</div>";
+                }
+                this.node.innerHTML = html;
             },
 
             change_state: function(new_state) {
@@ -319,7 +367,7 @@ require([
                 }
                 else {
                     this.destroy_working_views();
-                    this.create_backlog_view();
+                    this.backlog_create_view();
                 }
 
             },
@@ -341,47 +389,6 @@ require([
                         }
                     ));
                 return items;
-            },
-
-            create_backlog_view: function () {
-                var html =  "["+this.size+"] "+this.name;
-                if (this.notes || this.subtasks) {
-                    html += "<div class='backlog_detail'>";
-                    html += this.get_notes_html();
-                    if (this.subtasks) {
-                        html += 'Subtasks: <ul>';
-                        dojo.forEach(
-                            this.subtasks,
-                            function (subtask) {
-                               html += '<li>' + subtask.name + '</li>';
-                            });
-                        html += '</ul>';
-                    }
-                    html += "</div>";
-                }
-                var node = dojo.create(
-                    'li',
-                    {
-                        "class": "backlog_item",
-                        innerHTML: html
-                    },
-                    "backlog");
-                var backlog_menu = new Menu( { targetNodeIds: [node] });
-                backlog_menu.addChild(
-                    new MenuItem(
-                        {
-                            label: "Start: "+this.name,
-                            onClick: lang.hitch(this, "start_working")
-                        }));
-                backlog_menu.addChild(
-                    new MenuItem(
-                        {
-                            label: "View in Asana",
-                            onClick: lang.hitch(this, "view_in_asana")
-                        }));
-                backlog_menu.startup();
-                this.node = node;
-                this.menu = backlog_menu;
             },
 
             create_detail: function(parent) {
@@ -603,10 +610,12 @@ require([
             type_class: "release",
 
             update_card: function () {
-                if (! this.state) {
-                    return; // In backlog.
+                if (this.state) {
+                    this.inherited(arguments);
                 }
-                this.inherited(arguments);
+                else {
+                    this.backlog_update();
+                }
             },
 
             updated: function() {
@@ -634,15 +643,17 @@ require([
             get_state_helper: function (task) {
                 var state = this.inherited(arguments);
                 if (! state) {
-                    state = model.release_tags[this.get_parent().state
-                                         ].default_state;
+                    var pstate = this.get_parent().state;
+                    if (pstate) {
+                        state = model.release_tags[pstate].default_state;
+                    }
                 }
                 return state;
             },
 
             get_states: function() {
-                return model.release_tags[this.get_parent().state
-                                         ].tags;
+                var pstate = this.get_parent().state;
+                return pstate ? model.release_tags[pstate].tags: null;
             },
 
             move: function(new_state) {
