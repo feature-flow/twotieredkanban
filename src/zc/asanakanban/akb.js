@@ -43,6 +43,15 @@ require([
                 }
             ];
 
+        function single_use_dialog(props) {
+            var dialog = new Dialog(props);
+            dialog.on("hide",
+                      function () {
+                          dialog.destroyRecursive();
+                      });
+            return dialog;
+        }
+
         var BaseTask = {
 
             change_state: function(new_state) {
@@ -246,7 +255,7 @@ require([
             },
 
             add_subtask: function () {
-                var dialog = new Dialog(
+                var dialog = single_use_dialog(
                     {
                         title: "New subtask",
                         content: dojoform.build_form2(
@@ -269,10 +278,6 @@ require([
                                     })
                             })
                     });
-                dialog.on("hide",
-                          function () {
-                              dialog.destroyRecursive();
-                          });
                 dialog.show();
             },
 
@@ -928,4 +933,37 @@ require([
         };
         topic.subscribe("/dnd/drop", move_handler);
 
+        function add_release() {
+            var dialog = single_use_dialog(
+                {
+                    title: "New release",
+                    content: dojoform.build_form2(
+                        {
+                            actions: [{name: "Add"}, {name: "Cancel"}],
+                            widgets: task_widgets,
+                            handler: lang.hitch(
+                                this,
+                                function (data, action) {
+                                    dialog.hide();
+                                    if (action.name == "Add") {
+                                        post("add_task",
+                                             {
+                                                 name: data.Name,
+                                                 description:
+                                                 data.Description
+                                             });
+                                    }
+                                })
+                        })
+                });
+            dialog.show();
+        }
+
+        dojo.place(
+            new Button(
+                {
+                    label: "new release",
+                    onClick: add_release
+                }).domNode,
+            dojo.body());
     });
