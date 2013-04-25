@@ -232,6 +232,49 @@ require([
                 }
             },
 
+            widgets: [
+                {
+                    name: "Name",
+                    required: true,
+                    widget_constructor: "zope.schema.TextLine"
+                },
+                {
+                    name: "Description",
+                    widget_constructor: "zope.schema.Text"
+                }
+            ],
+
+            add_subtask: function () {
+                var dialog = new Dialog(
+                    {
+                        title: "New subtask",
+                        content: dojoform.build_form2(
+                            {
+                                actions: [{name: "Add"}, {name: "Cancel"}],
+                                widgets: this.widgets,
+                                handler: lang.hitch(
+                                    this,
+                                    function (data, action) {
+                                        dialog.hide();
+                                        if (action.name == "Add") {
+                                            post("add_task",
+                                                 {
+                                                     name: data.Name,
+                                                     description:
+                                                     data.Description,
+                                                     parent: this.id
+                                                 });
+                                        }
+                                    })
+                            })
+                    });
+                dialog.on("hide",
+                          function () {
+                              dialog.destroyRecursive();
+                          });
+                dialog.show();
+            },
+
             change_state: function(new_state) {
                 var old_state = this.state;
                 if (old_state) {
@@ -288,6 +331,13 @@ require([
                         {
                             label: "Move to backlog",
                             onClick: lang.hitch(this, "stop_working")
+                        }
+                    ));
+                items.push(
+                    new MenuItem(
+                        {
+                            label: "Add subtask",
+                            onClick: lang.hitch(this, "add_subtask")
                         }
                     ));
                 return items;
@@ -657,6 +707,16 @@ require([
                     }
                 }).domNode);
 
+        function xhr_error(data) {
+            if (data.responseText) {
+                data = data.responseText;
+                try {
+                    data = JSON.parse(data).error;
+                } catch (x) {}
+            }
+            alert(data);
+        }
+
         function get(url, load) {
             return dojo.xhrGet(
                 {
@@ -664,7 +724,7 @@ require([
                     handleAs: "json",
                     load: load,
                     error: function (data) {
-                        alert(data);
+                        xhr_error(data);
                     }
                 });
         }
@@ -677,7 +737,7 @@ require([
                     content: content,
                     load: load,
                     error: function (data) {
-                        alert(data);
+                        xhr_error(data);
                     }
                 });
 

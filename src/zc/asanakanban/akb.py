@@ -323,3 +323,13 @@ class API:
         else:
             self.post("tasks/%s/removeTag" % task_id, tag=tag_id)
         cache.invalidate(self.get("tasks/%s" % task_id))
+
+    @bobo.post("/add_task", content_type='application/json')
+    def add_task(self, name, description, parent):
+        parent = dict(parent=parent) if parent else {}
+        t = self.post("tasks",
+                      workspace=self.workspace_id,
+                      name=name,
+                      notes=description,
+                      **parent)
+        cache.invalidate(t)
