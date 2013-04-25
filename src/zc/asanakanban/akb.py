@@ -49,9 +49,9 @@ class Cache:
             self.send(task, uuid)
 
 try:
-    cache
+    caches
 except NameError:
-    cache = Cache()
+    caches = {}
 
 def error(message):
     raise bobo.BoboException(
@@ -134,6 +134,15 @@ class API:
         return self.request.cookies["X-Workspace-ID"]
 
     @property
+    def cache(self):
+        key = "%s-%s" % (self.workspace_id, self.project_id)
+        try:
+            return caches[key]
+        except KeyError:
+            caches[key] = Cache()
+            return caches[key]
+
+    @property
     def project_id(self):
         return self.request.cookies["X-Project-ID"]
 
@@ -213,7 +222,7 @@ class API:
             @zc.thread.Thread(args=(task,))
             def thread(task_summary):
                 task_id = task_summary['id']
-                task = cache.get(task_id)
+                task = self.cache.get(task_id)
                 if task is None:
                     task = self.get_task(task_id)
                 return task
@@ -240,19 +249,19 @@ class API:
             queue = gevent.queue.Queue()
             get = queue.get
             try:
-                cache.puts[uuid] = queue.put
+                self.cache.puts[uuid] = queue.put
                 for task in self.get_tasks_in_threads(
                     self.get("projects/%s/tasks" % self.project_id)
                     ):
                     if not task.get('completed'):
-                        cache.send(task, uuid)
+                        self.cache.send(task, uuid)
                         ws.send(get())
 
                 while 1:
                     ws.send(get())
                     print 'sent', uuid
             finally:
-                cache.puts.pop(uuid, None)
+                self.cache.puts.pop(uuid, None)
         except:
             logger.exception("/project %s" % uuid)
             raise
@@ -263,7 +272,7 @@ class API:
         for task in self.get_tasks_in_threads(
             self.get("tasks/%s/subtasks" % task_id)
             ):
-            cache.send(task, uuid)
+            self.cache.send(task, uuid)
 
     def tag_id(self, state):
         workspace_id = self.workspace_id
@@ -307,13 +316,13 @@ class API:
                             assignee = ("me"
                                         if new_state in working_states
                                         else None))
-            cache.invalidate(task)
+            self.cache.invalidate(task)
 
         return {}
 
     @bobo.post("/take", content_type='application/json')
     def take(self, task_id):
-        cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
+        self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
 
     @bobo.post("/blocked", content_type='application/json')
     def blocked(self, task_id, is_blocked):
@@ -322,7 +331,7 @@ class API:
             self.post("tasks/%s/addTag" % task_id, tag=tag_id)
         else:
             self.post("tasks/%s/removeTag" % task_id, tag=tag_id)
-        cache.invalidate(self.get("tasks/%s" % task_id))
+        self.cache.invalidate(self.get("tasks/%s" % task_id))
 
     @bobo.post("/add_task", content_type='application/json')
     def add_task(self, name, description, parent):
@@ -332,4 +341,4 @@ class API:
                       name=name,
                       notes=description,
                       **parent)
-        cache.invalidate(t)
+        self.cache.invalidate(t)
