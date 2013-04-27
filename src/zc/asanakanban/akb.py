@@ -10,6 +10,7 @@ import zc.dojoform
 import zc.thread
 
 logger = logging.getLogger(__name__)
+logging.basicConfig()
 
 class Cache:
 
@@ -150,50 +151,42 @@ class API:
     def uuid(self):
         return self.request.cookies["X-UUID"]
 
-    def get(self, url):
-        try:
-            r = requests.get(
-                'https://app.asana.com/api/1.0/' + url,
-                auth=(self.key, ''),
-                )
-        except Exception:
-            error("Couldn't connect to Asana")
-
-        if not r.ok:
-            asana_error(r)
-
-        return r.json()['data']
-
-    def post(self, url, **data):
-        try:
-            r = requests.post(
-                'https://app.asana.com/api/1.0/' + url,
-                auth=(self.key, ''),
+    def make_request(self, method, url, data=None):
+        if data:
+            options = dict(
                 data=json.dumps(dict(data=data)),
                 headers={'Content-Type': 'application/json'},
                 )
+        else:
+            options = {}
+
+        try:
+            r = getattr(requests, method)(
+                'https://app.asana.com/api/1.0/' + url,
+                auth=(self.key, ''),
+                **options)
         except Exception:
             error("Couldn't connect to Asana")
 
-        print 'post', url, data, r.ok
+        logger.info("%s %s %s %s", method, url, data, r.ok)
+
         if not r.ok:
             asana_error(r)
+
         return r.json()['data']
+
+
+    def get(self, url):
+        return self.make_request('get', url)
+
+    def post(self, url, method='post', **data):
+        return self.make_request('post', url, data)
 
     def put(self, url, **data):
-        try:
-            r = requests.put(
-                'https://app.asana.com/api/1.0/' + url,
-                auth=(self.key, ''),
-                data=json.dumps(dict(data=data)),
-                headers={'Content-Type': 'application/json'},
-                )
-        except Exception:
-            error("Couldn't connect to Asana")
+        return self.make_request('put', url, data)
 
-        if not r.ok:
-            asana_error(r)
-        return r.json()['data']
+    def delete(self, url):
+        return self.make_request('delete', url)
 
     @bobo.query("/workspaces", content_type='application/json')
     def workspaces(self):
@@ -346,6 +339,24 @@ class API:
         if parent:
             self.cache.invalidate(self.get_task(parent))
 
-    @bobo.query("/refresh", content_type='application/json')
+    @bobo.post("/edit_task", content_type='application/json')
+    def edit_task(self, id, name, description):
+        t = self.put("tasks/%s" % id,
+                      name=name,
+                      notes=description,
+                      )
+        self.cache.invalidate(t)
+
+    @bobo.query("/refresh/:task_id", content_type='application/json')
     def refresh(self, task_id):
-        self.cache.invalidate(self.get_task(task_id))
+        t = self.get_task(task_id);
+        self.cache.invalidate(t)
+        if not t.get('parent'):
+            for subtask in t['subtasks']:
+                self.refresh(subtask['id'])
+
+    @bobo.query("/remove", content_type='application/json')
+    def remove(self, task_id):
+        return self.delete("tasks/%s" % task_id)
+
+

@@ -30,6 +30,7 @@ require([
         dijit, CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, socket, dojoform
     ) {
+        var hitch = lang.hitch;
 
         var task_widgets = [
                 {
@@ -50,6 +51,36 @@ require([
                           dialog.destroyRecursive();
                       });
             return dialog;
+        }
+
+        function form_dialog(title, widgets, alabel, handler) {
+            var formargs = {
+                actions: [
+                    {name: "aname", label: alabel},
+                    {name: "Cancel"}
+                ],
+                handler: function (data, action) {
+                    dialog.hide();
+                    if (action.name == "aname") {
+                        handler(data);
+                    }
+                }
+            };
+            if (typeof(widgets) == "string") {
+                formargs.groups = [{ id: "confirm_message" }];
+            }
+            else {
+                formargs.widgets = widgets;
+            }
+            var dialog = single_use_dialog(
+                {
+                    title: title,
+                    content: dojoform.build_form2(formargs)
+                });
+            if (typeof(widgets) == "string") {
+                dojo.byId("confirm_message").innerHTML= widgets;
+            }
+            dialog.show();
         }
 
         var BaseTask = {
@@ -76,20 +107,30 @@ require([
                 return [
                 new MenuItem(
                     {
+                        label: "Reload",
+                        onClick: hitch(this, "reload")
+                    }),
+                new MenuItem(
+                    {
+                        label: "Edit",
+                        onClick: hitch(this, "edit")
+                    }),
+                new MenuItem(
+                    {
                         label: "View in Asana",
-                        onClick: lang.hitch(this, "view_in_asana")
+                        onClick: hitch(this, "view_in_asana")
                     }),
                 new CheckedMenuItem(
                     {
                         label: "Blocked",
-                        onChange: lang.hitch(this, "set_blocked"),
+                        onChange: hitch(this, "set_blocked"),
                         checked: this.blocked
                     }
                 ),
                 new MenuItem(
                     {
                         label: "Take",
-                        onClick: lang.hitch(this, "take")
+                        onClick: hitch(this, "take")
                     }
                 )
                 ];
@@ -124,6 +165,27 @@ require([
                     data: self,
                     type: [self.dnd_class]
                 };
+            },
+
+            edit: function() {
+                var edit_widgets = dojo.map(
+                    task_widgets,
+                    function (widget) {
+                        return dojo.safeMixin({}, widget);
+                    });
+                edit_widgets[0].value = this.name || '';
+                edit_widgets[1].value = this.notes || '';
+
+                form_dialog("Edit task", edit_widgets, "Save",
+                            hitch(this, function (data) {
+                                           post("edit_task", {
+                                                    id: this.id,
+                                                    name: data.Name,
+                                                    description:
+                                                    data.Description
+                                                });
+                                       })
+                           );
             },
 
             get_blocked: function() {
@@ -184,6 +246,11 @@ require([
                 else {
                     task.size = 1;
                 }
+            },
+
+            reload: function() {
+                get("refresh/"+this.id);
+                // XXX need toast
             },
 
             set_blocked: function(v) {
@@ -255,30 +322,16 @@ require([
             },
 
             add_subtask: function () {
-                var dialog = single_use_dialog(
-                    {
-                        title: "New subtask",
-                        content: dojoform.build_form2(
-                            {
-                                actions: [{name: "Add"}, {name: "Cancel"}],
-                                widgets: task_widgets,
-                                handler: lang.hitch(
-                                    this,
-                                    function (data, action) {
-                                        dialog.hide();
-                                        if (action.name == "Add") {
-                                            post("add_task",
-                                                 {
-                                                     name: data.Name,
-                                                     description:
-                                                     data.Description,
-                                                     parent: this.id
-                                                 });
-                                        }
-                                    })
-                            })
-                    });
-                dialog.show();
+                form_dialog("New subtask", task_widgets, "Add",
+                            hitch(this, function (data) {
+                                           post("add_task", {
+                                                    name: data.Name,
+                                                    description:
+                                                    data.Description,
+                                                    parent: this.id
+                                                });
+                                       })
+                           );
             },
 
             backlog_create_view: function () {
@@ -291,19 +344,25 @@ require([
                     new MenuItem(
                         {
                             label: "Start: "+this.name,
-                            onClick: lang.hitch(this, "start_working")
+                            onClick: hitch(this, "start_working")
                         }));
                 backlog_menu.addChild(
                     new MenuItem(
                         {
                             label: "View in Asana",
-                            onClick: lang.hitch(this, "view_in_asana")
+                            onClick: hitch(this, "view_in_asana")
+                        }));
+                backlog_menu.addChild(
+                    new MenuItem(
+                        {
+                            label: "Reload",
+                            onClick: hitch(this, "reload")
                         }));
                 backlog_menu.addChild(
                     new MenuItem(
                         {
                             label: "Add subtask",
-                            onClick: lang.hitch(this, "add_subtask")
+                            onClick: hitch(this, "add_subtask")
                         }));
                 backlog_menu.startup();
                 this.menu = backlog_menu;
@@ -357,7 +416,7 @@ require([
                         get("subtasks/"+this.id);
                         dojo.forEach(
                             this.subtasks,
-                            lang.hitch(
+                            hitch(
                                 this,
                                 function (subtask) {
                                     subtask = all_tasks[subtask.id];
@@ -383,14 +442,14 @@ require([
                     new MenuItem(
                         {
                             label: "Move to backlog",
-                            onClick: lang.hitch(this, "stop_working")
+                            onClick: hitch(this, "stop_working")
                         }
                     ));
                 items.push(
                     new MenuItem(
                         {
                             label: "Add subtask",
-                            onClick: lang.hitch(this, "add_subtask")
+                            onClick: hitch(this, "add_subtask")
                         }
                     ));
                 return items;
@@ -569,7 +628,9 @@ require([
                 // provide an API.
                 old_source.selection[task.node.id] = 1;
                 old_source.deleteSelectedNodes();
-                new_source.insertNodes(false, [task]);
+                if (new_source) {
+                    new_source.insertNodes(false, [task]);
+                }
             },
 
             move_subtask: function (task, new_state) {
@@ -632,6 +693,18 @@ require([
 
         var Task = {
 
+            context_menu_items: function () {
+                var items = this.inherited(arguments);
+                items.push(
+                new MenuItem(
+                    {
+                        label: "Remove",
+                        onClick: hitch(this, "remove")
+                    }
+                ));
+                return items;
+            },
+
             enter_state: function() {},
 
             get_parent: function () {
@@ -663,6 +736,24 @@ require([
 
             move: function(new_state) {
                 this.get_parent().move_subtask(this, new_state);
+            },
+
+            remove: function () {
+                form_dialog(
+                    "Really?",
+                    "Do you <em>really</em> want to remove "+
+                        this.name+"?",
+                    "Yes, really.",
+                    hitch(this, function (data) {
+                                   post("remove",
+                                        { task_id: this.id },
+                                        hitch(this,
+                                                   function () {
+                                                       this.move(null);
+                                                   })
+                                        );
+                               })
+                );
             },
 
             type_class: "task"
@@ -934,29 +1025,15 @@ require([
         topic.subscribe("/dnd/drop", move_handler);
 
         function add_release() {
-            var dialog = single_use_dialog(
-                {
-                    title: "New release",
-                    content: dojoform.build_form2(
-                        {
-                            actions: [{name: "Add"}, {name: "Cancel"}],
-                            widgets: task_widgets,
-                            handler: lang.hitch(
-                                this,
-                                function (data, action) {
-                                    dialog.hide();
-                                    if (action.name == "Add") {
-                                        post("add_task",
-                                             {
-                                                 name: data.Name,
-                                                 description:
-                                                 data.Description
-                                             });
-                                    }
-                                })
-                        })
-                });
-            dialog.show();
+            form_dialog("New release", task_widgets, "Add",
+                        hitch(this, function (data) {
+                                  post("add_task", {
+                                           name: data.Name,
+                                           description:
+                                           data.Description
+                                       });
+                              })
+                       );
         }
 
         dojo.place(
