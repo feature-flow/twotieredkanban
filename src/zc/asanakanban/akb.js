@@ -83,6 +83,9 @@ require([
             dialog.show();
         }
 
+        var link_re = /https?:\/\/\S+/g;
+        var punctuation = {'.': 1, ',': 1, ';': 1, ':': 1};
+
         var BaseTask = {
 
             change_state: function(new_state) {
@@ -104,36 +107,47 @@ require([
             },
 
             context_menu_items: function() {
-                return [
-                new MenuItem(
-                    {
-                        label: "Reload",
-                        onClick: hitch(this, "reload")
-                    }),
-                new MenuItem(
-                    {
-                        label: "Edit",
-                        onClick: hitch(this, "edit")
-                    }),
-                new MenuItem(
-                    {
-                        label: "View in Asana",
-                        onClick: hitch(this, "view_in_asana")
-                    }),
-                new CheckedMenuItem(
-                    {
-                        label: "Blocked",
-                        onChange: hitch(this, "set_blocked"),
-                        checked: this.blocked
-                    }
-                ),
-                new MenuItem(
-                    {
-                        label: "Take",
-                        onClick: hitch(this, "take")
-                    }
-                )
+                var items = [
+                    new MenuItem(
+                        {
+                            label: "Reload",
+                            onClick: hitch(this, "reload")
+                        }),
+                    new MenuItem(
+                        {
+                            label: "Edit",
+                            onClick: hitch(this, "edit")
+                        }),
+                    new MenuItem(
+                        {
+                            label: "View in Asana",
+                            onClick: hitch(this, "view_in_asana")
+                        }),
+                    new CheckedMenuItem(
+                        {
+                            label: "Blocked",
+                            onChange: hitch(this, "set_blocked"),
+                            checked: this.blocked
+                        }
+                    ),
+                    new MenuItem(
+                        {
+                            label: "Take",
+                            onClick: hitch(this, "take")
+                        }
+                    )
                 ];
+                dojo.forEach(
+                    this.get_links(),
+                    function (link) {
+                        items.push(new MenuItem({ label: link,
+                                                  onClick: function () {
+                                                      window.open(link);
+                                                  }
+                                                })
+                                  );
+                    });
+                return items;
             },
 
             create_card: function (hint) {
@@ -154,12 +168,6 @@ require([
                         task_id: self.id
                     });
                 self.update_card();
-                self.menu = new Menu({ targetNodeIds: [self.node] });
-                dojo.forEach(
-                    this.context_menu_items(),
-                    function (item) {
-                        self.menu.addChild(item);
-                    });
                 return {
                     node: self.node,
                     data: self,
@@ -197,13 +205,6 @@ require([
                 ).length > 0;
             },
 
-            get_notes_html: function () {
-                return this.notes ?
-                    ("<div class='notes'>" +
-                     this.notes.replace(/\n/g, '<br>') +
-                     "</div>") : '';
-            },
-
             get_innerHTML: function () {
                 var html = "<div>" + this.name + "</div>";
                 html += this.get_notes_html();
@@ -216,6 +217,33 @@ require([
                     );
                 }
                 return html;
+            },
+
+            get_links: function () {
+                link_re.lastIndex = 0;
+                return this.get_links_helper((this.notes || '') + ' ', []);
+            },
+
+            get_links_helper: function (text, result) {
+                if (text) {
+                    var match = link_re.exec(text);
+                    if (match) {
+                        match = match[0];
+                        if (match[match.length-1] in punctuation) {
+                            match = match.substring(0, match.length - 1);
+                        }
+                        result.push(match);
+                        return this.get_links_helper(text, result);
+                    }
+                }
+                return result;
+            },
+
+            get_notes_html: function () {
+                return this.notes ?
+                    ("<div class='notes'>" +
+                     this.notes.replace(/\n/g, '<br>') +
+                     "</div>") : '';
             },
 
             get_state: function () {
@@ -277,6 +305,15 @@ require([
                         this.get_states()[this.state].working, "working");
                     dom_class.add(this.node, this.state);
                 }
+                if (this.menu) {
+                    this.menu.destroyRecursive();
+                }
+                this.menu = new Menu({ targetNodeIds: [this.node] });
+                dojo.forEach(
+                    this.context_menu_items(),
+                    hitch(this, function (item) {
+                        this.menu.addChild(item);
+                    }));
             },
 
             update_flag_class: function(cond, class_) {
