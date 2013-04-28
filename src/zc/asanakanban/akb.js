@@ -416,6 +416,12 @@ require([
                         }
                     }
                     if (model.release_tags[new_state].substates) {
+                        if (! this.subtasks || this.subtasks.length < 1) {
+                            // We don't have subtasks.  We need at least one.
+                            post("add_task", { name: "Do it!",
+                                               description: "",
+                                               parent: this.id });
+                        }
                         this.create_detail(
                             dojo.byId(new_state+"_detail_"+this.id));
                         get("subtasks/"+this.id);
