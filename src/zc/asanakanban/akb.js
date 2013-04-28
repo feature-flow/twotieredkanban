@@ -965,6 +965,11 @@ require([
                             }
                         });
                     new_project();
+
+                    dojo.place(
+                        new Button({ label: "New release",
+                                     onClick: add_release }).domNode,
+                        dojo.body());
                 });
         }
 
@@ -983,7 +988,17 @@ require([
 
         function new_project() {
             cookie("X-UUID", generateTimeBasedUuid());
-            dojox.socket("/api/project").on("message", receive);
+            var socket = dojox.socket("/api/project");
+            socket.on("message", receive);
+            socket.on("close", function () {
+                          form_dialog(
+                              "Disconnected",
+                              "The server disconnected. Try reloading.",
+                              "Reload",
+                              function () {
+                                  window.location.reload();
+                              });
+                      });
         }
 
         function move_handler(source, nodes, copy, target) {
@@ -1024,11 +1039,4 @@ require([
                        );
         }
 
-        dojo.place(
-            new Button(
-                {
-                    label: "new release",
-                    onClick: add_release
-                }).domNode,
-            dojo.body());
     });
