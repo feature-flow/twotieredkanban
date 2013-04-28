@@ -21,8 +21,7 @@ class Recipe:
         [web]
         recipe = zc.zdaemonrecipe
         deployment = deployment
-        d = ${buildout:directory}
-        program = ${:d}/bin/bobo -f ${:d}/akb.py -p %(port)s
+        program = ${buildout:bin-directory}/server %(port)s
         zdaemon.conf =
            <runner>
               transcript ${deployment:log-directory}/web.log
@@ -36,9 +35,8 @@ class Recipe:
         chkconfig = 345 99 10
         process-management = true
         digest = %(digest)s
-        """ % dict(
-            port=port,
-            digest=hashlib.sha224(
-                               pprint.pformat(dict(zk_options))).hexdigest()))
+        """ % dict(port=port,
+                   digest=hashlib.sha224(
+                       pprint.pformat(dict(zk_options))).hexdigest()))
 
     install = update = lambda self: ()

@@ -1,0 +1,90 @@
+.hidden
+{
+  display: none;
+  }
+.task
+{ 
+  background-color: #fff473;
+  }
+
+.task,.release
+{ 
+  border: 1px solid black !important;
+  margin: 4px;
+  }
+
+table
+{
+  border-collapse:collapse;
+  }
+
+table,td,th
+{ 
+  border: 1px solid grey;
+  }
+
+th
+{
+  border-bottom: 2px solid black;
+  text-align: center;
+  padding: 3px;
+  background-color: #eee;
+  }
+
+.development_td
+{ 
+  border-right: None;
+  }
+.detail_td
+{ 
+  border-left: None;
+  }
+
+.task_detail
+{ 
+  margin: 4px;
+  border: 1px solid black;
+  }
+
+.assigned
+{ 
+  background-color: #dfd;
+  }
+
+.blocked
+{ 
+  background-color: #f99;
+  }
+
+.release .remaining
+{ 
+  font-weight: bold;
+  }
+.release .size:before { content: "[" }
+.release .size:after  { content: "] " }
+.release.development .size:before { content: " / " }
+.release.development .remaining:before { content: "[" } 
+
+
+.card .notes
+{
+  display: none;
+ }
+
+.card:hover .notes
+{
+  display: block;
+  margin-top: 1ex;
+  margin-bottom: 1ex;
+ }
+
+.backlog_item:hover .backlog_detail
+{ 
+  display: block;
+  margin-left: 1em;
+ }
+
+.backlog_detail
+{ 
+  display: none;
+  }
