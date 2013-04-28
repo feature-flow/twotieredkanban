@@ -37,20 +37,27 @@ states on the board. *The tasks must be public to your users.*
 You can drag releases and tags around to represent progress. You can
 also take tasks to work on and mark tasks as blocked.
 
-This is very much a work in progress:
+Changes
+=======
 
-- The UI will get prettier. :)
+0.3.0 (2013-04-28)
+------------------
 
-- We'll add more functionality, but it's not a goal to replace the
-  Asana UI.
+This is a pretty major refactoring to provide server-side caching to:
 
-- It currently implements a specific workflow.  In the future, we'll
-  probably generalize it to let you specify your own work states and
-  singly nested processes.
+- Reduce requests to Asana (and the risk of having excessive requests
+  rejected)
 
-- We have to make lots of requests to Asana, making startup fairly slow
-  and making it impractical to poll for updates efficiently. Updates
-  to the Asana APIs will likely allow us to greatly speed loads and
-  provide live updates.
+- Live update so you don't have to reload to see changes users make
+  through the kanban board.
 
+The server-side caching without notifications from Asana necessitated
+adding task CRUD in the kanban board.
 
+Now have a model-based architecture. The workflow is no-longer
+expressed in the code, but through a JSON-formatted model. (In the
+future, we'll make it possible to pass the path to a model definition
+to the server process.)
+
+Lots of UI improvements
+.
