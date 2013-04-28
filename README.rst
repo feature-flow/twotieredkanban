@@ -59,5 +59,4 @@ expressed in the code, but through a JSON-formatted model. (In the
 future, we'll make it possible to pass the path to a model definition
 to the server process.)
 
-Lots of UI improvements
-.
+Lots of UI improvements.
