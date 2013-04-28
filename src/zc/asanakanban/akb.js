@@ -271,10 +271,12 @@ require([
                 this.node.innerHTML = this.get_innerHTML();
                 this.update_flag_class(this.blocked, "blocked");
                 this.update_flag_class(this.assignee, "assigned");
-                this.update_flag_class(
-                    this.get_states()[this.state].working, "working");
                 this.update_flag_class(this.completed, "completed");
-                dom_class.add(this.node, this.state);
+                if (this.state) {
+                    this.update_flag_class(
+                        this.get_states()[this.state].working, "working");
+                    dom_class.add(this.node, this.state);
+                }
             },
 
             update_flag_class: function(cond, class_) {
@@ -289,7 +291,7 @@ require([
             update: function(data) {
                 var new_state = this.get_state_helper(data);
                 if (new_state != this.state) {
-                    this.move(new_state);
+                    this.remove_card(); // We'll add card when we update state
                 }
                 dojo.safeMixin(this, data);
                 this.updated();
@@ -312,12 +314,10 @@ require([
         var Release = {
 
             add: function(task) {
-                if (this.state) {
-                    task.dnd_class = (
-                        'subtasks_' + this.state + "_" + this.id);
-                    if (this.substages) {
-                        this.substages[task.state].insertNodes(false, [task]);
-                    }
+                var substage = this.substage_for_task(task);
+                if (substage) {
+                    task.dnd_class = 'subtasks_' + this.state + "_" + this.id;
+                    substage.insertNodes(false, [task]);
                 }
             },
 
@@ -410,23 +410,24 @@ require([
                     if (! old_state) {
                         this.create_working_views();
                     }
+                    else {
+                        if (! this.node) {
+                            this.stages[new_state].insertNodes(false, [this]);
+                        }
+                    }
                     if (model.release_tags[new_state].substates) {
                         this.create_detail(
                             dojo.byId(new_state+"_detail_"+this.id));
                         get("subtasks/"+this.id);
                         dojo.forEach(
                             this.subtasks,
-                            hitch(
-                                this,
-                                function (subtask) {
-                                    subtask = all_tasks[subtask.id];
-                                    if (subtask) {
-                                        this.substages[subtask.state
-                                                      ].insertNodes(
-                                                          false,
-                                                          [subtask]);
-                                    }
-                                }));
+                            hitch(this, function (subtask) {
+                                      subtask = all_tasks[subtask.id];
+                                      if (subtask) {
+                                          this.add(subtask);
+                                      }
+                                  })
+                        );
                     }
                 }
                 else {
@@ -604,14 +605,16 @@ require([
                 return model.release_tags;
             },
 
-            move: function (new_state) {
-                if (this.state && new_state) {
-                    this.move_helper(
-                        this.stages[this.state], this.stages[new_state], this);
+            remove_card: function () {
+                if (this.state) {
+                    this.remove_card_helper(this.stages[this.state], this);
                 }
             },
 
-            move_helper: function(old_source, new_source, task) {
+            remove_card_helper: function(old_source, task) {
+                // We do half of the move here.
+                // We remove the task/release from it's old source.
+                // We'll add to the new source when the new state is set.
                 if (! (task.node.id in old_source.map)) {
                     // This is a little delicate.  When a user
                     // moves a node, we don't update the state right
@@ -628,19 +631,17 @@ require([
                 // provide an API.
                 old_source.selection[task.node.id] = 1;
                 old_source.deleteSelectedNodes();
-                if (new_source) {
-                    new_source.insertNodes(false, [task]);
-                }
+
+                // Delete the task node & menu.
+                task.menu.destroyRecursive();
+                delete task.menu;
+                delete task.node;
             },
 
-            move_subtask: function (task, new_state) {
-                if (! this.state) {
-                    return;
+            remove_card_subtask: function (task) {
+                if (this.state) {
+                    this.remove_card_helper(this.substage_for_task(task), task);
                 }
-                this.move_helper(
-                    this.substages[task.state],
-                    this.substages[new_state],
-                    task);
             },
 
             remaining: function () {
@@ -673,6 +674,24 @@ require([
                      });
             },
 
+            substage_for_task: function (task) {
+                if (this.state) {
+                    if (this.substages) {
+                        if (task.state) {
+                            if (task.state in this.substages) {
+                                return this.substages[task.state];
+                            }
+                        }
+                        else {
+                            return this.substages[
+                                model.release_tags[this.state].substates[0].tag
+                            ];
+                        }
+                    }
+                }
+                return null;
+            },
+
             type_class: "release",
 
             update_card: function () {
@@ -693,6 +712,13 @@ require([
 
         var Task = {
 
+            change_state: function (new_state) {
+                this.inherited(arguments);
+                if (! this.node) {
+                    this.get_parent().add(this);
+                }
+            },
+
             context_menu_items: function () {
                 var items = this.inherited(arguments);
                 items.push(
@@ -711,31 +737,12 @@ require([
                 return all_tasks[this.parent.id];
             },
 
-            get_state: function () {
-                this.inherited(arguments);
-                if (! this.node) {
-                    this.get_parent().add(this);
-                }
-            },
-
-            get_state_helper: function (task) {
-                var state = this.inherited(arguments);
-                if (! state) {
-                    var pstate = this.get_parent().state;
-                    if (pstate) {
-                        state = model.release_tags[pstate].default_state;
-                    }
-                }
-                return state;
-            },
-
             get_states: function() {
-                var pstate = this.get_parent().state;
-                return pstate ? model.release_tags[pstate].tags: null;
+                return model.task_tags;
             },
 
-            move: function(new_state) {
-                this.get_parent().move_subtask(this, new_state);
+            remove_card: function() {
+                this.get_parent().remove_card_subtask(this);
             },
 
             remove: function () {
@@ -747,10 +754,7 @@ require([
                     hitch(this, function (data) {
                                    post("remove",
                                         { task_id: this.id },
-                                        hitch(this,
-                                                   function () {
-                                                       this.move(null);
-                                                   })
+                                        hitch(this, "move")
                                         );
                                })
                 );
@@ -953,6 +957,7 @@ require([
                 function (data) {
                     model = data;
                     model.release_tags = {};
+                    model.task_tags = {};
                     dojo.forEach(
                         model.states,
                         function (state) {
@@ -969,10 +974,9 @@ require([
                                 dojo.forEach(
                                     state.substates,
                                     function (substate) {
-                                        if (! state.default_state) {
-                                            state.default_state = substate.tag;
-                                        }
                                         state.tags[substate.tag] = substate;
+                                        model.task_tags[substate.tag] =
+                                            substate;
                                     });
                             }
                         });
