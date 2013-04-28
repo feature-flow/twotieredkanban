@@ -328,10 +328,10 @@ class API:
 
     @bobo.post("/add_task", content_type='application/json')
     def add_task(self, name, description, parent=None):
-        options = dict(parent=parent) if parent else {}
+        options = (dict(parent=parent) if parent
+                   else dict(projects=[self.project_id]))
         t = self.post("tasks",
                       workspace=self.workspace_id,
-                      projects=[self.project_id],
                       name=name,
                       notes=description,
                       **options)
