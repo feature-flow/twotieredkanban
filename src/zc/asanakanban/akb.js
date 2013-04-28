@@ -774,56 +774,6 @@ require([
         var all_tasks = {};              // task id -> task
         var model;
 
-        if (localStorage.api_key) {
-            cookie("X-API-key", localStorage.api_key);
-            get_workspace();
-        }
-        else {
-            var dialog = new Dialog(
-                {
-                    title: 'API Key:'
-                });
-            dialog.containerNode.appendChild(
-                new TextBox(
-                    {
-                        onChange: function (val) {
-                            localStorage.api_key = val;
-                        },
-                        style: 'width: 30em'
-                    }).domNode);
-            dialog.containerNode.appendChild(
-                new dijit.form.Button(
-                    {
-                        label: 'Cancel',
-                        onClick: function () {
-                            dialog.hide();
-                        }
-                    }).domNode);
-            dialog.containerNode.appendChild(
-                new dijit.form.Button(
-                    {
-                        label: 'OK',
-                        onClick: function () {
-                            window.location.reload();
-                        }
-                    }).domNode);
-            dialog.show();
-            return;
-        }
-
-        dojo.byId("top").appendChild(
-            new Button(
-                {
-                    label: "Logout",
-                    style: "float: right;",
-                    onClick: function () {
-                        delete localStorage.api_key;
-                        delete localStorage.workspace_id;
-                        delete localStorage.project_id;
-                        window.location.reload();
-                    }
-                }).domNode);
-
         function xhr_error(data) {
             if (data.responseText) {
                 data = data.responseText;
@@ -858,6 +808,34 @@ require([
                     }
                 });
 
+        }
+
+        if (localStorage.api_key) {
+            cookie("X-API-key", localStorage.api_key);
+            get_workspace();
+
+            dojo.byId("top").appendChild(
+                new Button(
+                    {
+                        label: "Logout",
+                        style: "float: right;",
+                        onClick: function () {
+                            delete localStorage.api_key;
+                            delete localStorage.workspace_id;
+                            delete localStorage.project_id;
+                            window.location.reload();
+                        }
+                    }).domNode);
+        }
+        else {
+            form_dialog(
+                "API Key", [{ name: "key",
+                              widget_constructor: "zope.schema.TextLine",
+                              label: "API Key" }],
+                "Set", function (data) {
+                    localStorage.api_key = data.key;
+                    window.location.reload();
+                });
         }
 
         function get_workspace() {
