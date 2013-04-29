@@ -40,7 +40,7 @@ rm -rf %{buildroot}/opt/%{name}/release-distributions
 
 # Gaaaa! buildout doesn't handle relative paths in egg links. :(
 sed -i s-/tmp/%{name}-- \
-   %{buildroot}/opt/%{name}/develop-eggs/%{name}.egg-link 
+   %{buildroot}/opt/%{name}/develop-eggs/zc.asanakanban.egg-link 
 %clean
 rm -rf %{buildroot}
 rm -rf $RPM_BUILD_DIR/%{source}
