@@ -5,7 +5,9 @@ Release: 1
 Summary: Asana-based kanban board
 Group: Applications/Database
 Requires: cleanpython26
+Requires: libevent
 BuildRequires: cleanpython26
+BuildRequires: libevent-devel
 %define python /opt/cleanpython26/bin/python
 
 ##########################################################################
