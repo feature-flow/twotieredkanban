@@ -18,13 +18,13 @@ class Cache:
         self.tasks = {}
         self.puts = {}
         self.get = self.tasks.get
+        self.gen = 0
 
     def get(self, task_id, getter, uuid):
         tasks = self.tasks
         try:
             return tasks[task_id]
         except KeyError:
-            print 'miss', task_id
             task = getter("tasks/%s" % task_id)
             self.get_subtasks(task, getter)
             return task
@@ -37,12 +37,14 @@ class Cache:
         except KeyError:
             # Not in cache
             tasks[task_id] = task
+            self.gen += 1
         else:
             if task['modified_at'] > old['modified_at']:
                 old.update(task)
+                self.gen += 1
             task = old
 
-        task = json.dumps(task)
+        task = json.dumps((self.gen, task))
         self.puts[uuid](task)
 
     def invalidate(self, task):
@@ -233,8 +235,11 @@ class API:
 
             yield task
 
-    @bobo.query("/project", content_type="application/json")
-    def project(self):
+    @bobo.query("/project/:generation?", content_type="application/json")
+    def project(self, generation=None):
+        if generation is not None and int(generation) != self.cache.gen:
+            error("You were disconnected too long")
+
         try:
             ws = self.request.environ["wsgi.websocket"]
             uuid = self.uuid
@@ -252,7 +257,7 @@ class API:
 
                 while 1:
                     ws.send(get())
-                    print 'sent', uuid
+                    # print 'sent', uuid
             finally:
                 self.cache.puts.pop(uuid, None)
         except:

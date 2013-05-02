@@ -1010,8 +1010,11 @@ require([
                 });
         }
 
+        var generation = null;
         function receive(event) {
             var data = JSON.parse(event.data);
+            generation = data[0];
+            data = data[1];
 
             if (data.id in all_tasks) {
                 all_tasks[data.id].update(data);
@@ -1023,19 +1026,35 @@ require([
             }
         }
 
+        function closed() {
+            console.log(Date() + " closed");
+            if (generation == null) {
+                form_dialog(
+                    "Disconnected",
+                    "The server disconnected. Try reloading.",
+                    "Reload",
+                    function () {
+                        window.location.reload();
+                    });
+            }
+            else {
+                new_project();
+            }
+        }
+
         function new_project() {
             cookie("X-UUID", generateTimeBasedUuid());
-            var socket = dojox.socket("/api/project");
+            console.log(Date() + " new_project");
+            var socket;
+            if (generation == null) {
+                socket = dojox.socket("/api/project");
+            }
+            else {
+                socket = dojox.socket("/api/project/" + generation);
+                generation = null;
+            }
             socket.on("message", receive);
-            socket.on("close", function () {
-                          form_dialog(
-                              "Disconnected",
-                              "The server disconnected. Try reloading.",
-                              "Reload",
-                              function () {
-                                  window.location.reload();
-                              });
-                      });
+            socket.on("close", closed);
         }
 
         function move_handler(source, nodes, copy, target) {
