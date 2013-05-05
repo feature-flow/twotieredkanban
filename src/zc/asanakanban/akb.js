@@ -887,39 +887,36 @@ require([
                     if (data.length == 1) {
                         localStorage.workspace_id = data[0].id;
                     }
+                    else {
+                        data.splice(0, 0, { name: "Select a workspace:",
+                                            id: "" });
+                    }
                     dojo.create("label", {innerHTML: "Workspace:"}, 'top');
-                    dojo.byId('top').appendChild(
-                        new Select(
-                            {
-                                options: dojo.map(
-                                    data,
-                                    function (w) {
-                                        return {
-                                            label: w.name,
-                                            value: w.id.toString(),
-                                            selected:
-                                            w.id == localStorage.workspace_id
-                                        };
-                                    }),
-                                onChange: function (v) {
+                    var select = new Select(
+                        {
+                            options: dojo.map(
+                                data,
+                                function (w) {
+                                    return {
+                                        label: w.name,
+                                        value: w.id.toString(),
+                                        selected:
+                                        w.id == localStorage.workspace_id
+                                    };
+                                }),
+                            onChange: function (v) {
+                                if (v) {
                                     localStorage.workspace_id = v;
                                     window.location.reload();
                                 }
-                            }).domNode);
+                            }
+                        });
+                    dojo.byId('top').appendChild(select.domNode);
+                    select.startup();
                     if (localStorage.workspace_id) {
                         cookie("X-Workspace-ID", localStorage.workspace_id);
                         get_project();
                     }
-                    else {
-                        dojo.create(
-                            "span",
-                            {
-                                innerHTML:
-                                "Select a workspace. (One that can have tags.)"
-                            },
-                            "top");
-                    }
-
                 });
         }
 
@@ -931,6 +928,10 @@ require([
                     if (data.length == 1) {
                         localStorage.project_id = data[0].id;
                     }
+                    else {
+                        data.splice(0, 0, { name: "Select a project:",
+                                            id: "" });
+                    }
                     if (! localStorage.project_id) {
                         var development = dojo.filter(
                             data,
@@ -941,27 +942,29 @@ require([
                             localStorage.project_id = development[0].id;
                         }
                     }
-                    dojo.create(
-                        "label", {innerHTML: "Project:"}, 'top');
-                    dojo.byId('top').appendChild(
-                        new Select(
-                            {
-                                options: dojo.map(
-                                    data,
-                                    function (p) {
-                                        return {
-                                            label: p.name,
-                                            value: p.id.toString(),
-                                            selected:
-                                            p.id ==
-                                                localStorage.project_id
-                                        };
-                                    }),
-                                onChange: function (v) {
+                    dojo.create( "label", {innerHTML: "Project:"}, 'top');
+                    var select = new Select(
+                        {
+                            options: dojo.map(
+                                data,
+                                function (p) {
+                                    return {
+                                        label: p.name,
+                                        value: p.id.toString(),
+                                        selected:
+                                        p.id ==
+                                            localStorage.project_id
+                                    };
+                                }),
+                            onChange: function (v) {
+                                if (v) {
                                     localStorage.project_id = v;
                                     window.location.reload();
                                 }
-                            }).domNode);
+                            }
+                        });
+                    dojo.byId('top').appendChild(select.domNode);
+                    select.startup();
                     if (localStorage.project_id) {
                         cookie("X-Project-ID", localStorage.project_id);
                         get_model();
