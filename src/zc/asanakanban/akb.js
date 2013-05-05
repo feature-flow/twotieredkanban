@@ -616,13 +616,13 @@ require([
             },
 
             get_innerHTML: function () {
-                return string.substitute(
+                return "<div>" + string.substitute(
                     "<span class='remaining'>${remaining}</span>" +
                         "<span class='size'>${size}</span>",
                     {
                         size: this.size,
                         remaining: this.remaining()
-                    }) +  this.inherited(arguments);
+                    }) + this.inherited(arguments).substr(5);
 
             },
 
