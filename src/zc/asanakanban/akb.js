@@ -453,12 +453,6 @@ require([
                         }
                     }
                     if (model.release_tags[new_state].substates) {
-                        if (! this.subtasks || this.subtasks.length < 1) {
-                            // We don't have subtasks.  We need at least one.
-                            post("add_task", { name: "Do it!",
-                                               description: "",
-                                               parent: this.id });
-                        }
                         this.create_detail(
                             dojo.byId(new_state+"_detail_"+this.id));
                         get("subtasks/"+this.id);
@@ -648,6 +642,17 @@ require([
                 return model.release_tags;
             },
 
+            maybe_add_subtask_to_release_after_dnd: function (new_state) {
+                if (model.release_tags[new_state].substates) {
+                    if (! this.subtasks || this.subtasks.length < 1) {
+                        // We don't have subtasks.  We need at least one.
+                        post("add_task", { name: "Do it!",
+                                           description: "",
+                                           parent: this.id });
+                    }
+                }
+            },
+
             remove_card: function () {
                 if (this.state) {
                     this.remove_card_helper(this.stages[this.state], this);
@@ -797,7 +802,7 @@ require([
                     hitch(this, function (data) {
                                    post("remove",
                                         { task_id: this.id },
-                                        hitch(this, "move")
+                                        hitch(this, "remove_card")
                                         );
                                })
                 );
@@ -1068,7 +1073,10 @@ require([
                 nodes,
                 function (node) {
                     var task_id = nodes[0].attributes.task_id.value;
-                    //all_tasks[task_id].change_state(new_state);
+                    var task = all_tasks[task_id];
+                    if (! task.parent) {
+                        task.maybe_add_subtask_to_release_after_dnd(new_state);
+                    }
                     return task_id;
                 });
 
