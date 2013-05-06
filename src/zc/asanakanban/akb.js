@@ -168,6 +168,9 @@ require([
                         task_id: self.id
                     });
                 self.update_card();
+                this.node.onclick = hitch(this, function () {
+                    dom_class.toggle(this.node, "show-detail");
+                });
                 return {
                     node: self.node,
                     data: self,
@@ -240,10 +243,9 @@ require([
             },
 
             get_notes_html: function () {
-                return this.notes ?
-                    ("<div class='notes'>" +
-                     this.notes.replace(/\n/g, '<br>') +
-                     "</div>") : '';
+                return "<div class='notes'>" +
+                    (this.notes || "(no description)").replace(/\n/g, '<br>') +
+                    "</div>";
             },
 
             get_state: function () {
@@ -376,6 +378,9 @@ require([
                     'li', { "class": "backlog_item" }, "backlog");
                 this.node = node;
                 this.backlog_update();
+                this.node.onclick = hitch(this, function () {
+                    dom_class.toggle(this.node, "show-detail");
+                });
                 var backlog_menu = new Menu( { targetNodeIds: [node] });
                 backlog_menu.addChild(
                     new MenuItem(
