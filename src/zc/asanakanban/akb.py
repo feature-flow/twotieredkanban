@@ -45,7 +45,12 @@ class Cache:
             task = old
 
         task = json.dumps((self.gen, task))
-        self.puts[uuid](task)
+        try:
+            put = self.puts[uuid]
+        except KeyError:
+            pass
+        else:
+            put(task)
 
     def invalidate(self, task):
         for uuid in self.puts:
@@ -167,8 +172,9 @@ class API:
                 'https://app.asana.com/api/1.0/' + url,
                 auth=(self.key, ''),
                 **options)
-        except Exception:
-            error("Couldn't connect to Asana")
+        except Exception, e:
+            error("Couldn't connect to Asana, %s: %s" % (
+                e.__class__.__name__, e))
 
         logger.info("%s %s %s %s", method, url, data, r.ok)
 
@@ -211,28 +217,11 @@ class API:
         return task
 
     def get_tasks_in_threads(self, tasks):
-        threads = []
-
-        for task in tasks:
-            @zc.thread.Thread(args=(task,))
-            def thread(task_summary):
-                task_id = task_summary['id']
-                task = self.cache.get(task_id)
-                if task is None:
-                    task = self.get_task(task_id)
-                return task
-
-            threads.append(thread)
-
-        for thread in threads:
-            thread.join(99)
-            if thread.exception is not None:
-                raise thread.exception
-
-            task = thread.value
-            if not task['name'].strip():
-                continue  # Nameless tasks are just noise
-
+        for task_summary in tasks:
+            task_id = task_summary['id']
+            task = self.cache.get(task_id)
+            if task is None:
+                task = self.get_task(task_id)
             yield task
 
     @bobo.query("/project/:generation?", content_type="application/json")
@@ -260,6 +249,7 @@ class API:
                     # print 'sent', uuid
             finally:
                 self.cache.puts.pop(uuid, None)
+                ws.close()
         except:
             logger.exception("/project %s" % uuid)
             raise
