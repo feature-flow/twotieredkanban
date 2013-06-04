@@ -7,7 +7,7 @@ import geventwebsocket.handler
 import os
 import sys
 
-gevent.monkey.patch_all()
+#gevent.monkey.patch_all()
 
 logging.basicConfig()
 
