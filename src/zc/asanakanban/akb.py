@@ -12,6 +12,10 @@ import zc.thread
 logger = logging.getLogger(__name__)
 logging.basicConfig()
 
+def config(options):
+    global api_key
+    api_key = options['api']
+
 class Cache:
 
     def __init__(self):
@@ -135,7 +139,6 @@ class API:
 
     def __init__(self, request):
         self.request = request
-        self.key = request.cookies["X-API-key"]
 
     @property
     def workspace_id(self):
@@ -170,7 +173,7 @@ class API:
         try:
             r = getattr(requests, method)(
                 'https://app.asana.com/api/1.0/' + url,
-                auth=(self.key, ''),
+                auth=(api_key, ''),
                 **options)
         except Exception, e:
             error("Couldn't connect to Asana, %s: %s" % (
