@@ -18,10 +18,56 @@ class Recipe:
             )
 
         buildout.parse("""
+        [paste.ini]
+        recipe = zc.recipe.deployment:configuration
+        dojo = ${buildout:parts-directory}/dojo
+        text =
+          [app:main]
+          use = egg:bobo
+          bobo_configure = zc.asanakanban.akb:config
+                           zc.asanakanban.auth:config
+          bobo_resources = zc.asanakanban.akb
+                           zc.asanakanban.auth
+                           boboserver:static('/dojo', '${:dojo}')
+          api = ${:key}
+          url = http://kanban.nova.aws.zope.net
+
+          filter-with = reload
+
+          [filter:reload]
+          use = egg:bobo#reload
+          modules = zc.asanakanban.akb
+
+          filter-with = browserid
+
+          [filter:browserid]
+          use = egg:zc.wsgisessions
+          db-name =
+
+          filter-with = zodb
+
+          [filter:zodb]
+          use = egg:zc.zodbwsgi
+          filter-with = debug
+          configuration =
+            <zodb>
+               <mappingstorage>
+               </mappingstorage>
+            </zodb>
+
+          initializer = zc.asanakanban.auth:db_init
+
+          [filter:debug]
+          use = egg:bobo#debug
+
+          [server:main]
+          use = egg:zc.asanakanban
+          port = %(port)s
+
         [web]
         recipe = zc.zdaemonrecipe
         deployment = deployment
-        program = ${buildout:bin-directory}/server %(port)s
+        program = ${buildout:bin-directory}/paster serve ${paste.ini:location}
         zdaemon.conf =
            <runner>
               transcript ${deployment:log-directory}/web.log
