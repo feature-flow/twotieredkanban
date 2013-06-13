@@ -84,7 +84,6 @@ def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
 
-
 @bobo.query("/", check=zc.asanakanban.auth.checker)
 def index_html():
     return read_file("akb.html")

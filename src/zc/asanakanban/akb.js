@@ -868,7 +868,7 @@ require([
                         delete localStorage.api_key;
                         delete localStorage.workspace_id;
                         delete localStorage.project_id;
-                        window.location.reload();
+                        navigator.id.logout();
                     }
                 }).domNode);
 
