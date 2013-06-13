@@ -6,6 +6,7 @@ import os
 import re
 import requests
 import sys
+import zc.asanakanban.auth
 import zc.dojoform
 import zc.thread
 
@@ -84,7 +85,7 @@ def read_file(path):
         return f.read()
 
 
-@bobo.query("/")
+@bobo.query("/", check=zc.asanakanban.auth.checker)
 def index_html():
     return read_file("akb.html")
 
@@ -199,16 +200,16 @@ class API:
     def delete(self, url):
         return self.make_request('delete', url)
 
-    @bobo.query("/workspaces", content_type='application/json')
+    @bobo.query("/workspaces", content_type='application/json', check=zc.asanakanban.auth.checker)
     def workspaces(self):
         return dict(data=self.get('workspaces'))
 
     @bobo.query("/workspaces/:workspace/projects",
-                content_type='application/json')
+                content_type='application/json', check=zc.asanakanban.auth.checker)
     def projects(self, workspace):
         return dict(data=self.get('workspaces/%s/projects' % workspace))
 
-    @bobo.query("/model.json", content_type="application/json")
+    @bobo.query("/model.json", content_type="application/json", check=zc.asanakanban.auth.checker)
     def model_json(self):
         return dict(states=states)
 
@@ -227,7 +228,7 @@ class API:
                 task = self.get_task(task_id)
             yield task
 
-    @bobo.query("/project/:generation?", content_type="application/json")
+    @bobo.query("/project/:generation?", content_type="application/json", check=zc.asanakanban.auth.checker)
     def project(self, generation=None):
         if generation is not None and int(generation) != self.cache.gen:
             error("You were disconnected too long")
@@ -257,7 +258,7 @@ class API:
             logger.exception("/project %s" % uuid)
             raise
 
-    @bobo.query("/subtasks/:task_id", content_type="application/json")
+    @bobo.query("/subtasks/:task_id", content_type="application/json", check=zc.asanakanban.auth.checker)
     def subtasks(self, task_id):
         uuid = self.uuid
         for task in self.get_tasks_in_threads(
@@ -288,7 +289,7 @@ class API:
         else:
             return "", ""
 
-    @bobo.post("/moved", content_type='application/json')
+    @bobo.post("/moved", content_type='application/json', check=zc.asanakanban.auth.checker)
     def moved(self, old_state, new_state, task_ids):
         print 'moved', self.uuid, old_state, new_state, task_ids
         old_state_id = self.tag_id(old_state) if old_state else ""
@@ -311,11 +312,13 @@ class API:
 
         return {}
 
-    @bobo.post("/take", content_type='application/json')
+    @bobo.post("/take", content_type='application/json', check=zc.asanakanban.auth.checker)
     def take(self, task_id):
         self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
 
-    @bobo.post("/blocked", content_type='application/json')
+    @bobo.post("/blocked",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
     def blocked(self, task_id, is_blocked):
         tag_id = self.tag_id('blocked')
         if is_blocked == 'true':
@@ -324,7 +327,9 @@ class API:
             self.post("tasks/%s/removeTag" % task_id, tag=tag_id)
         self.cache.invalidate(self.get("tasks/%s" % task_id))
 
-    @bobo.post("/add_task", content_type='application/json')
+    @bobo.post("/add_task",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
     def add_task(self, name, description, parent=None):
         options = (dict(parent=parent) if parent
                    else dict(projects=[self.project_id]))
@@ -337,7 +342,9 @@ class API:
         if parent:
             self.cache.invalidate(self.get_task(parent))
 
-    @bobo.post("/edit_task", content_type='application/json')
+    @bobo.post("/edit_task",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
     def edit_task(self, id, name, description):
         t = self.put("tasks/%s" % id,
                       name=name,
@@ -345,7 +352,9 @@ class API:
                       )
         self.cache.invalidate(t)
 
-    @bobo.query("/refresh/:task_id", content_type='application/json')
+    @bobo.query("/refresh/:task_id",
+                content_type='application/json',
+                check=zc.asanakanban.auth.checker)
     def refresh(self, task_id):
         t = self.get_task(task_id);
         self.cache.invalidate(t)
@@ -353,7 +362,9 @@ class API:
             for subtask in t['subtasks']:
                 self.refresh(subtask['id'])
 
-    @bobo.query("/remove", content_type='application/json')
+    @bobo.query("/remove",
+                content_type='application/json',
+                check=zc.asanakanban.auth.checker)
     def remove(self, task_id):
         return self.delete("tasks/%s" % task_id)
 

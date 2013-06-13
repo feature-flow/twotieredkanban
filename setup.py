@@ -21,6 +21,9 @@ server = zc.asanakanban.server:main
 
 [zc.buildout]
 default = zc.asanakanban.akbrecipe:Recipe
+
+[paste.server_runner]
+main = zc.asanakanban.server:runner
 """
 
 from setuptools import setup

@@ -16,6 +16,12 @@ zc.asanakanban.akb
 boboserver:static('/dojo', '%(here)s/dojo')
 """ % dict(here = os.path.dirname(__file__))
 
+def runner(app, conf, host='', port=8080):
+    gevent.pywsgi.WSGIServer(
+        (host, int(port)), app,
+        handler_class=geventwebsocket.handler.WebSocketHandler,
+        ).serve_forever()
+
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
