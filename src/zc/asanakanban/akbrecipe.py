@@ -29,7 +29,7 @@ class Recipe:
           bobo_resources = zc.asanakanban.akb
                            zc.asanakanban.auth
                            boboserver:static('/dojo', '${:dojo}')
-          api = ${:key}
+          api = us-east-1 zope kanban
           url = http://kanban.nova.aws.zope.net
 
           filter-with = reload
