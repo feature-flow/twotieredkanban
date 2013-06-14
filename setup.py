@@ -2,6 +2,7 @@ name, version = 'zc.asanakanban', '0'
 
 install_requires = [
     'bobo',
+    'boto',
     'gevent',
     'gevent-websocket',
     'requests',
