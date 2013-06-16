@@ -1,0 +1,35 @@
+Installation
+============
+
+- Clone the repository.
+
+- Change to the project directory.
+
+- Edit buildout.cfg and update the following parameters in the
+  buildout section:
+
+  port
+    The port you want to listen on
+
+  url
+    The URL the application will be served at, including the port, if
+    not 80.
+
+  api-key
+    An Asana API key.
+
+- Run the bootstrap script with Python 2.6 or 2.7::
+
+    python bootstrap.py
+
+- Run the buildout::
+
+    bin/buildout
+
+  Note that you'll need development tools and libraries, including
+  libevent.
+
+- Run the server::
+
+    bin/server start
+

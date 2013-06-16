@@ -16,9 +16,6 @@ install_requires = [
 extras_require = dict(test=['manuel', 'mock', 'zope.testing'])
 
 entry_points = """
-[console_scripts]
-server = zc.asanakanban.server:main
-
 [zc.buildout]
 default = zc.asanakanban.akbrecipe:Recipe
 
