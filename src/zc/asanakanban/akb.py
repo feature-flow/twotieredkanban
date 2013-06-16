@@ -1,5 +1,4 @@
 import bobo
-import boto.sdb
 import gevent.queue
 import json
 import logging
@@ -16,10 +15,14 @@ logging.basicConfig()
 
 def config(options):
     global api_key
-    region, domain, item = options['api'].strip().split()
-    conn = boto.sdb.connect_to_region(region)
-    api_key = conn.get_attributes(domain, item)['key']
-    conn.close()
+
+    api_key = options['api'].strip()
+    if api_key.startwith("sdb://"):
+        import boto.sdb
+        region, domain, item = api_key[6:].split('/')
+        conn = boto.sdb.connect_to_region(region)
+        api_api_key = conn.get_attributes(domain, item)['key']
+        conn.close()
 
 class Cache:
 
