@@ -206,16 +206,21 @@ class API:
     def delete(self, url):
         return self.make_request('delete', url)
 
-    @bobo.query("/workspaces", content_type='application/json', check=zc.asanakanban.auth.checker)
+    @bobo.query("/workspaces",
+                content_type='application/json',
+                check=zc.asanakanban.auth.checker)
     def workspaces(self):
         return dict(data=self.get('workspaces'))
 
     @bobo.query("/workspaces/:workspace/projects",
-                content_type='application/json', check=zc.asanakanban.auth.checker)
+                content_type='application/json',
+                check=zc.asanakanban.auth.checker)
     def projects(self, workspace):
         return dict(data=self.get('workspaces/%s/projects' % workspace))
 
-    @bobo.query("/model.json", content_type="application/json", check=zc.asanakanban.auth.checker)
+    @bobo.query("/model.json",
+                content_type="application/json",
+                check=zc.asanakanban.auth.checker)
     def model_json(self):
         return dict(states=states)
 
@@ -234,7 +239,9 @@ class API:
                 task = self.get_task(task_id)
             yield task
 
-    @bobo.query("/project/:generation?", content_type="application/json", check=zc.asanakanban.auth.checker)
+    @bobo.query("/project/:generation?",
+                content_type="application/json",
+                check=zc.asanakanban.auth.checker)
     def project(self, generation=None):
         if generation is not None and int(generation) != self.cache.gen:
             error("You were disconnected too long")
@@ -264,7 +271,9 @@ class API:
             logger.exception("/project %s" % uuid)
             raise
 
-    @bobo.query("/subtasks/:task_id", content_type="application/json", check=zc.asanakanban.auth.checker)
+    @bobo.query("/subtasks/:task_id",
+                content_type="application/json",
+                check=zc.asanakanban.auth.checker)
     def subtasks(self, task_id):
         uuid = self.uuid
         for task in self.get_tasks_in_threads(
@@ -295,7 +304,9 @@ class API:
         else:
             return "", ""
 
-    @bobo.post("/moved", content_type='application/json', check=zc.asanakanban.auth.checker)
+    @bobo.post("/moved",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
     def moved(self, old_state, new_state, task_ids):
         print 'moved', self.uuid, old_state, new_state, task_ids
         old_state_id = self.tag_id(old_state) if old_state else ""
@@ -318,7 +329,9 @@ class API:
 
         return {}
 
-    @bobo.post("/take", content_type='application/json', check=zc.asanakanban.auth.checker)
+    @bobo.post("/take",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
     def take(self, task_id):
         self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
 
