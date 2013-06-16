@@ -17,7 +17,7 @@ def config(options):
     global api_key
 
     api_key = options['api'].strip()
-    if api_key.startwith("sdb://"):
+    if api_key.startswith("sdb://"):
         import boto.sdb
         region, domain, item = api_key[6:].split('/')
         conn = boto.sdb.connect_to_region(region)
