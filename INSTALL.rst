@@ -15,9 +15,6 @@ Installation
     The URL the application will be served at, including the port, if
     not 80.
 
-  api-key
-    An Asana API key.
-
   authorized
     Whitespace separated list of regular expressions matching emails
     that should be allowed access.

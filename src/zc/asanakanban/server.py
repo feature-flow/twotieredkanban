@@ -26,8 +26,6 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    api = args.pop(0)
-
     if args:
         [port] = args
     else:
@@ -36,11 +34,7 @@ def main(args=None):
     gevent.pywsgi.WSGIServer(
         ("", int(port)),
         boboserver.Reload(
-            bobo.Application(
-                bobo_resources = resources,
-                api = api,
-                bobo_configure = 'zc.asanakanban.akb:config'
-                ),
+            bobo.Application(bobo_resources=resources),
             {}, modules='zc.asanakanban.akb'),
         handler_class=geventwebsocket.handler.WebSocketHandler,
         ).serve_forever()

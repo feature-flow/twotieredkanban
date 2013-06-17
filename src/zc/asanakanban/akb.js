@@ -857,23 +857,34 @@ require([
 
         }
 
-        get_workspace();
-
-        dojo.byId("top").appendChild(
-            new Button(
-                {
-                    label: "Logout",
-                    style: "float: right;",
-                    onClick: function () {
-                        delete localStorage.api_key;
-                        delete localStorage.workspace_id;
-                        delete localStorage.project_id;
-                        navigator.id.logout();
-                    }
-                }).domNode);
+        if (localStorage.api_key) {
+            get_workspace();
+            dojo.byId("top").appendChild(
+                new Button(
+                    {
+                        label: "Logout",
+                        style: "float: right;",
+                        onClick: function () {
+                            delete localStorage.api_key;
+                            delete localStorage.workspace_id;
+                            delete localStorage.project_id;
+                            navigator.id.logout();
+                        }
+                    }).domNode);
+        }
+        else {
+            form_dialog(
+                "API Key", [{ name: "key",
+                              widget_constructor: "zope.schema.TextLine",
+                              label: "API Key" }],
+                "Set", function (data) {
+                    localStorage.api_key = data.key;
+                    window.location.reload();
+                });
+        }
 
         function get_workspace() {
-            get("workspaces",
+            get("workspaces/" + localStorage.api_key,
                 function (data) {
                     data = data.data;
                     if (data.length == 1) {

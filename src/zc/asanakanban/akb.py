@@ -9,20 +9,10 @@ import sys
 import zc.asanakanban.auth
 import zc.dojoform
 import zc.thread
+import zc.wsgisessions.sessions
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
-
-def config(options):
-    global api_key
-
-    api_key = options['api'].strip()
-    if api_key.startswith("sdb://"):
-        import boto.sdb
-        region, domain, item = api_key[6:].split('/')
-        conn = boto.sdb.connect_to_region(region)
-        api_api_key = conn.get_attributes(domain, item)['key']
-        conn.close()
 
 class Cache:
 
@@ -148,6 +138,10 @@ class API:
         self.request = request
 
     @property
+    def key(self):
+        return zc.wsgisessions.sessions.get(self.request, __name__, 'key')
+
+    @property
     def workspace_id(self):
         return self.request.cookies["X-Workspace-ID"]
 
@@ -180,7 +174,7 @@ class API:
         try:
             r = getattr(requests, method)(
                 'https://app.asana.com/api/1.0/' + url,
-                auth=(api_key, ''),
+                auth=(self.key, ''),
                 **options)
         except Exception, e:
             error("Couldn't connect to Asana, %s: %s" % (
@@ -206,10 +200,11 @@ class API:
     def delete(self, url):
         return self.make_request('delete', url)
 
-    @bobo.query("/workspaces",
+    @bobo.query("/workspaces/:key",
                 content_type='application/json',
                 check=zc.asanakanban.auth.checker)
-    def workspaces(self):
+    def workspaces(self, key):
+        zc.wsgisessions.sessions.store(self.request, __name__, 'key', key)
         return dict(data=self.get('workspaces'))
 
     @bobo.query("/workspaces/:workspace/projects",
