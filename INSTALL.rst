@@ -18,6 +18,10 @@ Installation
   api-key
     An Asana API key.
 
+  authorized
+    Whitespace separated list of regular expressions matching emails
+    that should be allowed access.
+
 - Run the bootstrap script with Python 2.6 or 2.7::
 
     python bootstrap.py

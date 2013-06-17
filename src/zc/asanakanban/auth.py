@@ -1,11 +1,13 @@
 import bobo
 import json
 import os
+import re
 import requests
 import zc.wsgisessions.sessions
 import zope.component
 
 url = 'http://localhost:8080'
+authorized = None
 
 def config(config):
     if 'url' in config:
@@ -14,7 +16,10 @@ def config(config):
 
     zope.component.provideAdapter(zc.wsgisessions.sessions.get_session)
 
-
+    global authorized
+    authorized = []
+    for s in config['authorized'].strip().split():
+        authorized.append(re.compile(s).search)
 
 def db_init(database):
     zc.wsgisessions.sessions.initialize_database(database, db_name='')
@@ -61,9 +66,12 @@ def login(bobo_request, assertion):
         # Check if the assertion was valid
         if verification_data['status'] == 'okay':
             email = verification_data['email']
-            if not email.endswith("@zope.com"):
-                raise bobo.BoboException('403',
-                                         "You must have a zope.com address")
+            for s in authorized:
+                if s(email):
+                    break
+            else:
+                raise bobo.BoboException(
+                    '403', "You are not authorized at access this site.")
 
             zc.wsgisessions.sessions.store(
                 bobo_request, __name__, 'email', email)
