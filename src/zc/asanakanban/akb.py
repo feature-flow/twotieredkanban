@@ -3,12 +3,9 @@ import gevent.queue
 import json
 import logging
 import os
-import re
 import requests
-import sys
 import zc.asanakanban.auth
 import zc.dojoform
-import zc.thread
 import zc.wsgisessions.sessions
 
 logger = logging.getLogger(__name__)
@@ -172,7 +169,7 @@ class API:
             options = {}
 
         try:
-            r = getattr(requests, method)(
+            r = getattr(session, method)(
                 'https://app.asana.com/api/1.0/' + url,
                 auth=(self.key, ''),
                 **options)
@@ -370,7 +367,7 @@ class API:
                 content_type='application/json',
                 check=zc.asanakanban.auth.checker)
     def refresh(self, task_id):
-        t = self.get_task(task_id);
+        t = self.get_task(task_id)
         self.cache.invalidate(t)
         if not t.get('parent'):
             for subtask in t['subtasks']:
