@@ -169,9 +169,10 @@ class API:
             options = {}
 
         try:
-            r = getattr(session, method)(
+            r = getattr(requests, method)(
                 'https://app.asana.com/api/1.0/' + url,
                 auth=(self.key, ''),
+                verify=True,
                 **options)
         except Exception, e:
             error("Couldn't connect to Asana, %s: %s" % (
