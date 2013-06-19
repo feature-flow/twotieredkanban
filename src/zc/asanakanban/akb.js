@@ -1,15 +1,15 @@
 require([
+            "dojo/_base/array",
             "dojo/_base/declare",
             "dojo/_base/lang",
-            "dojo/aspect",
+            "dojo/_base/window",
             "dojo/cookie",
             "dojo/dnd/Source",
+            "dojo/dom",
             "dojo/dom-class",
             "dojo/dom-construct",
-            "dojo/query",
-            "dojo/ready",
+            "dojo/request/xhr",
             "dojo/string",
-            "dijit",
             "dijit/CheckedMenuItem",
             "dijit/form/Button",
             "dijit/form/CheckBox",
@@ -24,10 +24,9 @@ require([
             "zc.dojo",
             "dojo/domReady!"],
     function(
-        declare, lang, aspect, cookie,
-        Source, dom_class, dom_construct, query, ready,
-        string,
-        dijit, CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
+        array, declare, lang, win, cookie,
+        Source, dom, dom_class, dom_construct, xhr, string,
+        CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, socket, dojoform
     ) {
         var hitch = lang.hitch;
@@ -54,7 +53,8 @@ require([
         }
 
         function form_dialog(title, widgets, alabel, handler) {
-            var formargs = {
+            var dialog,
+                formargs = {
                 actions: [
                     {name: "aname", label: alabel},
                     {name: "Cancel"}
@@ -72,13 +72,13 @@ require([
             else {
                 formargs.widgets = widgets;
             }
-            var dialog = single_use_dialog(
+            dialog = single_use_dialog(
                 {
                     title: title,
                     content: dojoform.build_form2(formargs)
                 });
             if (typeof(widgets) == "string") {
-                dojo.byId("confirm_message").innerHTML= widgets;
+                dom.byId("confirm_message").innerHTML= widgets;
             }
             dialog.show();
         }
@@ -101,7 +101,7 @@ require([
             },
 
             constructor: function(args){
-                dojo.safeMixin(this, args);
+                declare.safeMixin(this, args);
                 all_tasks[args.id] = this;
                 this.updated();
             },
@@ -137,7 +137,7 @@ require([
                         }
                     )
                 ];
-                dojo.forEach(
+                array.forEach(
                     this.get_links(),
                     function (link) {
                         items.push(new MenuItem({ label: link,
@@ -151,10 +151,11 @@ require([
             },
 
             create_card: function (hint) {
-                self = this;
+                var self = this;
                 if (hint == 'avatar') {
                     return {
-                        node: dojo.create('span', { innerHTML: self.name }),
+                        node: dom_construct.create('span', {
+                            innerHTML: self.name }),
                         data: self,
                         type: [self.dnd_class]
                     };
@@ -162,7 +163,7 @@ require([
                 if (self.menu) {
                     self.menu.destroyRecursive();
                 }
-                self.node = dojo.create(
+                self.node = dom_construct.create(
                     'div', {
                         "class": "card " + self.type_class,
                         task_id: self.id
@@ -179,10 +180,10 @@ require([
             },
 
             edit: function() {
-                var edit_widgets = dojo.map(
+                var edit_widgets = array.map(
                     task_widgets,
                     function (widget) {
-                        return dojo.safeMixin({}, widget);
+                        return declare.safeMixin({}, widget);
                     });
                 edit_widgets[0].value = this.name || '';
                 edit_widgets[1].value = this.notes || '';
@@ -200,7 +201,7 @@ require([
             },
 
             get_blocked: function() {
-                this.blocked = dojo.filter(
+                this.blocked = array.filter(
                     this.tags,
                     function (tag) {
                         return tag.name == "blocked";
@@ -254,7 +255,7 @@ require([
 
             get_state_helper: function (task) {
                 var states = this.get_states();
-                var state = dojo.filter(
+                var state = array.filter(
                     task.tags,
                     function (tag) {
                         return tag.name in states;
@@ -271,7 +272,7 @@ require([
             get_subtask_size_helper: function(task) {
                 var m = this.size_re.exec(task.name);
                 if (m) {
-                    task.size = parseInt(m[1]);
+                    task.size = parseInt(m[1], 10);
                 }
                 else {
                     task.size = 1;
@@ -311,7 +312,7 @@ require([
                     this.menu.destroyRecursive();
                 }
                 this.menu = new Menu({ targetNodeIds: [this.node] });
-                dojo.forEach(
+                array.forEach(
                     this.context_menu_items(),
                     hitch(this, function (item) {
                         this.menu.addChild(item);
@@ -332,7 +333,7 @@ require([
                 if (new_state != this.state) {
                     this.remove_card(); // We'll add card when we update state
                 }
-                dojo.safeMixin(this, data);
+                declare.safeMixin(this, data);
                 this.updated();
                 this.update_card();
             },
@@ -374,7 +375,7 @@ require([
             },
 
             backlog_create_view: function () {
-                var node = dojo.create(
+                var node = dom_construct.create(
                     'li', { "class": "backlog_item" }, "backlog");
                 this.node = node;
                 this.backlog_update();
@@ -417,7 +418,7 @@ require([
                     html += this.get_notes_html();
                     if (this.subtasks) {
                         html += 'Subtasks: <ul>';
-                        dojo.forEach(
+                        array.forEach(
                             this.subtasks,
                             function (subtask) {
                                html += '<li>' + subtask.name + '</li>';
@@ -459,9 +460,9 @@ require([
                     }
                     if (model.release_tags[new_state].substates) {
                         this.create_detail(
-                            dojo.byId(new_state+"_detail_"+this.id));
+                            dom.byId(new_state+"_detail_"+this.id));
                         get("subtasks/"+this.id);
-                        dojo.forEach(
+                        array.forEach(
                             this.subtasks,
                             hitch(this, function (subtask) {
                                       subtask = all_tasks[subtask.id];
@@ -501,24 +502,24 @@ require([
             create_detail: function(parent) {
                 var self = this;
                 var thead = "<thead>";
-                dojo.forEach(
+                array.forEach(
                     model.release_tags[self.state].substates,
                     function (substate) {
                         thead += "<th>" + substate.label + "</th>";
                     }
                 );
                 var id = "subtasks_" + self.state + "_" + self.id;
-                dojo.create(
+                dom_construct.create(
                     "table", {
                         id: 'table_' + self.state + "_" + self.id,
-                        class: 'task_detail',
+                        "class": 'task_detail',
                         innerHTML:
                         thead + "</thead><tbody id='" + id + "'></tbody>"
                     },
                     parent);
-                var tr = dojo.create("tr", null, id);
+                var tr = dom_construct.create("tr", null, id);
                 var stages = {};
-                dojo.forEach(
+                array.forEach(
                     model.release_tags[self.state].substates,
                     function (substate) {
                         stages[substate.tag] = self.create_dnd_source(
@@ -530,9 +531,9 @@ require([
 
             create_dnd_source: function (parent_node, dnd_class, state) {
                 var source = new Source(
-                    dojo.create(
+                    dom_construct.create(
                         "td", {
-                            class: state+"_td",
+                            "class": state+"_td",
                             id: state + '_' + dnd_class
                         }, parent_node),
                     {
@@ -546,18 +547,18 @@ require([
 
             create_working_views: function() {
                 var self = this;
-                var tr = dojo.create("tr", null, "projects");
+                var tr = dom_construct.create("tr", null, "projects");
                 var stages = {};
-                dojo.forEach(
+                array.forEach(
                     model.states,
                     function (state) {
                         stages[state.tag] = self.create_dnd_source(
                             tr, self.id, state.tag);
                         if (state.substates) {
-                            var detail = dojo.create(
+                            var detail = dom_construct.create(
                                 "td",
                                 {
-                                    class: state.tag+"_detail",
+                                    "class": state.tag+"_detail",
                                     id: state.tag+"_detail_"+self.id
                                 }, tr);
                         }
@@ -579,7 +580,7 @@ require([
                 );
 
                 // Clean up sources
-                dojo.forEach(
+                array.forEach(
                     this.substages,
                     function (substage) {
                         substage.destroy();
@@ -596,7 +597,7 @@ require([
                 }
 
                 // Clean up sources
-                dojo.forEach(
+                array.forEach(
                     this.stages,
                     function (substage) {
                         substage.destroy();
@@ -609,7 +610,7 @@ require([
             },
 
             for_subtasks: function (f) {
-                dojo.forEach(
+                array.forEach(
                     this.subtasks,
                     function (task) {
                         if (task.id in all_tasks) {
@@ -634,7 +635,7 @@ require([
             get_size: function() {
                 var self = this;
                 var size = 0;
-                dojo.forEach(
+                array.forEach(
                     self.subtasks,
                     function (task) {
                         self.get_subtask_size_helper(task);
@@ -699,7 +700,7 @@ require([
 
             remaining: function () {
                 var remaining = this.size;
-                dojo.forEach(
+                array.forEach(
                     this.subtasks,
                     function (subtask) {
                         subtask = all_tasks[subtask.id];
@@ -832,34 +833,21 @@ require([
         }
 
         function get(url, load) {
-            return dojo.xhrGet(
-                {
-                    url: "/api/"+url,
-                    handleAs: "json",
-                    load: load,
-                    error: function (data) {
-                        xhr_error(data);
-                    }
-                });
+            return xhr.get("/api/"+url, {
+                    handleAs: "json"
+                }).then(load, xhr_error);
         }
 
         function post(url, content, load) {
-            return dojo.xhrPost(
-                {
-                    url: "/api/"+url,
+            return xhr.post("/api/"+url, {
                     handleAs: "json",
-                    content: content,
-                    load: load,
-                    error: function (data) {
-                        xhr_error(data);
-                    }
-                });
-
+                    data: content
+                }).then(load, xhr_error);
         }
 
         if (localStorage.api_key) {
             get_workspace();
-            dojo.byId("top").appendChild(
+            dom.byId("top").appendChild(
                 new Button(
                     {
                         label: "Logout",
@@ -894,10 +882,11 @@ require([
                         data.splice(0, 0, { name: "Select a workspace:",
                                             id: "" });
                     }
-                    dojo.create("label", {innerHTML: "Workspace:"}, 'top');
+                    dom_construct.create("label", {
+                        innerHTML: "Workspace:"}, 'top');
                     var select = new Select(
                         {
-                            options: dojo.map(
+                            options: array.map(
                                 data,
                                 function (w) {
                                     return {
@@ -914,7 +903,7 @@ require([
                                 }
                             }
                         });
-                    dojo.byId('top').appendChild(select.domNode);
+                    dom.byId('top').appendChild(select.domNode);
                     select.startup();
                     if (localStorage.workspace_id) {
                         cookie("X-Workspace-ID", localStorage.workspace_id);
@@ -936,7 +925,7 @@ require([
                                             id: "" });
                     }
                     if (! localStorage.project_id) {
-                        var development = dojo.filter(
+                        var development = array.filter(
                             data,
                             function (p) {
                                 return p.name == "Development";
@@ -945,10 +934,11 @@ require([
                             localStorage.project_id = development[0].id;
                         }
                     }
-                    dojo.create( "label", {innerHTML: "Project:"}, 'top');
+                    dom_construct.create( "label", {
+                        innerHTML: "Project:"}, 'top');
                     var select = new Select(
                         {
-                            options: dojo.map(
+                            options: array.map(
                                 data,
                                 function (p) {
                                     return {
@@ -966,14 +956,14 @@ require([
                                 }
                             }
                         });
-                    dojo.byId('top').appendChild(select.domNode);
+                    dom.byId('top').appendChild(select.domNode);
                     select.startup();
                     if (localStorage.project_id) {
                         cookie("X-Project-ID", localStorage.project_id);
                         get_model();
                     }
                     else {
-                        dojo.create(
+                        dom_construct.create(
                             "span",
                             {
                                 innerHTML: "Select a project."
@@ -990,10 +980,10 @@ require([
                     model = data;
                     model.release_tags = {};
                     model.task_tags = {};
-                    dojo.forEach(
+                    array.forEach(
                         model.states,
                         function (state) {
-                            dojo.create(
+                            dom_construct.create(
                                 "th",
                                 {
                                     colspan: state.substates ? 2 : 1,
@@ -1003,7 +993,7 @@ require([
                             model.release_tags[state.tag] = state;
                             if (state.substates) {
                                 state.tags = {};
-                                dojo.forEach(
+                                array.forEach(
                                     state.substates,
                                     function (substate) {
                                         state.tags[substate.tag] = substate;
@@ -1014,10 +1004,10 @@ require([
                         });
                     new_project();
 
-                    dojo.place(
+                    dom_construct.place(
                         new Button({ label: "New release",
                                      onClick: add_release }).domNode,
-                        dojo.body());
+                        win.body());
                 });
         }
 
@@ -1056,16 +1046,16 @@ require([
         function new_project() {
             cookie("X-UUID", generateTimeBasedUuid());
             console.log(Date() + " new_project");
-            var socket;
+            var sock;
             if (generation == null) {
-                socket = dojox.socket("/api/project");
+                sock = socket("/api/project");
             }
             else {
-                socket = dojox.socket("/api/project/" + generation);
+                sock = socket("/api/project/" + generation);
                 generation = null;
             }
-            socket.on("message", receive);
-            socket.on("close", closed);
+            sock.on("message", receive);
+            sock.on("close", closed);
         }
 
         function move_handler(source, nodes, copy, target) {
@@ -1075,7 +1065,7 @@ require([
 
             // Collect task ids.
             // While we're at it, Update the task states
-            var task_ids = dojo.map(
+            var task_ids = array.map(
                 nodes,
                 function (node) {
                     var task_id = nodes[0].attributes.task_id.value;
