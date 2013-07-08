@@ -805,10 +805,7 @@ require([
                         this.name+"?",
                     "Yes, really.",
                     hitch(this, function (data) {
-                                   post("remove",
-                                        { task_id: this.id },
-                                        hitch(this, "remove_card")
-                                        );
+                                   post("remove", { task_id: this.id });
                                })
                 );
             },
@@ -1034,7 +1031,14 @@ require([
             generation = data[0];
             data = data[1];
 
-            if (data.id in all_tasks) {
+            if (typeof(data) == "string") {
+                // remove
+                var task_id = data;
+                if (task_id in all_tasks) {
+                    all_tasks[task_id].remove_card();
+                }
+            }
+            else if (data.id in all_tasks) {
                 all_tasks[data.id].update(data);
             }
             else {

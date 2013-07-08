@@ -14,6 +14,11 @@ import zc.wsgisessions.sessions
 logger = logging.getLogger(__name__)
 logging.basicConfig()
 
+try:
+    caches
+except NameError:
+    caches = {}
+
 class Cache:
 
     def __init__(self):
@@ -58,10 +63,13 @@ class Cache:
         for uuid in self.puts:
             self.send(task, uuid)
 
-try:
-    caches
-except NameError:
-    caches = {}
+    def delete(self, task_id):
+        self.gen += 1
+        task = self.tasks.get(task_id)
+        if task is not None:
+            for uuid in self.puts:
+                self.puts[uuid](json.dumps((self.gen, task_id)))
+            return task.get('parent')
 
 def error(message):
     raise bobo.BoboException(
@@ -380,6 +388,8 @@ class API:
                 content_type='application/json',
                 check=zc.asanakanban.auth.checker)
     def remove(self, task_id):
-        return self.delete("tasks/%s" % task_id)
-
-
+        self.delete("tasks/%s" % task_id)
+        parent = self.cache.delete(int(task_id))
+        if parent:
+            t = self.get_task(parent['id']);
+            self.cache.invalidate(t)
