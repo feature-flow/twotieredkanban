@@ -702,9 +702,9 @@ require([
                 dojo.forEach(
                     this.subtasks,
                     function (subtask) {
-                        subtask = all_tasks[subtask.id];
-                        if (subtask && subtask.completed) {
-                            remaining -= 1;
+                        var task = all_tasks[subtask.id];
+                        if (task && task.completed) {
+                            remaining -= subtask.size;
                         }
                     });
                 return remaining;
@@ -813,7 +813,14 @@ require([
                 );
             },
 
-            type_class: "task"
+            type_class: "task",
+
+            update_card: function () {
+                this.inherited(arguments);
+                if (this.parent.id in all_tasks) {
+                    all_tasks[this.parent.id].update_card();
+                }
+            }
 
         };
         Task = declare("zc.asanakanban.Task", [BaseTask], Task);
