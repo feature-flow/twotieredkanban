@@ -3,5 +3,6 @@ bin
 develop-eggs
 dist
 *.egg-info
+*.pyc
 /key.cfg
 /parts
