@@ -4,12 +4,12 @@ import json
 import logging
 import os
 import requests
+import time
 import zc.asanakanban.auth
 import zc.dojoform
 import zc.wsgisessions.sessions
 
 logger = logging.getLogger(__name__)
-logging.basicConfig()
 
 try:
     caches
@@ -23,15 +23,6 @@ class Cache:
         self.puts = {}
         self.get = self.tasks.get
         self.gen = 0
-
-    def get(self, task_id, getter, uuid):
-        tasks = self.tasks
-        try:
-            return tasks[task_id]
-        except KeyError:
-            task = getter("tasks/%s" % task_id)
-            self.get_subtasks(task, getter)
-            return task
 
     def send(self, task, uuid):
         tasks = self.tasks
@@ -75,9 +66,20 @@ def error(message):
         content_type='application/json',
         )
 
+class PollError(Exception):
+    """An error occurred polling asana for events
+    """
+
+    def __init__(self, error):
+        self.sync = error['sync']
+        Exception.__init__(self, error['message'])
+
 def asana_error(r):
     if "application/json" in r.headers['content-type']:
-        message = r.json()['errors'][0]['message']
+        error = r.json()['errors'][0]
+        if 'sync' in error:
+            raise PollError(error)
+        message = error['message']
     else:
         message = "Asana call failed"
     error(message)
@@ -139,12 +141,14 @@ tag_ids = {} # {workspace_id -> {tag_name -> tag_id}}
 @bobo.subroute("/api", scan=True)
 class API:
 
-    def __init__(self, request):
+    def __init__(self, request=None, key=None):
         self.request = request
+        self._key = key
 
     @property
     def key(self):
-        return zc.wsgisessions.sessions.get(self.request, __name__, 'key')
+        return self._key or zc.wsgisessions.sessions.get(
+            self.request, __name__, 'key')
 
     @property
     def workspace_id(self):
@@ -156,6 +160,7 @@ class API:
         try:
             return caches[key]
         except KeyError:
+            logger.warning('meta-cache-miss: %s' % key)
             caches[key] = Cache()
             return caches[key]
 
@@ -176,6 +181,7 @@ class API:
         else:
             options = {}
 
+        start = time.time()
         try:
             r = getattr(requests, method)(
                 'https://app.asana.com/api/1.0/' + url,
@@ -185,12 +191,16 @@ class API:
             error("Couldn't connect to Asana, %s: %s" % (
                 e.__class__.__name__, e))
 
-        logger.info("%s %s %s %s", method, url, data, r.ok)
+        logger.info("%s %s %s %s", method, url, r.ok, time.time()-start)
+
+        data = r.json()
+        if 'sync' in data:
+            return data
 
         if not r.ok:
             asana_error(r)
 
-        return r.json()['data']
+        return data['data']
 
 
     def get(self, url):
@@ -232,9 +242,10 @@ class API:
         return task
 
     def get_tasks_in_threads(self, tasks):
+        cache = self.cache
         for task_summary in tasks:
             task_id = task_summary['id']
-            task = self.cache.get(task_id)
+            task = cache.get(task_id)
             if task is None:
                 task = self.get_task(task_id)
             yield task
@@ -275,11 +286,14 @@ class API:
                 content_type="application/json",
                 check=zc.asanakanban.auth.checker)
     def subtasks(self, task_id):
+        task_id = int(task_id)
+        task = self.cache.get(task_id)
+        if task is None:
+            print 'subtasks miss', `task_id`
+            task = self.get_task(task_id)
         uuid = self.uuid
-        for task in self.get_tasks_in_threads(
-            self.get("tasks/%s/subtasks" % task_id)
-            ):
-            self.cache.send(task, uuid)
+        for subtask in self.get_tasks_in_threads(task['subtasks']):
+            self.cache.send(subtask, uuid)
 
     def tag_id(self, state):
         workspace_id = self.workspace_id
