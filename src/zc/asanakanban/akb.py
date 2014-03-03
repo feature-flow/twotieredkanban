@@ -76,10 +76,10 @@ class PollError(Exception):
 
 def asana_error(r):
     if "application/json" in r.headers['content-type']:
-        error = r.json()['errors'][0]
-        if 'sync' in error:
-            raise PollError(error)
-        message = error['message']
+        err = r.json()['errors'][0]
+        if 'sync' in err:
+            raise PollError(err)
+        message = err['message']
     else:
         message = "Asana call failed"
     error(message)
