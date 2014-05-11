@@ -1,4 +1,4 @@
-name, version = 'zc.asanakanban', '0'
+name, version = 'zc.twotieredkanban', '0'
 
 install_requires = [
     'bobo',
