@@ -45,186 +45,95 @@ def zc_dojo_css():
     return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
                                   "resources/zc.dojo.css"))
 
-class Task(persistent.Persistent)
-
-    def __init__(self, parent):
-        self.parent._p_jar.add(self)
-        data = zc.generationalset.GSet(self._p_pod, parent, superset=True)
-        changes = zc.generationalset.GSet(
-            'changes', data, id_attribute='_p_oid')
-        changes.add(self)
-
-class Release():
-
-    def __init__(self, parent):
-        self.parent._p_jar.add(self)
-        data = zc.generationalset.GSet(self._p_pod, parent, superset=True)
-        changes = zc.generationalset.GSet(
-            'changes', data, id_attribute='_p_oid')
-        changes.add(self)
-        tasks - 
-
-class Kanban(persistent.Persistent):
-
-    def __init__(self):
-
-        data = zc.generationalset.GSet(superset=True)
-        tasks = zc.generationalset.GSet('tasks', data)
-
-        done_states = set()
-        working_states = set()
-
-        def normalize_state(state):
-            if isinstance(state, basestring):
-                state = dict(
-                    label = state,
-                    )
-
-            if 'tag' not in state:
-                state['tag'] = state['label'].lower() # XXX for now
-
-            if state.get('complete'):
-                done_states.add(state['tag'])
-
-            if state.get('working'):
-                working_states.add(state['tag'])
-
-            if 'substates' in state:
-                state['substates'] = map(normalize_state, state['substates'])
-
-            return state
-
-        self.states = map(normalize_state, json.loads(read_file('model.json')))
-        self.done_states = done_states
-        self.working_states = working_states
-
 clients = set()
 
-def notify(gset):
-    if not gset.id: # top-level set
-        for put in clients:
-            put('') # Notify clients
+class Encoder(json.JSONEncoder):
 
-zc.generationalset.notify = notify
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()[:19]
+        return obj.json_reduce()
 
-@bobo.subroute("/api", scan=True)
+@bobo.subroute("/kb", scan=True)
 class API:
 
-    def __init__(self, request=None):
+    def __init__(self, request):
         self.request = request
-        self.kanban = conn.root.kanban
+        connectiion = request.environ['zodb.connection']
+        self.root = = root = connection.root
+        self.kanban = root.kanban
 
-    @bobo.query("/model.json", content_type="application/json")
+
+    def response(self, **data):
+        response = webob.Response(content_type="application/json")
+        generation = self.request.headers.get('x-generation', 0)
+        updates = self.kanban.releases.generational_updates(int(generation))
+        if updates:
+            data['updates'] = updates
+        response.body = json.dumps(data, cls=Encoder)
+        response.cache_control = 'no-cache'
+        response.pragma = 'no-cache'
+        return response
+
+    @bobo.get("/model.json", content_type="application/json")
     def model_json(self):
         return dict(states=self.kanban.states)
 
-    @bobo.get('/updates/:generation', content_type="application/json")
-    def updates(self, generation):
-        return self.kanban.tasks.generational_updates(generation)
+    @bobo.get("/poll")
+    def poll(self):
+        return self.response()
 
-    @bobo.query("/connect", content_type="application/json")
-    def project(self):
-
-        try:
-            ws = self.request.environ["wsgi.websocket"]
-            queue = gevent.queue.Queue()
-            get = queue.get
-            put = queue.put
-            try:
-                clients.add(put)
-                while 1:
-                    ws.send(get())
-            finally:
-                clients.remove(put)
-                ws.close()
-        except:
-            logger.exception("/connect")
-            raise
-
-
-    def move_data(self, node_id):
-        if node_id:
-            state = node_id.split('_')[0]
-            return state, self.tag_id(state)
-        else:
-            return "", ""
-
-    @bobo.post("/moved",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
-    def moved(self, old_state, new_state, task_ids):
-        print 'moved', self.uuid, old_state, new_state, task_ids
-        old_state_id = self.tag_id(old_state) if old_state else ""
-        new_state_id = self.tag_id(new_state) if new_state else ""
-        if isinstance(task_ids, basestring):
-            task_ids = task_ids,
-
-        for task_id in task_ids:
-            if old_state:
-                self.post("tasks/%s/removeTag" % task_id, tag=old_state_id)
-            if new_state:
-                self.post("tasks/%s/addTag" % task_id, tag=new_state_id)
-
-            task = self.put("tasks/%s" % task_id,
-                            completed = new_state in done_states,
-                            assignee = ("me"
-                                        if new_state in working_states
-                                        else None))
-            self.cache.invalidate(task)
-
-        return {}
-
-    @bobo.post("/take",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
-    def take(self, task_id):
-        self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
+    def _tasks(self, parent_id, task_id=None):
+        tasks = self.releases
+        if parent_id:
+            tasks = tasks[parent_id]
+        if task_id:
+            tasks = tasks[task_id]
+        return tasks
+    _task = tasks
 
     @bobo.post("/blocked",
                content_type='application/json',
                check=zc.asanakanban.auth.checker)
-    def blocked(self, task_id, is_blocked):
-        tag_id = self.tag_id('blocked')
-        if is_blocked == 'true':
-            self.post("tasks/%s/addTag" % task_id, tag=tag_id)
-        else:
-            self.post("tasks/%s/removeTag" % task_id, tag=tag_id)
-        self.cache.invalidate(self.get("tasks/%s" % task_id))
+    def blocked(self, task_id, is_blocked, parent_id):
+        self._task(parent_id, task_id).blocked = is_blocked
+        return self.response()
 
-    @bobo.post("/add_task",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
-    def add_task(self, name, description, parent=None):
-        options = (dict(parent=parent) if parent
-                   else dict(projects=[self.project_id]))
-        t = self.post("tasks",
-                      workspace=self.workspace_id,
-                      name=name,
-                      notes=description,
-                      **options)
-        self.cache.invalidate(t)
-        if parent:
-            self.cache.invalidate(self.get_task(parent))
+    @bobo.post("/add_release", check=check)
+    def add_release(self, name, description):
+        self.kanban.new_release(name, description)
+        return self.response()
+
+    @bobo.post("/add_task", check=check)
+    def add_task(self, name, description, parent_id):
+        self.kanban.releases[parent_id].new_task(name, description)
+        return self.response()
 
     @bobo.post("/edit_task",
                content_type='application/json',
                check=zc.asanakanban.auth.checker)
-    def edit_task(self, id, name, description):
-        t = self.put("tasks/%s" % id,
-                      name=name,
-                      notes=description,
-                      )
-        self.cache.invalidate(t)
+    def edit_task(self, id, name, description, parent_id=None):
+        if parent_id:
+            self.kanban.releases[parent_id].edit_task(is, name, description)
+        else:
+            self.kanban.releases[task_id].edit(name, description)
+        return self.response()
 
-    @bobo.query("/refresh/:task_id",
-                content_type='application/json',
-                check=zc.asanakanban.auth.checker)
-    def refresh(self, task_id):
-        t = self.get_task(task_id)
-        self.cache.invalidate(t)
-        if not t.get('parent'):
-            for subtask in t['subtasks']:
-                self.refresh(subtask['id'])
+    @bobo.post("/new-state", check=check)
+    def new_state(self, new_state, task_ids, parent_id=None):
+        if isinstance(task_ids, basestring):
+            task_ids = task_ids,
+
+        tasks = self.kanban.releases
+        if parent_id:
+            tasks = releases[parent_id]
+
+        for task_id in task_ids:
+            task = tasks[task_id]
+            task.state = new_state
+            tasks.add(task)
+
+        return self.response()
 
     @bobo.query("/remove",
                 content_type='application/json',
@@ -235,3 +144,9 @@ class API:
         if parent:
             t = self.get_task(parent['id']);
             self.cache.invalidate(t)
+
+    @bobo.post("/take",
+               content_type='application/json',
+               check=zc.asanakanban.auth.checker)
+    def take(self, task_id):
+        self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))

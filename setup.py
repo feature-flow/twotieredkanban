@@ -12,6 +12,8 @@ install_requires = [
     'zc.zdaemonrecipe',
     'zc.zk [static]',
     'zdaemon',
+    'zc.zodbwsgi',
+    'zc.persona',
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing'])
 

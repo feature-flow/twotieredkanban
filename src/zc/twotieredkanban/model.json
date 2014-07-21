@@ -26,6 +26,10 @@
             {
                 "label": "Done",
                 "complete": true
+            },
+            {
+                "label": "Deployed",
+                "complete": true
             }
         ]
     },

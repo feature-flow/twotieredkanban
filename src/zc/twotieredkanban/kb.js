@@ -20,6 +20,7 @@ require([
             "dijit/MenuItem",
             "dojo/topic",
             "dojox/uuid/generateTimeBasedUuid",
+            "dojox/lang/functional",
             "dojox/socket",
             "zc.dojo",
             "dojo/domReady!"],
@@ -27,9 +28,17 @@ require([
         array, declare, lang, win, cookie,
         Source, dom, dom_class, dom_construct, xhr, string,
         CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
-        Menu, MenuItem, topic, generateTimeBasedUuid, socket, dojoform
+        Menu, MenuItem, topic, generateTimeBasedUuid, functional,
+        socket, dojoform
     ) {
         var hitch = lang.hitch;
+
+        var admins;
+        var generation = 0;
+        var model;
+        var releases = {};
+        var user;
+        var users;
 
         var task_widgets = [
                 {
@@ -41,7 +50,7 @@ require([
                     name: "Description",
                     widget_constructor: "zope.schema.Text"
                 }
-            ];
+        ];
 
         function single_use_dialog(props) {
             var dialog = new Dialog(props);
@@ -100,28 +109,12 @@ require([
                 this.state = new_state;
             },
 
-            constructor: function(args){
-                declare.safeMixin(this, args);
-                all_tasks[args.id] = this;
-                this.updated();
-            },
-
             context_menu_items: function() {
                 var items = [
                     new MenuItem(
                         {
-                            label: "Reload",
-                            onClick: hitch(this, "reload")
-                        }),
-                    new MenuItem(
-                        {
                             label: "Edit",
                             onClick: hitch(this, "edit")
-                        }),
-                    new MenuItem(
-                        {
-                            label: "View in Asana",
-                            onClick: hitch(this, "view_in_asana")
                         }),
                     new CheckedMenuItem(
                         {
@@ -153,6 +146,7 @@ require([
             create_card: function (hint) {
                 var self = this;
                 if (hint == 'avatar') {
+                    // A "card" to display while dragging.
                     return {
                         node: dom_construct.create('span', {
                             innerHTML: self.name }),
@@ -188,25 +182,20 @@ require([
                 edit_widgets[0].value = this.name || '';
                 edit_widgets[1].value = this.notes || '';
 
-                form_dialog("Edit task", edit_widgets, "Save",
-                            hitch(this, function (data) {
-                                           post("edit_task", {
-                                                    id: this.id,
-                                                    name: data.Name,
-                                                    description:
-                                                    data.Description
-                                                });
-                                       })
-                           );
-            },
-
-            get_blocked: function() {
-                this.blocked = array.filter(
-                    this.tags,
-                    function (tag) {
-                        return tag.name == "blocked";
-                    }
-                ).length > 0;
+                form_dialog(
+                    "Edit task",
+                    edit_widgets,
+                    "Save",
+                    hitch(this, function (data) {
+                              post("edit_task",
+                                   this.parent_qualify(
+                                       {
+                                           id: this.id,
+                                           name: data.Name,
+                                           description: data.Description
+                                       }));
+                          })
+                );
             },
 
             get_innerHTML: function () {
@@ -249,25 +238,6 @@ require([
                     "</div>";
             },
 
-            get_state: function () {
-                this.change_state(this.get_state_helper(this));
-            },
-
-            get_state_helper: function (task) {
-                var states = this.get_states();
-                var state = array.filter(
-                    task.tags,
-                    function (tag) {
-                        return tag.name in states;
-                    });
-                if (state.length > 0) {
-                    return state[0].name;
-                }
-                else {
-                    return null;
-                }
-            },
-
             size_re: /^\s*\[\s*(\d+)\s*\]/,
             get_subtask_size_helper: function(task) {
                 var m = this.size_re.exec(task.name);
@@ -279,23 +249,16 @@ require([
                 }
             },
 
-            reload: function() {
-                get("refresh/"+this.id);
-                // XXX need toast
-            },
-
             set_blocked: function(v) {
                 if (v == this.blocked) {
                     return;
                 }
-                // XXX shoud display a toast here (and require a reason)
-                // IOW, we'll redo this.
-                post("blocked", { task_id: this.id, is_blocked: v});
+                post("blocked", this.parent_qualify(
+                         { task_id: this.id, is_blocked: v}));
             },
 
             take: function () {
-                // XXX shoud display a toast here
-                post("take", { task_id: this.id });
+                post("take", this.parent_qualify({ task_id: this.id }));
             },
 
             update_card: function () {
@@ -329,7 +292,7 @@ require([
             },
 
             update: function(data) {
-                var new_state = this.get_state_helper(data);
+                var new_state = data.state;
                 if (new_state != this.state) {
                     this.remove_card(); // We'll add card when we update state
                 }
@@ -339,19 +302,50 @@ require([
             },
 
             updated: function () {
-                this.get_blocked();
-                this.get_state();
-            },
-
-            view_in_asana: function() {
-                window.open("https://app.asana.com/0/" +
-                            localStorage.project_id + "/" + this.id);
+                this.change_state(this.state);
             }
-
         };
         BaseTask = declare("zc.asanakanban.BaseTask", null, BaseTask);
 
         var Release = {
+
+            constructor: function(args){
+                this.id = args.id;
+                this.subtasks = {};
+                declare.safeMixin(this, args.adds[this.id]);
+                for (add in args.adds) {
+                    if (add.id != this.id) {
+                        this.subtasks[add.id] = new Task(add, this);
+                    }
+                }
+                this.updated();
+            },
+
+            handle_updates: function (update) {
+                // XXX contents
+                var subtasks = self.subtasks;
+                for (removal in update.removals) {
+                    if (removal in subtasks) {
+                        subtasks[removal].remove_card();
+                        delete subtasks[removal];
+                    }
+                }
+                for (add in update.adds) {
+                    if (add.id in subtasks) {
+                        subtasks.update(add);
+                    }
+                    else {
+                        if (add.id == this.id) {
+                            this.update(add);
+                        }
+                        else {
+                            this.subtasks[add.id] = new Task(add);
+                        }
+                    }
+                }
+            },
+
+            parent_qualify: function (data) { return data; },
 
             add: function(task) {
                 var substage = this.substage_for_task(task);
@@ -362,16 +356,19 @@ require([
             },
 
             add_subtask: function () {
-                form_dialog("New subtask", task_widgets, "Add",
-                            hitch(this, function (data) {
-                                           post("add_task", {
-                                                    name: data.Name,
-                                                    description:
-                                                    data.Description,
-                                                    parent: this.id
-                                                });
-                                       })
-                           );
+                form_dialog(
+                    "New subtask",
+                    task_widgets,
+                    "Add",
+                    hitch(this, function (data) {
+                              post("add_task", {
+                                       name: data.Name,
+                                       description:
+                                       data.Description,
+                                       parent_id: this.id
+                                   });
+                          })
+                );
             },
 
             backlog_create_view: function () {
@@ -388,18 +385,6 @@ require([
                         {
                             label: "Start: "+this.name,
                             onClick: hitch(this, "start_working")
-                        }));
-                backlog_menu.addChild(
-                    new MenuItem(
-                        {
-                            label: "View in Asana",
-                            onClick: hitch(this, "view_in_asana")
-                        }));
-                backlog_menu.addChild(
-                    new MenuItem(
-                        {
-                            label: "Reload",
-                            onClick: hitch(this, "reload")
                         }));
                 backlog_menu.addChild(
                     new MenuItem(
@@ -461,16 +446,7 @@ require([
                     if (model.release_tags[new_state].substates) {
                         this.create_detail(
                             dom.byId(new_state+"_detail_"+this.id));
-                        get("subtasks/"+this.id);
-                        array.forEach(
-                            this.subtasks,
-                            hitch(this, function (subtask) {
-                                      subtask = all_tasks[subtask.id];
-                                      if (subtask) {
-                                          this.add(subtask);
-                                      }
-                                  })
-                        );
+                        array.forEach(this.subtasks, hitch(this, this.add));
                     }
                 }
                 else {
@@ -571,13 +547,12 @@ require([
 
             destroy_detail: function() {
                 // Clean up card menus
-                this.for_subtasks(
-                    function (task) {
-                        if (task.menu) {
-                            task.menu.destroyRecursive();
+                functional.forIn(
+                    this.subtasks, function(subtask) {
+                        if (subtask.menu) {
+                            subtask.menu.destroyRecursive();
                         }
-                    }
-                );
+                    });
 
                 // Clean up sources
                 array.forEach(
@@ -607,18 +582,6 @@ require([
                 // And the tr
                 dom_construct.destroy(this.tr);
                 delete this.tr;
-            },
-
-            for_subtasks: function (f) {
-                array.forEach(
-                    this.subtasks,
-                    function (task) {
-                        if (task.id in all_tasks) {
-                            f(all_tasks[task.id]);
-                        }
-                    }
-                );
-
             },
 
             get_innerHTML: function () {
@@ -654,7 +617,7 @@ require([
                         // We don't have subtasks.  We need at least one.
                         post("add_task", { name: "Do it!",
                                            description: "",
-                                           parent: this.id });
+                                           parent_id: this.id });
                     }
                 }
             },
@@ -700,11 +663,9 @@ require([
 
             remaining: function () {
                 var remaining = this.size;
-                array.forEach(
-                    this.subtasks,
-                    function (subtask) {
-                        var task = all_tasks[subtask.id];
-                        if (task && task.completed) {
+                functional.forIn(
+                    this.subtasks, function (subtask) {
+                        if (subtask.completed) {
                             remaining -= subtask.size;
                         }
                     });
@@ -712,17 +673,14 @@ require([
             },
 
             start_working: function () {
-                post("moved", {
-                         old_state: "",
+                post("new-state", {
                          new_state: model.states[0].tag,
                          task_ids: this.id
                      });
             },
 
             stop_working: function() {
-                post("moved",
-                     {
-                         old_state: this.state,
+                post("new-state", {
                          new_state: "",
                          task_ids: this.id
                      });
@@ -766,37 +724,44 @@ require([
 
         var Task = {
 
+            constructor: function(args, parent){
+                declare.safeMixin(this, args);
+                this.parent = parent;
+                this.updated();
+            },
+
+            parent_qualify: function (data) {
+                data.parent_id = this.parent.id;
+                return data;
+            },
+
             change_state: function (new_state) {
                 this.inherited(arguments);
                 if (! this.node) {
-                    this.get_parent().add(this);
+                    this.parent.add(this);
                 }
             },
 
             context_menu_items: function () {
                 var items = this.inherited(arguments);
                 items.push(
-                new MenuItem(
-                    {
-                        label: "Remove",
-                        onClick: hitch(this, "remove")
-                    }
-                ));
+                    new MenuItem(
+                        {
+                            label: "Remove",
+                            onClick: hitch(this, "remove")
+                        }
+                    ));
                 return items;
             },
 
             enter_state: function() {},
-
-            get_parent: function () {
-                return all_tasks[this.parent.id];
-            },
 
             get_states: function() {
                 return model.task_tags;
             },
 
             remove_card: function() {
-                this.get_parent().remove_card_subtask(this);
+                this.parent.remove_card_subtask(this);
             },
 
             remove: function () {
@@ -805,9 +770,13 @@ require([
                     "Do you <em>really</em> want to remove "+
                         this.name+"?",
                     "Yes, really.",
-                    hitch(this, function (data) {
-                                   post("remove", { task_id: this.id });
-                               })
+                    hitch(this,
+                          function (data) {
+                              post("remove", {
+                                       task_id: this.id,
+                                       parent_id: this.parent.id
+                                   });
+                          })
                 );
             },
 
@@ -815,16 +784,11 @@ require([
 
             update_card: function () {
                 this.inherited(arguments);
-                if (this.parent.id in all_tasks) {
-                    all_tasks[this.parent.id].update_card();
-                }
+                this.parent.update_card();
             }
 
         };
         Task = declare("zc.asanakanban.Task", [BaseTask], Task);
-
-        var all_tasks = {};              // task id -> task
-        var model;
 
         function xhr_error(data) {
             if (data.responseText) {
@@ -837,274 +801,140 @@ require([
         }
 
         function get(url, load) {
-            return xhr.get("/api/"+url, {
-                    handleAs: "json"
-                }).then(load, xhr_error);
+            return xhr.get(
+                "/api/"+url, {
+                    handleAs: "json",
+                    headers: { 'X-Generation': generation }
+                }).then(
+                    function (data) {
+                        handle_updates(data);
+                        if (load) {
+                            load(data);
+                        }
+                    }, xhr_error);
         }
 
         function post(url, content, load) {
             return xhr.post("/api/"+url, {
                     handleAs: "json",
+                    headers: { 'X-Generation': generation },
                     data: content
-                }).then(load, xhr_error);
-        }
-
-        if (localStorage.api_key) {
-            get_workspace();
-            dom.byId("top").appendChild(
-                new Button(
-                    {
-                        label: "Logout",
-                        style: "float: right;",
-                        onClick: function () {
-                            delete localStorage.api_key;
-                            delete localStorage.workspace_id;
-                            delete localStorage.project_id;
-                            navigator.id.logout();
+                }).then(
+                    function (data) {
+                        handle_updates(data);
+                        if (load) {
+                            load(data);
                         }
-                    }).domNode);
-        }
-        else {
-            form_dialog(
-                "API Key", [{ name: "key",
-                              widget_constructor: "zope.schema.TextLine",
-                              label: "API Key" }],
-                "Set", function (data) {
-                    localStorage.api_key = data.key;
-                    window.location.reload();
-                });
+                    }, xhr_error);
         }
 
-        function get_workspace() {
-            get("workspaces/" + localStorage.api_key,
-                function (data) {
-                    data = data.data;
-                    if (data.length == 1) {
-                        localStorage.workspace_id = data[0].id;
-                    }
-                    else {
-                        data.splice(0, 0, { name: "Select a workspace:",
-                                            id: "" });
-                    }
-                    dom_construct.create("label", {
-                        innerHTML: "Workspace:"}, 'top');
-                    var select = new Select(
-                        {
-                            options: array.map(
-                                data,
-                                function (w) {
-                                    return {
-                                        label: w.name,
-                                        value: w.id.toString(),
-                                        selected:
-                                        w.id == localStorage.workspace_id
-                                    };
-                                }),
-                            onChange: function (v) {
-                                if (v) {
-                                    localStorage.workspace_id = v;
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    dom.byId('top').appendChild(select.domNode);
-                    select.startup();
-                    if (localStorage.workspace_id) {
-                        cookie("X-Workspace-ID", localStorage.workspace_id);
-                        get_project();
-                    }
-                });
-        }
-
-        function get_project() {
-            get(
-                "workspaces/"+localStorage.workspace_id+"/projects",
-                function(data) {
-                    data = data.data;
-                    if (data.length == 1) {
-                        localStorage.project_id = data[0].id;
-                    }
-                    else {
-                        data.splice(0, 0, { name: "Select a project:",
-                                            id: "" });
-                    }
-                    if (! localStorage.project_id) {
-                        var development = array.filter(
-                            data,
-                            function (p) {
-                                return p.name == "Development";
-                            });
-                        if (development.length > 0) {
-                            localStorage.project_id = development[0].id;
-                        }
-                    }
-                    dom_construct.create( "label", {
-                        innerHTML: "Project:"}, 'top');
-                    var select = new Select(
-                        {
-                            options: array.map(
-                                data,
-                                function (p) {
-                                    return {
-                                        label: p.name,
-                                        value: p.id.toString(),
-                                        selected:
-                                        p.id ==
-                                            localStorage.project_id
-                                    };
-                                }),
-                            onChange: function (v) {
-                                if (v) {
-                                    localStorage.project_id = v;
-                                    window.location.reload();
-                                }
-                            }
-                        });
-                    dom.byId('top').appendChild(select.domNode);
-                    select.startup();
-                    if (localStorage.project_id) {
-                        cookie("X-Project-ID", localStorage.project_id);
-                        get_model();
-                    }
-                    else {
-                        dom_construct.create(
-                            "span",
-                            {
-                                innerHTML: "Select a project."
-                            },
-                            "top");
-                        return;
-                    }
-                });
-        }
-
-        function get_model() {
-            get("model.json",
-                function (data) {
-                    model = data;
-                    model.release_tags = {};
-                    model.task_tags = {};
-                    array.forEach(
-                        model.states,
-                        function (state) {
-                            dom_construct.create(
-                                "th",
-                                {
-                                    colspan: state.substates ? 2 : 1,
-                                    innerHTML: state.label
-                                },
-                                board_headers);
-                            model.release_tags[state.tag] = state;
-                            if (state.substates) {
-                                state.tags = {};
-                                array.forEach(
-                                    state.substates,
-                                    function (substate) {
-                                        state.tags[substate.tag] = substate;
-                                        model.task_tags[substate.tag] =
-                                            substate;
-                                    });
-                            }
-                        });
-                    new_project();
-
-                    dom_construct.place(
-                        new Button({ label: "New release",
-                                     onClick: add_release }).domNode,
-                        win.body());
-                });
-        }
-
-        var generation = null;
-        function receive(event) {
-            var data = JSON.parse(event.data);
-            generation = data[0];
-            data = data[1];
-
-            if (typeof(data) == "string") {
-                // remove
-                var task_id = data;
-                if (task_id in all_tasks) {
-                    all_tasks[task_id].remove_card();
+        function handle_updates(data) {
+            if (data.updates) {
+                data = data.updates;
+            }
+            else {
+                return;
+            }
+            // XXX data.contents
+            for (removal in data.removals) {
+                if (removal in releases) {
+                    releases[removal].remove();
                 }
             }
-            else if (data.id in all_tasks) {
-                all_tasks[data.id].update(data);
+            for (add in data.adds) {
+                if (! add.id) {
+                    user = add.user;
+                    users = add.users;
+                    admins = add.admins;
+                }
+                else if (add.id in releases) {
+                    releases[add.id].handle_updates(add);
+                }
+                else {
+                    releases[add.id] = new Release(add);
+                }
             }
-            else {
-                data.parent ?
-                    new zc.asanakanban.Task(data) :
-                    new zc.asanakanban.Release(data);
-            }
+            generation = data.generation;
         }
 
-        function closed() {
-            console.log(Date() + " closed");
-            if (generation == null) {
-                form_dialog(
-                    "Disconnected",
-                    "The server disconnected. Try reloading.",
-                    "Reload",
-                    function () {
-                        window.location.reload();
+        dom.byId("top").appendChild(
+            new Button(
+                {
+                    label: "Logout",
+                    style: "float: right;",
+                    onClick: function () {
+                        navigator.id.logout();
+                    }
+                }).domNode);
+
+        get("/kb/model.json",
+            function (data) {
+                model = data;
+                model.release_tags = {};
+                model.task_tags = {};
+                array.forEach(
+                    model.states,
+                    function (state) {
+                        dom_construct.create(
+                            "th",
+                            {
+                                colspan: state.substates ? 2 : 1,
+                                innerHTML: state.label
+                            },
+                            board_headers);
+                        model.release_tags[state.tag] = state;
+                        if (state.substates) {
+                            state.tags = {};
+                            array.forEach(
+                                state.substates,
+                                function (substate) {
+                                    state.tags[substate.tag] = substate;
+                                    model.task_tags[substate.tag] =
+                                        substate;
+                                });
+                        }
                     });
-            }
-            else {
-                new_project();
-            }
-        }
+                get('/poll');
 
-        function new_project() {
-            cookie("X-UUID", generateTimeBasedUuid());
-            console.log(Date() + " new_project");
-            var sock;
-            if (generation == null) {
-                sock = socket("/api/project");
-            }
-            else {
-                sock = socket("/api/project/" + generation);
-                generation = null;
-            }
-            sock.on("message", receive);
-            sock.on("close", closed);
-        }
+                dom_construct.place(
+                    new Button({ label: "New release",
+                                 onClick: add_release }).domNode,
+                    win.body());
+            });
 
         function move_handler(source, nodes, copy, target) {
-
-            var old_state = source.node.id.split("_")[0];
-            var new_state = target.node.id.split("_")[0];
+            var data = {
+                new_state: target.node.id.split("_")[0]
+            };
 
             // Collect task ids.
             // While we're at it, Update the task states
-            var task_ids = array.map(
+            data.task_ids = array.map(
                 nodes,
                 function (node) {
                     var task_id = nodes[0].attributes.task_id.value;
-                    var task = all_tasks[task_id];
-                    if (! task.parent) {
-                        task.maybe_add_subtask_to_release_after_dnd(new_state);
+                    if (task_id in releases) {
+                        releases.task_id.maybe_add_subtask_to_release_after_dnd(
+                            new_state);
+                    }
+                    else {
+                        var ids = source.target.id.split("_");
+                        data.parent_id = ids[ids.length-1];
                     }
                     return task_id;
                 });
 
             target.selectNone();
-            post(
-                "moved",
-                {
-                    old_state: old_state,
-                    new_state: new_state,
-                    task_ids: task_ids
-                });
+            post("/api/new-state", data);
         };
         topic.subscribe("/dnd/drop", move_handler);
 
         function add_release() {
             form_dialog("New release", task_widgets, "Add",
                         hitch(this, function (data) {
-                                  post("add_task", {
+                                  post("add_release", {
                                            name: data.Name,
-                                           description:
-                                           data.Description
+                                           description: data.Description
                                        });
                               })
                        );
