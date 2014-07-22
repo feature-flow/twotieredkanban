@@ -7,15 +7,16 @@ install_requires = [
     'requests',
     'setuptools',
     'zc.dojoform',
+    'zc.generationalset',
     'zc.recipe.deployment',
     'zc.recipe.rhrc',
     'zc.zdaemonrecipe',
-    'zc.zk [static]',
+    'zc.zk',
     'zdaemon',
     'zc.zodbwsgi',
     'zc.persona',
     ]
-extras_require = dict(test=['manuel', 'mock', 'zope.testing'])
+extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
 
 entry_points = """
 [zc.buildout]

@@ -8,9 +8,17 @@ import requests
 import time
 import zc.dojoform
 import zc.generationalset
-import zope.cachedescriptors
 
 logger = logging.getLogger(__name__)
+
+def check(self, request, func):
+    return self.check(func)
+
+def get(*args, **kw):
+    return bobo.get(*args, check=check, **kw)
+
+def post(*args, **kw):
+    return bobo.post(*args, check=check, **kw)
 
 def error(message):
     raise bobo.BoboException(
@@ -23,28 +31,6 @@ def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
 
-@bobo.query("/")
-def index_html():
-    return read_file("kb.html")
-
-@bobo.query("/kb.js", content_type="application/javascript")
-def kb_js():
-    return read_file("kb.js")
-
-@bobo.query("/kb.css", content_type="text/css")
-def kb_css():
-    return read_file("kb.css")
-
-@bobo.query("/dojo/zc.dojo.js", content_type="application/javascript")
-def zc_dojo_js():
-    return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
-                                  "resources/zc.dojo.js"))
-
-@bobo.query("/zc.dojo.css", content_type="text/css")
-def zc_dojo_css():
-    return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
-                                  "resources/zc.dojo.css"))
-
 clients = set()
 
 class Encoder(json.JSONEncoder):
@@ -54,15 +40,24 @@ class Encoder(json.JSONEncoder):
             return obj.isoformat()[:19]
         return obj.json_reduce()
 
-@bobo.subroute("/kb", scan=True)
+@bobo.subroute("/", scan=True)
 class API:
 
     def __init__(self, request):
         self.request = request
-        connectiion = request.environ['zodb.connection']
-        self.root = = root = connection.root
+        self.connectiion = connectiion = request.environ['zodb.connection']
+        email = request.remote_user
+        if not email:
+            self.error(401, "You must authenticate")
+        self.root = root = connection.root
         self.kanban = root.kanban
+        if not email in self.kanban.users:
+            self.error(403, "You are not allowed to access this resource")
+        self.email = email
 
+    def error(self, status, body='', **kw):
+        self.connection.transaction_manager.abort()
+        raise bobo.BoboException(status, body, **kw)
 
     def response(self, **data):
         response = webob.Response(content_type="application/json")
@@ -75,7 +70,36 @@ class API:
         response.pragma = 'no-cache'
         return response
 
-    @bobo.get("/model.json", content_type="application/json")
+    def check(self, func):
+        if (getattr(func, 'admin', False) and
+            self.user not in self.kanban.admins):
+            self.error(403, "You must be an adminstrator")
+
+    @get("/")
+    def index_html():
+        return read_file("kb.html")
+
+    @get("/kb.js", content_type="application/javascript")
+    def kb_js():
+        return read_file("kb.js")
+
+    @get("/kb.css", content_type="text/css")
+    def kb_css():
+        return read_file("kb.css")
+
+    @get("/dojo/zc.dojo.js", content_type="application/javascript")
+    def zc_dojo_js():
+        return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
+                                      "resources/zc.dojo.js"))
+
+    @get("/zc.dojo.css", content_type="text/css")
+    def zc_dojo_css():
+        return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
+                                      "resources/zc.dojo.css"))
+
+
+
+    @get("/model.json", content_type="application/json")
     def model_json(self):
         return dict(states=self.kanban.states)
 
@@ -90,36 +114,32 @@ class API:
         if task_id:
             tasks = tasks[task_id]
         return tasks
-    _task = tasks
+    _task = _tasks
 
-    @bobo.post("/blocked",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
+    @post("/blocked")
     def blocked(self, task_id, is_blocked, parent_id):
         self._task(parent_id, task_id).blocked = is_blocked
         return self.response()
 
-    @bobo.post("/add_release", check=check)
+    @post("/add_release")
     def add_release(self, name, description):
         self.kanban.new_release(name, description)
         return self.response()
 
-    @bobo.post("/add_task", check=check)
+    @post("/add_task")
     def add_task(self, name, description, parent_id):
         self.kanban.releases[parent_id].new_task(name, description)
         return self.response()
 
-    @bobo.post("/edit_task",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
+    @post("/edit_task")
     def edit_task(self, id, name, description, parent_id=None):
         if parent_id:
-            self.kanban.releases[parent_id].edit_task(is, name, description)
+            self.kanban.releases[parent_id].edit_task(id, name, description)
         else:
             self.kanban.releases[task_id].edit(name, description)
         return self.response()
 
-    @bobo.post("/new-state", check=check)
+    @post("/new-state")
     def new_state(self, new_state, task_ids, parent_id=None):
         if isinstance(task_ids, basestring):
             task_ids = task_ids,
@@ -135,18 +155,11 @@ class API:
 
         return self.response()
 
-    @bobo.query("/remove",
-                content_type='application/json',
-                check=zc.asanakanban.auth.checker)
+    @post("/remove")
     def remove(self, task_id):
-        self.delete("tasks/%s" % task_id)
-        parent = self.cache.delete(int(task_id))
-        if parent:
-            t = self.get_task(parent['id']);
-            self.cache.invalidate(t)
+        pass
 
-    @bobo.post("/take",
-               content_type='application/json',
-               check=zc.asanakanban.auth.checker)
+    @post("/take")
     def take(self, task_id):
-        self.cache.invalidate(self.put("tasks/%s" % task_id, assignee = "me"))
+        pass
+    

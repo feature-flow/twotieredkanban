@@ -1,4 +1,4 @@
-import BTrees.OOBtree
+import BTrees.OOBTree
 import json
 import os
 import persistent
