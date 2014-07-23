@@ -14,9 +14,9 @@ class Kanban:
     def __init__(self, admin, state_data='model.json'):
         self.releases = zc.generationalset.GSet()
         self.releases.add(self)
-        self.admins = BTrees.OOBtree.TreeSet([admin])
-        self.users = BTrees.OOBtree.TreeSet([admin])
-        self.archive = BTrees.OOBtree.OOBTree()
+        self.admins = BTrees.OOBTree.TreeSet([admin])
+        self.users = BTrees.OOBTree.TreeSet([admin])
+        self.archive = BTrees.OOBTree.OOBTree()
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -31,7 +31,6 @@ class Kanban:
 
     def load_states(self, data):
 
-        self.done_states = set()
         self.working_states = set()
 
         def normalize_state(state):
@@ -43,9 +42,6 @@ class Kanban:
             if 'tag' not in state:
                 state['tag'] = state['label'].lower() # XXX for now
 
-            if state.get('complete'):
-                self.done_states.add(state['tag'])
-
             if state.get('working'):
                 self.working_states.add(state['tag'])
 
@@ -54,12 +50,13 @@ class Kanban:
 
             return state
 
-        self.states = normalize_state(data)
+        self.states = map(normalize_state, data)
 
     def json_reduce(self):
         return dict(
-            admins = self.admins,
-            users = self.users,
+            id = self.id,
+            admins = list(self.admins),
+            users = list(self.users),
             )
 
 class Task(persistent.Persistent):

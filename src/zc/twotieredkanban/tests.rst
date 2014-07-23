@@ -22,4 +22,44 @@ these except to point out that pages need to be authenticated:
 
     >>> app = test_app('admin@example.com')
     >>> pprint(app.get('/model.json').json)
+    {u'states': [{u'label': u'Ready', u'tag': u'ready'},
+                 {u'label': u'Development',
+                  u'substates': [{u'label': u'Ready', u'tag': u'ready'},
+                                 {u'label': u'Doing',
+                                  u'tag': u'doing',
+                                  u'working': True},
+                                 {u'label': u'Needs Review',
+                                  u'tag': u'needs review'},
+                                 {u'label': u'Review',
+                                  u'tag': u'review',
+                                  u'working': True},
+                                 {u'label': u'Done', u'tag': u'done'},
+                                 {u'label': u'Deployed', u'tag': u'deployed'}],
+                  u'tag': u'development'},
+                 {u'label': u'Deploy', u'tag': u'deploy'},
+                 {u'label': u'Deployed', u'tag': u'deployed'}],
+     u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+                             u'id': u'',
+                             u'users': [u'admin@example.com']}],
+                  u'generation': 2}}
 
+We can adjust the model, but that's a different story.
+
+We get a model description. We also got an update for the kanban.  We
+didn't send any generational information, so we got all updates since
+generation 0.  We can also poll for updates.  This time, we're going
+to invoke the request a little differently using a test helper that
+keeps track of generations the way an app would, by sending an
+X-Generation header with the last generation it got.
+
+    >>> pprint(get(app, '/poll').json)
+    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+                             u'id': u'',
+                             u'users': [u'admin@example.com']}],
+                  u'generation': 2}}
+
+
+If we call it again, there won't be any updates:
+
+    >>> pprint(get(app, '/poll').json)
+    {}

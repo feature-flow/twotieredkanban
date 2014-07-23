@@ -1,4 +1,5 @@
 import bobo
+import datetime
 import gevent.queue
 import json
 import logging
@@ -8,6 +9,7 @@ import requests
 import time
 import zc.dojoform
 import zc.generationalset
+import webob
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +42,12 @@ class Encoder(json.JSONEncoder):
             return obj.isoformat()[:19]
         return obj.json_reduce()
 
-@bobo.subroute("/", scan=True)
+@bobo.subroute("", scan=True)
 class API:
 
     def __init__(self, request):
         self.request = request
-        self.connectiion = connectiion = request.environ['zodb.connection']
+        self.connection = connection = request.environ['zodb.connection']
         email = request.remote_user
         if not email:
             self.error(401, "You must authenticate")
@@ -63,7 +65,7 @@ class API:
         response = webob.Response(content_type="application/json")
         generation = self.request.headers.get('x-generation', 0)
         updates = self.kanban.releases.generational_updates(int(generation))
-        if updates:
+        if updates and len(updates) > 1:
             data['updates'] = updates
         response.body = json.dumps(data, cls=Encoder)
         response.cache_control = 'no-cache'
@@ -99,9 +101,9 @@ class API:
 
 
 
-    @get("/model.json", content_type="application/json")
+    @get("/model.json")
     def model_json(self):
-        return dict(states=self.kanban.states)
+        return self.response(states=self.kanban.states)
 
     @bobo.get("/poll")
     def poll(self):

@@ -1,42 +1,15 @@
-[
-    {
-        "label": "Analysis",
-        "working": true
-    },
-    {
-        "tag": "devready",
-        "label": "Ready"
-    },
-    {
-        "label": "Development",
-        "substates": [
-            "Ready",
-            {
-                "label": "Doing",
-                "working": true
-            },
-            {
-                "tag": "nr",
-                "label": "Needs Review"
-            },
-            {
-                "label": "Review",
-                "working": true
-            },
-            {
-                "label": "Done",
-                "complete": true
-            },
-            {
-                "label": "Deployed",
-                "complete": true
-            }
+["Ready",
+ {
+     "label": "Development",
+     "substates": [
+         "Ready",
+         { "label": "Doing", "working": true },
+         "Needs Review",
+         { "label": "Review", "working": true },
+         "Done",
+         "Deployed"
         ]
     },
-    "Demo",
-    "Deploy",
-    {
-        "label": "Deployed",
-        "complete": true
-    }
+ "Deploy",
+ "Deployed"
 ]
