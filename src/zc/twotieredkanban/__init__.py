@@ -22,13 +22,6 @@ def get(*args, **kw):
 def post(*args, **kw):
     return bobo.post(*args, check=check, **kw)
 
-def error(message):
-    raise bobo.BoboException(
-        403,
-        json.dumps(dict(error=message)),
-        content_type='application/json',
-        )
-
 def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
@@ -99,14 +92,21 @@ class API:
         return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
                                       "resources/zc.dojo.css"))
 
-
-
     @get("/model.json")
     def model_json(self):
         return self.response(states=self.kanban.states)
 
-    @bobo.get("/poll")
+    @get("/poll")
     def poll(self):
+        return self.response()
+
+    @post('/users')
+    def add_users(self, email):
+        if isinstance(email, basestring):
+            email = email,
+        for e in email:
+            self.kanban.users.add(e)
+        self.kanban.changed()
         return self.response()
 
     def _tasks(self, parent_id, task_id=None):
@@ -164,4 +164,4 @@ class API:
     @post("/take")
     def take(self, task_id):
         pass
-    
+

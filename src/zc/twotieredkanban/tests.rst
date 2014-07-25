@@ -1,3 +1,4 @@
+===========================
 Basic two-tier kanban tests
 ===========================
 
@@ -17,11 +18,10 @@ https://login.persona.org/about, is used to *authenticate* emails.
 The web server has some boring URLs to loading pages. We'll glos over
 these except to point out that pages need to be authenticated:
 
-    >>> app = test_app()
-    >>> _ = app.get('/model.json', status=401)
+    >>> _ = test_app().get('/model.json', status=401)
 
-    >>> app = test_app('admin@example.com')
-    >>> pprint(app.get('/model.json').json)
+    >>> admin = test_app('admin@example.com')
+    >>> pprint(admin.get('/model.json').json)
     {u'states': [{u'label': u'Ready', u'tag': u'ready'},
                  {u'label': u'Development',
                   u'substates': [{u'label': u'Ready', u'tag': u'ready'},
@@ -52,7 +52,7 @@ to invoke the request a little differently using a test helper that
 keeps track of generations the way an app would, by sending an
 X-Generation header with the last generation it got.
 
-    >>> pprint(get(app, '/poll').json)
+    >>> pprint(get(admin, '/poll').json)
     {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
                              u'id': u'',
                              u'users': [u'admin@example.com']}],
@@ -61,5 +61,25 @@ X-Generation header with the last generation it got.
 
 If we call it again, there won't be any updates:
 
-    >>> pprint(get(app, '/poll').json)
+    >>> pprint(get(admin, '/poll').json)
     {}
+
+Adding users
+============
+
+    >>> pprint(post(admin, '/users', dict(email='user1@example.com')).json)
+    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+                             u'id': u'',
+                             u'users': [u'admin@example.com',
+                                        u'user1@example.com']}],
+                  u'generation': 3}}
+
+    >>> pprint(post(admin, '/users',
+    ...     dict(email=['user2@example.com', 'user3@example.com'])).json)
+    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+                             u'id': u'',
+                             u'users': [u'admin@example.com',
+                                        u'user1@example.com',
+                                        u'user2@example.com',
+                                        u'user3@example.com']}],
+                  u'generation': 4}}

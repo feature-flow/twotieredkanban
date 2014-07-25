@@ -26,6 +26,9 @@ class Kanban:
             state_data = json.loads(state_data)
         self.load_states(state_data)
 
+    def changed(self):
+        self.releases.add(self)
+
     def new_release(self, name, description=''):
         self.releases.add(Release(name, description))
 
