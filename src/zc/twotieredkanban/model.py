@@ -36,7 +36,7 @@ class Kanban(persistent.Persistent):
                     )
 
             if 'tag' not in state:
-                state['tag'] = state['label'].lower()
+                state['tag'] = state['label'].lower().replace(' ', '_')
 
             if state.get('working'):
                 self.working_states.add(state['tag'])
