@@ -1,4 +1,5 @@
 from pprint import pprint
+from zope.testing import setupstack
 import bobo
 import boboserver
 import doctest
@@ -6,9 +7,11 @@ import unittest
 import manuel.capture
 import manuel.doctest
 import manuel.testing
+import mock
 import os
 import pdb
 import pkg_resources
+import uuid
 import webtest
 import zc.twotieredkanban
 
@@ -72,12 +75,31 @@ def setUp(test):
 
     @glob
     def post(app, *a, **kw):
-        return update_app(app, app.post(*a, **kw))
+        return update_app(app, app.post_json(*a, **kw))
+
+    @glob
+    def put(app, *a, **kw):
+        return update_app(app, app.put_json(*a, **kw))
+
+    @glob
+    def delete(app, *a, **kw):
+        return update_app(app, app.delete(*a, **kw))
+
+    globs['_uuid1'] = 0
+    def uuid1():
+        globs['_uuid1'] += 1
+        return uuid.UUID('%.32d' % globs['_uuid1'])
+    setupstack.context_manager(
+        test, mock.patch('uuid.uuid1', side_effect=uuid1))
+    setupstack.context_manager(
+        test, mock.patch('time.time', side_effect=lambda : 1406405514))
 
 def test_suite():
     return unittest.TestSuite((
         manuel.testing.TestSuite(
-            manuel.doctest.Manuel() + manuel.capture.Manuel(),
+            manuel.doctest.Manuel(
+                optionflags=doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
+                ) + manuel.capture.Manuel(),
             'tests.rst', setUp=setUp),
         ))
 

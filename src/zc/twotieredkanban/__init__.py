@@ -22,6 +22,12 @@ def get(*args, **kw):
 def post(*args, **kw):
     return bobo.post(*args, check=check, **kw)
 
+def put(*args, **kw):
+    return bobo.put(*args, check=check, **kw)
+
+def delete(*args, **kw):
+    return bobo.delete(*args, check=check, **kw)
+
 def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
@@ -66,8 +72,8 @@ class API:
         return response
 
     def check(self, func):
-        if (getattr(func, 'admin', False) and
-            self.user not in self.kanban.admins):
+        if ('admin' in func.__name__  and
+            self.email not in self.kanban.admins):
             self.error(403, "You must be an adminstrator")
 
     @get("/")
@@ -100,68 +106,49 @@ class API:
     def poll(self):
         return self.response()
 
-    @post('/users')
-    def add_users(self, email):
-        if isinstance(email, basestring):
-            email = email,
-        for e in email:
-            self.kanban.users.add(e)
+    @put("/")
+    def admin(self, users, admins):
+        self.kanban.users = users
+        self.kanban.admins = admins
         self.kanban.changed()
         return self.response()
 
-    def _tasks(self, parent_id, task_id=None):
-        tasks = self.releases
-        if parent_id:
-            tasks = tasks[parent_id]
-        if task_id:
-            tasks = tasks[task_id]
-        return tasks
-    _task = _tasks
-
-    @post("/blocked")
-    def blocked(self, task_id, is_blocked, parent_id):
-        self._task(parent_id, task_id).blocked = is_blocked
-        return self.response()
-
-    @post("/add_release")
+    @post("/releases")
     def add_release(self, name, description):
         self.kanban.new_release(name, description)
         return self.response()
 
-    @post("/add_task")
-    def add_task(self, name, description, parent_id):
-        self.kanban.releases[parent_id].new_task(name, description)
+    @put("/releases/:release_id")
+    def update_release(self, release_id,
+                       name=None, description=None, state=None,
+                       assigned=None, blocked=None,
+                       ):
+        self.kanban[release_id].update(
+            name=name, description=description, state=state,
+            assigned=assigned, blocked=blocked)
         return self.response()
 
-    @post("/edit_task")
-    def edit_task(self, id, name, description, parent_id=None):
-        if parent_id:
-            self.kanban.releases[parent_id].edit_task(id, name, description)
-        else:
-            self.kanban.releases[task_id].edit(name, description)
+    @delete("/releases/:release_id")
+    def delete_release(self, request, release_id):
+        self.kanban.archive(release_id)
         return self.response()
 
-    @post("/new-state")
-    def new_state(self, new_state, task_ids, parent_id=None):
-        if isinstance(task_ids, basestring):
-            task_ids = task_ids,
-
-        tasks = self.kanban.releases
-        if parent_id:
-            tasks = releases[parent_id]
-
-        for task_id in task_ids:
-            task = tasks[task_id]
-            task.state = new_state
-            tasks.add(task)
-
+    @post("/releases/:release_id")
+    def add_task(self, release_id, name, description):
+        self.kanban[release_id].new_task(name, description)
         return self.response()
 
-    @post("/remove")
-    def remove(self, task_id):
-        pass
+    @put("/releases/:release_id/tasks/:task_id")
+    def update_task(self, release_id, task_id,
+                       name=None, description=None, state=None,
+                       assigned=None, blocked=None,
+                       ):
+        self.kanban[release_id].update_task(
+            task_id, name=name, description=description,
+            state=state, assigned=assigned, blocked=blocked)
+        return self.response()
 
-    @post("/take")
-    def take(self, task_id):
-        pass
-
+    @delete("/releases/:release_id/tasks/:task_id")
+    def delete_task(self, request, release_id, task_id):
+        self.kanban[release_id].archive(task_id)
+        return self.response()

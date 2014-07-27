@@ -64,22 +64,130 @@ If we call it again, there won't be any updates:
     >>> pprint(get(admin, '/poll').json)
     {}
 
-Adding users
-============
+Updating users
+==============
 
-    >>> pprint(post(admin, '/users', dict(email='user1@example.com')).json)
-    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+To update users, simply replace the users and admin lists by putting
+to ``/``:
+
+    >>> pprint(put(admin, '/', dict(
+    ...     users=['admin@example.com', 'helper@foo.com',
+    ...            'user1@foo.com', 'user2@example.com'],
+    ...     admins=['admin@example.com', 'helper@foo.com'],
+    ...     )).json)
+    {u'updates': {u'adds': [{u'admins': [u'admin@example.com',
+                                         u'helper@foo.com'],
                              u'id': u'',
                              u'users': [u'admin@example.com',
-                                        u'user1@example.com']}],
+                                        u'helper@foo.com',
+                                        u'user1@foo.com',
+                                        u'user2@example.com']}],
                   u'generation': 3}}
 
-    >>> pprint(post(admin, '/users',
-    ...     dict(email=['user2@example.com', 'user3@example.com'])).json)
-    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
-                             u'id': u'',
-                             u'users': [u'admin@example.com',
-                                        u'user1@example.com',
-                                        u'user2@example.com',
-                                        u'user3@example.com']}],
+Ordinary users can't manage users:
+
+    >>> user = test_app('user1@foo.com')
+    >>> _ = get(user, '/poll')
+    >>> put(user, '/', dict(users=[], admins=['user1@foo.com']), status=403)
+    <403 Forbidden text/html body='You must ...ator'/27>
+
+But ordinary users can do everythig else.
+
+Creating releases
+=================
+
+    >>> pprint(post(user, '/releases',
+    ...              dict(name='kanban', description='Build the kanban')).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Build the kanban',
+                                    u'id': u'00000000000000000000000000000001',
+                                    u'name': u'kanban',
+                                    u'state': u'ready'}],
+                         u'id': u'00000000000000000000000000000001'}],
                   u'generation': 4}}
+
+
+Creating tasks
+==============
+
+    >>> release_id = u'00000000000000000000000000000001'
+    >>> pprint(post(user, '/releases/' + release_id,
+    ...        dict(name='backend', description='Create backend')).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Create backend',
+                                    u'id': u'00000000000000000000000000000002',
+                                    u'name': u'backend',
+                                    u'state': None}],
+                         u'id': u'00000000000000000000000000000001'}],
+              u'generation': 5}}
+
+Updating releases and tasks
+===========================
+
+    >>> pprint(put(user, '/releases/' + release_id,
+    ...            dict(state='development')).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Build the kanban',
+                                    u'id': u'00000000000000000000000000000001',
+                                    u'name': u'kanban',
+                                    u'state': u'development'},
+                                   {u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Create backend',
+                                    u'id': u'00000000000000000000000000000002',
+                                    u'name': u'backend',
+                                    u'state': u'ready'}],
+                             u'id': u'00000000000000000000000000000001'}],
+                  u'generation': 7}}
+
+    >>> task_id = u'00000000000000000000000000000002'
+    >>> pprint(put(user, '/releases/' + release_id + '/tasks/' + task_id,
+    ...            dict(state='doing', assigned='user2@example.com')).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': u'user2@example.com',
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Create backend',
+                                    u'id': u'00000000000000000000000000000002',
+                                    u'name': u'backend',
+                                    u'state': u'doing'}],
+                             u'id': u'00000000000000000000000000000001'}],
+                  u'generation': 8}}
+
+Deleting tasks and releases
+===========================
+
+We can delete tasks and releases. When we do, they are archived.
+
+    >>> pprint(
+    ...     delete(user, '/releases/' + release_id + '/tasks/' + task_id).json)
+    {u'updates': {u'adds': [{u'id': u'00000000000000000000000000000001',
+                         u'removals': [u'00000000000000000000000000000002']}],
+                  u'generation': 9}}
+
+    >>> conn.sync()
+    >>> kanban = conn.root.kanban
+    >>> release = kanban[release_id]
+    >>> list(release.tasks) == [release]
+    True
+    >>> [task_id] == [task.id for task in release.archived]
+    True
+
+    >>> pprint(
+    ...     delete(user, '/releases/' + release_id).json)
+    {u'updates': {u'generation': 10,
+                  u'removals': [u'00000000000000000000000000000001']}}
+
+    >>> conn.sync()
+    >>> list(kanban.releases) == [kanban]
+    True
+    >>> [release_id] == list(conn.root.kanban.archived)
+    True
+
+

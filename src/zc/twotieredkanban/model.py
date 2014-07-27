@@ -6,8 +6,7 @@ import time
 import uuid
 import zc.generationalset
 
-
-class Kanban:
+class Kanban(persistent.Persistent):
 
     id = ''
 
@@ -16,7 +15,7 @@ class Kanban:
         self.releases.add(self)
         self.admins = BTrees.OOBTree.TreeSet([admin])
         self.users = BTrees.OOBTree.TreeSet([admin])
-        self.archive = BTrees.OOBTree.OOBTree()
+        self.archived = BTrees.OOBTree.OOBTree() # {release_id -> subset }
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -25,12 +24,6 @@ class Kanban:
                     state_data = f.read()
             state_data = json.loads(state_data)
         self.load_states(state_data)
-
-    def changed(self):
-        self.releases.add(self)
-
-    def new_release(self, name, description=''):
-        self.releases.add(Release(name, description))
 
     def load_states(self, data):
 
@@ -43,7 +36,7 @@ class Kanban:
                     )
 
             if 'tag' not in state:
-                state['tag'] = state['label'].lower() # XXX for now
+                state['tag'] = state['label'].lower()
 
             if state.get('working'):
                 self.working_states.add(state['tag'])
@@ -54,6 +47,20 @@ class Kanban:
             return state
 
         self.states = map(normalize_state, data)
+
+    def changed(self):
+        self.releases.add(self)
+
+    def new_release(self, name, description=''):
+        Release(self, name, description)
+
+    def archive(self, release_id):
+        release = self.releases[release_id]
+        self.releases.remove(release)
+        self.archived[release.id] = release
+
+    def __getitem__(self, release_id):
+        return self.releases[release_id].release
 
     def json_reduce(self):
         return dict(
@@ -74,10 +81,24 @@ class Task(persistent.Persistent):
         self.description = description
         self.state = state
 
+    def update(self, name=None, description=None, state=None,
+               assigned=None, blocked=None):
+        if name is not None:
+            self.name = name
+        if description is not None:
+            self.description = description
+        if state is not None:
+            self.state = state
+        if assigned is not None:
+            self.assigned = assigned
+        if blocked is not None:
+            self.blocked = blocked
+
     def json_reduce(self):
         return dict(id = self.id,
                     name = self.name,
                     description = self.description,
+                    state = self.state['tag'] if self.state else None,
                     blocked = self.blocked,
                     created = self.created,
                     assigned = self.assigned,
@@ -85,27 +106,42 @@ class Task(persistent.Persistent):
 
 class Release(Task):
 
-    def __init__(self, name, description, state):
+    def __init__(self, kanban, name, description):
+        self.kanban = kanban
+        state = kanban.states[0]
         super(Release, self).__init__(name, description, state)
-        self.tasks = zc.generationalset.GSet(self.id)
+        self.tasks = zc.generationalset.GSet(self.id, kanban.releases)
         self.tasks.add(self)
-
-    def generational_updates(self, generation):
-        return self.tasks.generational_updates(generation)
-
-    def __getitem__(self, task_id):
-        return self.tasks[task_id]
+        self.tasks.release = self # So we're reachabe from the kanban :/
+        self.archived = ()
 
     def new_task(self, name, description):
-        self.tasks.add(Task(name, description))
+        if 'substates' in self.state:
+            state = self.state['substates'][0]
+        else:
+            state = None
+        self.tasks.add(Task(name, description, state))
 
-    def edit(self, name, description):
-        self.name = name
-        self.description = description
+    def update(self, state, **kw):
+        state, = [s for s in self.kanban.states if s['tag'] == state]
+        super(Release, self).update(state=state, **kw)
         self.tasks.add(self)
 
-    def edit_task(self, id, name, description):
-        task = self.tasks[id]
-        task.name = name
-        task.description = description
-        tasks.add(task)
+        substates = state.get('substates')
+        if substates:
+            for task in list(self.tasks):
+                if not task.state:
+                    task.state = substates[0]
+                    self.tasks.add(task)
+
+    def update_task(self, task_id, state, **kw):
+        task = self.tasks[task_id]
+        state, = [s for s in self.state['substates'] if s['tag'] == state]
+        task.update(state=state, **kw)
+        self.tasks.add(task)
+
+    def archive(self, task_id):
+        task = self.tasks[task_id]
+        self.archived += (task, )
+        self.tasks.remove(task)
+
