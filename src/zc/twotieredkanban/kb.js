@@ -8,6 +8,7 @@ require([
             "dojo/dom",
             "dojo/dom-class",
             "dojo/dom-construct",
+            "dojo/json",
             "dojo/request/xhr",
             "dojo/string",
             "dijit/CheckedMenuItem",
@@ -26,7 +27,7 @@ require([
             "dojo/domReady!"],
     function(
         array, declare, lang, win, cookie,
-        Source, dom, dom_class, dom_construct, xhr, string,
+        Source, dom, dom_class, dom_construct, json, xhr, string,
         CheckedMenuItem, Button, CheckBox, Select, TextBox, Dialog,
         Menu, MenuItem, topic, generateTimeBasedUuid, functional,
         socket, dojoform
@@ -800,6 +801,20 @@ require([
             alert(data);
         }
 
+        function del(url, load) {
+            return xhr.del(
+                "/api/"+url, {
+                    handleAs: "json",
+                    headers: { 'X-Generation': generation }
+                }).then(
+                    function (data) {
+                        handle_updates(data);
+                        if (load) {
+                            load(data);
+                        }
+                    }, xhr_error);
+        }
+
         function get(url, load) {
             return xhr.get(
                 "/api/"+url, {
@@ -818,7 +833,21 @@ require([
             return xhr.post("/api/"+url, {
                     handleAs: "json",
                     headers: { 'X-Generation': generation },
-                    data: content
+                    data: json.stringify(content)
+                }).then(
+                    function (data) {
+                        handle_updates(data);
+                        if (load) {
+                            load(data);
+                        }
+                    }, xhr_error);
+        }
+
+        function put(url, content, load) {
+            return xhr.put("/api/"+url, {
+                    handleAs: "json",
+                    headers: { 'X-Generation': generation },
+                    data: json.stringify(content)
                 }).then(
                     function (data) {
                         handle_updates(data);
@@ -904,12 +933,13 @@ require([
 
         function move_handler(source, nodes, copy, target) {
             var data = {
-                new_state: target.node.id.split("_")[0]
+                state: target.node.id.split("_")[0]
             };
+            var release_id;
 
             // Collect task ids.
             // While we're at it, Update the task states
-            data.task_ids = array.map(
+            var task_ids = array.map(
                 nodes,
                 function (node) {
                     var task_id = nodes[0].attributes.task_id.value;
@@ -919,13 +949,23 @@ require([
                     }
                     else {
                         var ids = source.target.id.split("_");
-                        data.parent_id = ids[ids.length-1];
+                        release_id = ids[ids.length-1] + "/";
                     }
                     return task_id;
                 });
 
+            var url;
+            if (release_id) {
+                data.task_ids = task_ids;
+                url = '/releases/' + release_id + '/move';
+            }
+            else {
+                data.release_ids = task_ids;
+                url = '/move';
+            }
+
             target.selectNone();
-            post("/api/new-state", data);
+            put(url, data);
         };
         topic.subscribe("/dnd/drop", move_handler);
 

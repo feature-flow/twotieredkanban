@@ -113,6 +113,12 @@ class API:
         self.kanban.changed()
         return self.response()
 
+    @put("/move")
+    def move_releases(self, release_ids, state):
+        for release_id in release_ids:
+            self.update_release(release_id, state=state)
+        return self.response()
+
     @post("/releases")
     def add_release(self, name, description):
         self.kanban.new_release(name, description)
@@ -151,4 +157,10 @@ class API:
     @delete("/releases/:release_id/tasks/:task_id")
     def delete_task(self, request, release_id, task_id):
         self.kanban[release_id].archive(task_id)
+        return self.response()
+
+    @put("/releases/:release_id/move")
+    def move_tasks(self, release_id, task_ids, state):
+        for task_id in task_ids:
+            self.update_task(release_id, task_id, state=state)
         return self.response()

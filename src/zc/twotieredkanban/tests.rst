@@ -29,7 +29,7 @@ these except to point out that pages need to be authenticated:
                                   u'tag': u'doing',
                                   u'working': True},
                                  {u'label': u'Needs Review',
-                                  u'tag': u'needs review'},
+                                  u'tag': u'needs_review'},
                                  {u'label': u'Review',
                                   u'tag': u'review',
                                   u'working': True},
@@ -160,6 +160,37 @@ Updating releases and tasks
                              u'id': u'00000000000000000000000000000001'}],
                   u'generation': 8}}
 
+Moves
+=====
+
+In the kanban, a user can select multiple tasks or releases and move
+them (change state) at once, so we supply a specialize interface to
+support this.
+
+    >>> pprint(put(user, '/releases/' + release_id + '/move',
+    ...            dict(state='needs_review', task_ids=[task_id])).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': u'user2@example.com',
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Create backend',
+                                    u'id': u'00000000000000000000000000000002',
+                                    u'name': u'backend',
+                                    u'state': u'needs_review'}],
+                             u'id': u'00000000000000000000000000000001'}],
+                  u'generation': 9}}
+
+    >>> pprint(put(user, '/move',
+    ...            dict(state='deploy', release_ids=[release_id])).json)
+    {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Build the kanban',
+                                    u'id': u'00000000000000000000000000000001',
+                                    u'name': u'kanban',
+                                    u'state': u'deploy'}],
+                         u'id': u'00000000000000000000000000000001'}],
+                  u'generation': 10}}
+
 Deleting tasks and releases
 ===========================
 
@@ -169,7 +200,7 @@ We can delete tasks and releases. When we do, they are archived.
     ...     delete(user, '/releases/' + release_id + '/tasks/' + task_id).json)
     {u'updates': {u'adds': [{u'id': u'00000000000000000000000000000001',
                          u'removals': [u'00000000000000000000000000000002']}],
-                  u'generation': 9}}
+                  u'generation': 11}}
 
     >>> conn.sync()
     >>> kanban = conn.root.kanban
@@ -181,7 +212,7 @@ We can delete tasks and releases. When we do, they are archived.
 
     >>> pprint(
     ...     delete(user, '/releases/' + release_id).json)
-    {u'updates': {u'generation': 10,
+    {u'updates': {u'generation': 12,
                   u'removals': [u'00000000000000000000000000000001']}}
 
     >>> conn.sync()
