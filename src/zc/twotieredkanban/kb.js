@@ -187,15 +187,18 @@ require([
                     "Edit task",
                     edit_widgets,
                     "Save",
-                    hitch(this, function (data) {
-                              post("edit_task",
-                                   this.parent_qualify(
-                                       {
-                                           id: this.id,
-                                           name: data.Name,
-                                           description: data.Description
-                                       }));
-                          })
+                    hitch(
+                        this,
+                        function (data) {
+                            put(this.parent ?
+                                "/releases/" + this.parent.id +
+                                '/tasks/' + this.id :
+                                "/releases/" + this.id,
+                                {
+                                    name: data.Name,
+                                    description: data.Description
+                                });
+                        })
                 );
             },
 
@@ -972,7 +975,7 @@ require([
         function add_release() {
             form_dialog("New release", task_widgets, "Add",
                         hitch(this, function (data) {
-                                  post("add_release", {
+                                  post("releases", {
                                            name: data.Name,
                                            description: data.Description
                                        });
