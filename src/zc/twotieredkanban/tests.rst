@@ -104,7 +104,8 @@ Creating releases
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
                                     u'name': u'kanban',
-                                    u'state': u'ready'}],
+                                    u'size': 0,
+                                    u'state': None}],
                          u'id': u'00000000000000000000000000000001'}],
                   u'generation': 4}}
 
@@ -121,9 +122,20 @@ Creating tasks
                                     u'description': u'Create backend',
                                     u'id': u'00000000000000000000000000000002',
                                     u'name': u'backend',
+                                    u'size': 1,
+                                    u'state': None},
+                                   {u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Build the kanban',
+                                    u'id': u'00000000000000000000000000000001',
+                                    u'name': u'kanban',
+                                    u'size': 1,
                                     u'state': None}],
                          u'id': u'00000000000000000000000000000001'}],
-              u'generation': 5}}
+              u'generation': 6}}
+
+We got an update to the release because its size changed.
 
 Updating releases and tasks
 ===========================
@@ -136,6 +148,7 @@ Updating releases and tasks
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
                                     u'name': u'kanban',
+                                    u'size': 1,
                                     u'state': u'development'},
                                    {u'assigned': None,
                                     u'blocked': u'',
@@ -143,22 +156,33 @@ Updating releases and tasks
                                     u'description': u'Create backend',
                                     u'id': u'00000000000000000000000000000002',
                                     u'name': u'backend',
+                                    u'size': 1,
                                     u'state': u'ready'}],
                              u'id': u'00000000000000000000000000000001'}],
-                  u'generation': 7}}
+                  u'generation': ...}}
 
     >>> task_id = u'00000000000000000000000000000002'
     >>> pprint(put(user, '/releases/' + release_id + '/tasks/' + task_id,
-    ...            dict(state='doing', assigned='user2@example.com')).json)
+    ...            dict(state='doing', assigned='user2@example.com',
+    ...                 name='[2] backend')).json)
     {u'updates': {u'adds': [{u'adds': [{u'assigned': u'user2@example.com',
                                     u'blocked': u'',
                                     u'created': 1406405514,
                                     u'description': u'Create backend',
                                     u'id': u'00000000000000000000000000000002',
-                                    u'name': u'backend',
-                                    u'state': u'doing'}],
+                                    u'name': u'[2] backend',
+                                    u'size': 2,
+                                    u'state': u'doing'},
+                                   {u'assigned': None,
+                                    u'blocked': u'',
+                                    u'created': 1406405514,
+                                    u'description': u'Build the kanban',
+                                    u'id': u'00000000000000000000000000000001',
+                                    u'name': u'kanban',
+                                    u'size': 2,
+                                    u'state': u'development'}],
                              u'id': u'00000000000000000000000000000001'}],
-                  u'generation': 8}}
+                  u'generation': ...}}
 
 Moves
 =====
@@ -174,10 +198,11 @@ support this.
                                     u'created': 1406405514,
                                     u'description': u'Create backend',
                                     u'id': u'00000000000000000000000000000002',
-                                    u'name': u'backend',
+                                    u'name': u'[2] backend',
+                                    u'size': 2,
                                     u'state': u'needs_review'}],
                              u'id': u'00000000000000000000000000000001'}],
-                  u'generation': 9}}
+                  u'generation': ...}}
 
     >>> pprint(put(user, '/move',
     ...            dict(state='deploy', release_ids=[release_id])).json)
@@ -187,9 +212,10 @@ support this.
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
                                     u'name': u'kanban',
+                                    u'size': 2,
                                     u'state': u'deploy'}],
                          u'id': u'00000000000000000000000000000001'}],
-                  u'generation': 10}}
+                  u'generation': ...}}
 
 Deleting tasks and releases
 ===========================
@@ -200,7 +226,7 @@ We can delete tasks and releases. When we do, they are archived.
     ...     delete(user, '/releases/' + release_id + '/tasks/' + task_id).json)
     {u'updates': {u'adds': [{u'id': u'00000000000000000000000000000001',
                          u'removals': [u'00000000000000000000000000000002']}],
-                  u'generation': 11}}
+                  u'generation': ...}}
 
     >>> conn.sync()
     >>> kanban = conn.root.kanban
@@ -212,7 +238,7 @@ We can delete tasks and releases. When we do, they are archived.
 
     >>> pprint(
     ...     delete(user, '/releases/' + release_id).json)
-    {u'updates': {u'generation': 12,
+    {u'updates': {u'generation': ...,
                   u'removals': [u'00000000000000000000000000000001']}}
 
     >>> conn.sync()

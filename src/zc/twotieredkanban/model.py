@@ -2,6 +2,7 @@ import BTrees.OOBTree
 import json
 import os
 import persistent
+import re
 import time
 import uuid
 import zc.generationalset
@@ -73,18 +74,26 @@ class Task(persistent.Persistent):
 
     assigned = None
     blocked = ''
+    size = 1
+    size_match = re.compile(r"\s*\[\s*(\d+)\s*\]\s*").match
 
-    def __init__(self, name, description, state):
+    def __init__(self, name, description, state=None):
         self.id = uuid.uuid1().hex
         self.created = time.time()
-        self.name = name
+        self.update_name(name)
         self.description = description
         self.state = state
+
+    def update_name(self, name):
+        self.name = name
+        m = self.size_match(name)
+        if m is not None:
+            self.size = int(m.group(1))
 
     def update(self, name=None, description=None, state=None,
                assigned=None, blocked=None):
         if name is not None:
-            self.name = name
+            self.update_name(name)
         if description is not None:
             self.description = description
         if state is not None:
@@ -102,25 +111,33 @@ class Task(persistent.Persistent):
                     blocked = self.blocked,
                     created = self.created,
                     assigned = self.assigned,
+                    size = self.size,
                     )
 
 class Release(Task):
 
+    size = 0
+    archived = ()
+
     def __init__(self, kanban, name, description):
         self.kanban = kanban
-        state = kanban.states[0]
-        super(Release, self).__init__(name, description, state)
+        super(Release, self).__init__(name, description)
         self.tasks = zc.generationalset.GSet(self.id, kanban.releases)
         self.tasks.add(self)
         self.tasks.release = self # So we're reachabe from the kanban :/
-        self.archived = ()
+
+    def update_name(self, name):
+        self.name = name
 
     def new_task(self, name, description):
-        if 'substates' in self.state:
+        if self.state and 'substates' in self.state:
             state = self.state['substates'][0]
         else:
             state = None
-        self.tasks.add(Task(name, description, state))
+        task = Task(name, description, state)
+        self.tasks.add(task)
+        self.size += task.size
+        self.tasks.add(self)
 
     def update(self, state, **kw):
         state, = [s for s in self.kanban.states if s['tag'] == state]
@@ -136,9 +153,13 @@ class Release(Task):
 
     def update_task(self, task_id, state, **kw):
         task = self.tasks[task_id]
+        size = task.size
         state, = [s for s in self.state['substates'] if s['tag'] == state]
         task.update(state=state, **kw)
         self.tasks.add(task)
+        if task.size != size:
+            self.size += task.size - size
+            self.tasks.add(self)
 
     def archive(self, task_id):
         task = self.tasks[task_id]
