@@ -33,12 +33,13 @@ require([
         socket, dojoform
     ) {
         var hitch = lang.hitch;
+        var forEach = array.forEach;
 
         var admins;
         var generation = 0;
         var model;
         var releases = {};
-        var user;
+        jim = releases;
         var users;
 
         var task_widgets = [
@@ -98,16 +99,15 @@ require([
 
         var BaseTask = {
 
-            change_state: function(new_state) {
+            change_state: function(old_state) {
                 if (this.node) {
-                    if (this.state) {
-                        dom_class.remove(this.node, this.state);
+                    if (old_state) {
+                        dom_class.remove(this.node, old_state);
                     }
-                    if (new_state) {
-                        dom_class.add(this.node, new_state);
+                    if (this.state) {
+                        dom_class.add(this.node, this.state);
                     }
                 }
-                this.state = new_state;
             },
 
             context_menu_items: function() {
@@ -131,7 +131,7 @@ require([
                         }
                     )
                 ];
-                array.forEach(
+                forEach(
                     this.get_links(),
                     function (link) {
                         items.push(new MenuItem({ label: link,
@@ -242,17 +242,6 @@ require([
                     "</div>";
             },
 
-            size_re: /^\s*\[\s*(\d+)\s*\]/,
-            get_subtask_size_helper: function(task) {
-                var m = this.size_re.exec(task.name);
-                if (m) {
-                    task.size = parseInt(m[1], 10);
-                }
-                else {
-                    task.size = 1;
-                }
-            },
-
             set_blocked: function(v) {
                 if (v == this.blocked) {
                     return;
@@ -279,7 +268,7 @@ require([
                     this.menu.destroyRecursive();
                 }
                 this.menu = new Menu({ targetNodeIds: [this.node] });
-                array.forEach(
+                forEach(
                     this.context_menu_items(),
                     hitch(this, function (item) {
                         this.menu.addChild(item);
@@ -296,57 +285,68 @@ require([
             },
 
             update: function(data) {
-                var new_state = data.state;
-                if (new_state != this.state) {
-                    this.remove_card(); // We'll add card when we update state
-                }
+                var old_state = this.state;
                 declare.safeMixin(this, data);
-                this.updated();
+                if (this.state != old_state) {
+                    this.remove_card(); // We'll add card when we update state
+                    this.change_state(old_state);
+                }
                 this.update_card();
-            },
-
-            updated: function () {
-                this.change_state(this.state);
             }
         };
         BaseTask = declare("zc.asanakanban.BaseTask", null, BaseTask);
 
         var Release = {
 
-            constructor: function(args){
-                this.id = args.id;
-                this.subtasks = {};
-                declare.safeMixin(this, args.adds[this.id]);
-                for (add in args.adds) {
-                    if (add.id != this.id) {
-                        this.subtasks[add.id] = new Task(add, this);
-                    }
-                }
-                this.updated();
+            constructor: function(args) {
+                var self = this;
+                self.id = args.id;
+                self.subtasks = {};
+                forEach(
+                    args.adds,
+                    function (add) {
+                        if (add.id == self.id) {
+                            declare.safeMixin(self, add);
+                        }
+                    });
+                self.change_state();
+                forEach(
+                    args.adds,
+                    function (add) {
+                        if (add.id != self.id) {
+                            self.subtasks[add.id] = new Task(add, self);
+                        }
+                    });
             },
 
             handle_updates: function (update) {
                 // XXX contents
+                var self = this;
                 var subtasks = self.subtasks;
-                for (removal in update.removals) {
-                    if (removal in subtasks) {
+                forEach(
+                    update.removals,
+                    function (removal) {
                         subtasks[removal].remove_card();
                         delete subtasks[removal];
-                    }
-                }
-                for (add in update.adds) {
-                    if (add.id in subtasks) {
-                        subtasks.update(add);
-                    }
-                    else {
-                        if (add.id == this.id) {
-                            this.update(add);
+                    });
+                forEach(
+                    update.adds,
+                    function (add) {
+                        if (add.id in subtasks) {
+                            subtasks[add.id].update(add);
                         }
                         else {
-                            this.subtasks[add.id] = new Task(add);
+                            if (add.id == this.id) {
+                                this.update(add);
+                            }
+                            else if (add.id in self.subtasks) {
+                                this.subtasks[add.id].update(add);
+                            }
+                            else {
+                                this.subtasks[add.id] = new Task(add, self);
+                            }
                         }
-                    }
-                }
+                    });
             },
 
             parent_qualify: function (data) { return data; },
@@ -365,11 +365,9 @@ require([
                     task_widgets,
                     "Add",
                     hitch(this, function (data) {
-                              post("add_task", {
+                              post("/releases/"+this.id, {
                                        name: data.Name,
-                                       description:
-                                       data.Description,
-                                       parent_id: this.id
+                                       description: data.Description
                                    });
                           })
                 );
@@ -407,7 +405,7 @@ require([
                     html += this.get_notes_html();
                     if (this.subtasks) {
                         html += 'Subtasks: <ul>';
-                        array.forEach(
+                        forEach(
                             this.subtasks,
                             function (subtask) {
                                html += '<li>' + subtask.name + '</li>';
@@ -419,8 +417,8 @@ require([
                 this.node.innerHTML = html;
             },
 
-            change_state: function(new_state) {
-                var old_state = this.state;
+            change_state: function(old_state) {
+                var new_state = this.state;
                 if (old_state) {
                     if (this.substages) {
                         this.destroy_detail();
@@ -450,14 +448,13 @@ require([
                     if (model.release_tags[new_state].substates) {
                         this.create_detail(
                             dom.byId(new_state+"_detail_"+this.id));
-                        array.forEach(this.subtasks, hitch(this, this.add));
+                        forEach(this.subtasks, hitch(this, this.add));
                     }
                 }
                 else {
                     this.destroy_working_views();
                     this.backlog_create_view();
                 }
-
             },
 
             context_menu_items: function () {
@@ -482,7 +479,7 @@ require([
             create_detail: function(parent) {
                 var self = this;
                 var thead = "<thead>";
-                array.forEach(
+                forEach(
                     model.release_tags[self.state].substates,
                     function (substate) {
                         thead += "<th>" + substate.label + "</th>";
@@ -499,7 +496,7 @@ require([
                     parent);
                 var tr = dom_construct.create("tr", null, id);
                 var stages = {};
-                array.forEach(
+                forEach(
                     model.release_tags[self.state].substates,
                     function (substate) {
                         stages[substate.tag] = self.create_dnd_source(
@@ -529,7 +526,7 @@ require([
                 var self = this;
                 var tr = dom_construct.create("tr", null, "projects");
                 var stages = {};
-                array.forEach(
+                forEach(
                     model.states,
                     function (state) {
                         stages[state.tag] = self.create_dnd_source(
@@ -559,7 +556,7 @@ require([
                     });
 
                 // Clean up sources
-                array.forEach(
+                forEach(
                     this.substages,
                     function (substage) {
                         substage.destroy();
@@ -576,7 +573,7 @@ require([
                 }
 
                 // Clean up sources
-                array.forEach(
+                forEach(
                     this.stages,
                     function (substage) {
                         substage.destroy();
@@ -599,31 +596,8 @@ require([
 
             },
 
-            get_size: function() {
-                var self = this;
-                var size = 0;
-                array.forEach(
-                    self.subtasks,
-                    function (task) {
-                        self.get_subtask_size_helper(task);
-                        size += task.size;
-                    });
-                self.size = size;
-            },
-
             get_states: function () {
                 return model.release_tags;
-            },
-
-            maybe_add_subtask_to_release_after_dnd: function (new_state) {
-                if (model.release_tags[new_state].substates) {
-                    if (! this.subtasks || this.subtasks.length < 1) {
-                        // We don't have subtasks.  We need at least one.
-                        post("add_task", { name: "Do it!",
-                                           description: "",
-                                           parent_id: this.id });
-                    }
-                }
             },
 
             remove_card: function () {
@@ -717,11 +691,6 @@ require([
                 else {
                     this.backlog_update();
                 }
-            },
-
-            updated: function() {
-                this.get_size();
-                this.inherited(arguments);
             }
         };
         Release = declare("zc.asanakanban.Release", [BaseTask], Release);
@@ -731,7 +700,7 @@ require([
             constructor: function(args, parent){
                 declare.safeMixin(this, args);
                 this.parent = parent;
-                this.updated();
+                this.change_state();
             },
 
             parent_qualify: function (data) {
@@ -739,7 +708,7 @@ require([
                 return data;
             },
 
-            change_state: function (new_state) {
+            change_state: function (old_state) {
                 this.inherited(arguments);
                 if (! this.node) {
                     this.parent.add(this);
@@ -806,57 +775,65 @@ require([
 
         function del(url, load) {
             return xhr.del(
-                "/api/"+url, {
+                url, {
                     handleAs: "json",
                     headers: { 'X-Generation': generation }
                 }).then(
                     function (data) {
-                        handle_updates(data);
                         if (load) {
                             load(data);
                         }
+                        handle_updates(data);
                     }, xhr_error);
         }
 
         function get(url, load) {
             return xhr.get(
-                "/api/"+url, {
+                url, {
                     handleAs: "json",
                     headers: { 'X-Generation': generation }
                 }).then(
                     function (data) {
-                        handle_updates(data);
                         if (load) {
                             load(data);
                         }
+                        handle_updates(data);
                     }, xhr_error);
         }
 
         function post(url, content, load) {
-            return xhr.post("/api/"+url, {
+            return xhr.post(
+                url, {
                     handleAs: "json",
-                    headers: { 'X-Generation': generation },
+                    headers: {
+                        'X-Generation': generation,
+                        "Content-Type": "application/json"
+                    },
                     data: json.stringify(content)
                 }).then(
                     function (data) {
-                        handle_updates(data);
                         if (load) {
                             load(data);
                         }
+                        handle_updates(data);
                     }, xhr_error);
         }
 
         function put(url, content, load) {
-            return xhr.put("/api/"+url, {
+            return xhr.put(
+                url, {
                     handleAs: "json",
-                    headers: { 'X-Generation': generation },
+                    headers: {
+                        'X-Generation': generation,
+                        "Content-Type": "application/json"
+                    },
                     data: json.stringify(content)
                 }).then(
                     function (data) {
-                        handle_updates(data);
                         if (load) {
                             load(data);
                         }
+                        handle_updates(data);
                     }, xhr_error);
         }
 
@@ -868,24 +845,30 @@ require([
                 return;
             }
             // XXX data.contents
-            for (removal in data.removals) {
-                if (removal in releases) {
-                    releases[removal].remove();
+            forEach(
+                data.removals,
+                function (removal) {
+                    if (removal in releases) {
+                        releases[removal].remove();
+                    }
                 }
-            }
-            for (add in data.adds) {
-                if (! add.id) {
-                    user = add.user;
-                    users = add.users;
-                    admins = add.admins;
+            );
+            forEach(
+                data.adds,
+                function (add) {
+                    if (! add.id) {
+                        users = add.users;
+                        admins = add.admins;
+                    }
+                    else if (add.id in releases) {
+                        releases[add.id].handle_updates(add);
+                    }
+                    else {
+                        releases[add.id] = new Release(add);
+
+                    }
                 }
-                else if (add.id in releases) {
-                    releases[add.id].handle_updates(add);
-                }
-                else {
-                    releases[add.id] = new Release(add);
-                }
-            }
+            );
             generation = data.generation;
         }
 
@@ -899,12 +882,12 @@ require([
                     }
                 }).domNode);
 
-        get("/kb/model.json",
+        get("/model.json",
             function (data) {
                 model = data;
                 model.release_tags = {};
                 model.task_tags = {};
-                array.forEach(
+                forEach(
                     model.states,
                     function (state) {
                         dom_construct.create(
@@ -917,7 +900,7 @@ require([
                         model.release_tags[state.tag] = state;
                         if (state.substates) {
                             state.tags = {};
-                            array.forEach(
+                            forEach(
                                 state.substates,
                                 function (substate) {
                                     state.tags[substate.tag] = substate;
@@ -946,13 +929,9 @@ require([
                 nodes,
                 function (node) {
                     var task_id = nodes[0].attributes.task_id.value;
-                    if (task_id in releases) {
-                        releases.task_id.maybe_add_subtask_to_release_after_dnd(
-                            new_state);
-                    }
-                    else {
-                        var ids = source.target.id.split("_");
-                        release_id = ids[ids.length-1] + "/";
+                    if (! (task_id in releases)) {
+                        var id = target.node.id.split("_");
+                        release_id = id[id.length-1];
                     }
                     return task_id;
                 });
@@ -974,13 +953,12 @@ require([
 
         function add_release() {
             form_dialog("New release", task_widgets, "Add",
-                        hitch(this, function (data) {
-                                  post("releases", {
-                                           name: data.Name,
-                                           description: data.Description
-                                       });
-                              })
-                       );
+                        function (data) {
+                            post("releases", {
+                                     name: data.Name,
+                                     description: data.Description
+                                 });
+                        });
         }
 
     });
