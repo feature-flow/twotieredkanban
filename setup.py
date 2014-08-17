@@ -4,7 +4,6 @@ install_requires = [
     'bobo',
     'gevent',
     'gevent-websocket',
-    'requests',
     'setuptools',
     'zc.dojoform',
     'zc.generationalset',
@@ -15,15 +14,16 @@ install_requires = [
     'zdaemon',
     'zc.zodbwsgi',
     'zc.persona',
+    'zope.exceptions',                  # XXX required by zodbwsgi
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
 
 entry_points = """
 [zc.buildout]
-default = zc.asanakanban.akbrecipe:Recipe
+default = zc.twotieredkanban.kbrecipe:Recipe
 
 [paste.server_runner]
-main = zc.asanakanban.server:runner
+main = zc.twotieredkanban.server:runner
 """
 
 from setuptools import setup
