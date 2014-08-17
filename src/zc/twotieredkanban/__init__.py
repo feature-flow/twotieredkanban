@@ -77,24 +77,24 @@ class API:
             self.error(403, "You must be an adminstrator")
 
     @get("/")
-    def index_html():
+    def index_html(self):
         return read_file("kb.html")
 
     @get("/kb.js", content_type="application/javascript")
-    def kb_js():
+    def kb_js(self):
         return read_file("kb.js")
 
     @get("/kb.css", content_type="text/css")
-    def kb_css():
+    def kb_css(self):
         return read_file("kb.css")
 
     @get("/dojo/zc.dojo.js", content_type="application/javascript")
-    def zc_dojo_js():
+    def zc_dojo_js(self):
         return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
                                       "resources/zc.dojo.js"))
 
     @get("/zc.dojo.css", content_type="text/css")
-    def zc_dojo_css():
+    def zc_dojo_css(self):
         return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
                                       "resources/zc.dojo.css"))
 
@@ -164,3 +164,11 @@ class API:
         for task_id in task_ids:
             self.update_task(release_id, task_id, state=state)
         return self.response()
+
+def initialize_database(initial_email):
+    def initialize(database):
+        with database.transaction() as conn:
+            if not hasattr(conn.root, 'kanban'):
+                from zc.twotieredkanban.model import Kanban
+                conn.root.kanban = Kanban(initial_email)
+    return initialize
