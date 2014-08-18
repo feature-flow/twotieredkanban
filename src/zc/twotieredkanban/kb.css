@@ -105,12 +105,12 @@ td {
   right: 0px;
   }
 
-.card .notes
+.card .description
 {
   display: none;
  }
 
-.card.show-detail .notes
+.card.show-detail .description
 {
   display: block;
   margin-top: 1ex;

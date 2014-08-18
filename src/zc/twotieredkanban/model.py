@@ -154,7 +154,8 @@ class Release(Task):
     def update_task(self, task_id, state, **kw):
         task = self.tasks[task_id]
         size = task.size
-        state, = [s for s in self.state['substates'] if s['tag'] == state]
+        if state:
+            state, = [s for s in self.state['substates'] if s['tag'] == state]
         task.update(state=state, **kw)
         self.tasks.add(task)
         if task.size != size:

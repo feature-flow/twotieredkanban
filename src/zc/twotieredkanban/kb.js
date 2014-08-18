@@ -181,7 +181,7 @@ require([
                         return declare.safeMixin({}, widget);
                     });
                 edit_widgets[0].value = this.name || '';
-                edit_widgets[1].value = this.notes || '';
+                edit_widgets[1].value = this.description || '';
 
                 form_dialog(
                     "Edit task",
@@ -204,7 +204,7 @@ require([
 
             get_innerHTML: function () {
                 var html = "<div>" + this.name + "</div>";
-                html += this.get_notes_html();
+                html += this.get_description_html();
                 if (this.assignee) {
                     html += (
                         "<div class='assignment'>" +
@@ -218,7 +218,8 @@ require([
 
             get_links: function () {
                 link_re.lastIndex = 0;
-                return this.get_links_helper((this.notes || '') + ' ', []);
+                return this.get_links_helper(
+                    (this.description || '') + ' ', []);
             },
 
             get_links_helper: function (text, result) {
@@ -236,9 +237,10 @@ require([
                 return result;
             },
 
-            get_notes_html: function () {
-                return "<div class='notes'>" +
-                    (this.notes || "(no description)").replace(/\n/g, '<br>') +
+            get_description_html: function () {
+                return "<div class='description'>" +
+                    (this.description || "(no description)").replace(
+                            /\n/g, '<br>') +
                     "</div>";
             },
 
@@ -400,9 +402,9 @@ require([
 
             backlog_update: function () {
                 var html =  "["+this.size+"] "+this.name;
-                if (this.notes || this.subtasks) {
+                if (this.description || this.subtasks) {
                     html += "<div class='backlog_detail'>";
-                    html += this.get_notes_html();
+                    html += this.get_description_html();
                     if (this.subtasks) {
                         html += 'Subtasks: <ul>';
                         forEach(
