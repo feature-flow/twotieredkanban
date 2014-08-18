@@ -747,10 +747,7 @@ require([
                     "Yes, really.",
                     hitch(this,
                           function (data) {
-                              post("remove", {
-                                       task_id: this.id,
-                                       parent_id: this.parent.id
-                                   });
+                              del("releases/"+this.parent.id+"/tasks/"+this.id);
                           })
                 );
             },
