@@ -209,7 +209,7 @@ require([
                     html += (
                         "<div class='assignment'>" +
                             "Assigned: <span class='assignee'>" +
-                            this.assignee.name +
+                            this.assignee +
                             "</span></div>"
                     );
                 }
@@ -653,16 +653,16 @@ require([
             },
 
             start_working: function () {
-                post("new-state", {
-                         new_state: model.states[0].tag,
-                         task_ids: this.id
+                put("/move", {
+                         state: model.states[0].tag,
+                         release_ids: [this.id]
                      });
             },
 
             stop_working: function() {
-                post("new-state", {
-                         new_state: "",
-                         task_ids: this.id
+                put("/move", {
+                         state: "",
+                         release_ids: [this.id]
                      });
             },
 
