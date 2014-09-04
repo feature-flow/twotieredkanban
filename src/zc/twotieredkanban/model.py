@@ -72,7 +72,7 @@ class Kanban(persistent.Persistent):
 
 class Task(persistent.Persistent):
 
-    assigned = None
+    assignee = None
     blocked = ''
     size = 1
     size_match = re.compile(r"\s*\[\s*(\d+)\s*\]\s*").match
@@ -91,15 +91,15 @@ class Task(persistent.Persistent):
             self.size = int(m.group(1))
 
     def update(self, name=None, description=None, state=None,
-               assigned=None, blocked=None):
+               assignee=None, blocked=None):
         if name is not None:
             self.update_name(name)
         if description is not None:
             self.description = description
         if state is not None:
             self.state = state
-        if assigned is not None:
-            self.assigned = assigned
+        if assignee is not None:
+            self.assignee = assignee
         if blocked is not None:
             self.blocked = blocked
 
@@ -110,7 +110,7 @@ class Task(persistent.Persistent):
                     state = self.state['tag'] if self.state else None,
                     blocked = self.blocked,
                     created = self.created,
-                    assigned = self.assigned,
+                    assignee = self.assignee,
                     size = self.size,
                     )
 
