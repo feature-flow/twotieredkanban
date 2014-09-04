@@ -127,11 +127,11 @@ class API:
     @put("/releases/:release_id")
     def update_release(self, release_id,
                        name=None, description=None, state=None,
-                       assigned=None, blocked=None,
+                       assignee=None, blocked=None,
                        ):
         self.kanban[release_id].update(
             name=name, description=description, state=state,
-            assigned=assigned, blocked=blocked)
+            assignee=assignee, blocked=blocked)
         return self.response()
 
     @delete("/releases/:release_id")
@@ -147,11 +147,11 @@ class API:
     @put("/releases/:release_id/tasks/:task_id")
     def update_task(self, release_id, task_id,
                        name=None, description=None, state=None,
-                       assigned=None, blocked=None,
+                       assignee=None, blocked=None,
                        ):
         self.kanban[release_id].update_task(
             task_id, name=name, description=description,
-            state=state, assigned=assigned, blocked=blocked)
+            state=state, assignee=assignee, blocked=blocked)
         return self.response()
 
     @delete("/releases/:release_id/tasks/:task_id")
@@ -162,7 +162,10 @@ class API:
     @put("/releases/:release_id/move")
     def move_tasks(self, release_id, task_ids, state):
         for task_id in task_ids:
-            self.update_task(release_id, task_id, state=state)
+            data = dict(state=state)
+            if state in self.kanban.working_states:
+                data['assignee'] = self.email
+            self.update_task(release_id, task_id, **data)
         return self.response()
 
 def initialize_database(initial_email):
