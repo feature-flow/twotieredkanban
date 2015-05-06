@@ -48,12 +48,12 @@ class API:
         self.request = request
         self.connection = connection = request.environ['zodb.connection']
         email = request.remote_user
-        if not email:
-            self.error(401, "You must authenticate")
+        # if not email:
+        #     self.error(401, "You must authenticate")
         self.root = root = connection.root
         self.kanban = root.kanban
-        if not email in self.kanban.users:
-            self.error(403, "You are not allowed to access this resource")
+        # if not email in self.kanban.users:
+        #     self.error(403, "You are not allowed to access this resource")
         self.email = email
 
     def error(self, status, body='', **kw):
@@ -79,14 +79,6 @@ class API:
     @get("/")
     def index_html(self):
         return read_file("kb.html")
-
-    @get("/kb.js", content_type="application/javascript")
-    def kb_js(self):
-        return read_file("kb.js")
-
-    @get("/kb.css", content_type="text/css")
-    def kb_css(self):
-        return read_file("kb.css")
 
     @get("/dojo/zc.dojo.js", content_type="application/javascript")
     def zc_dojo_js(self):

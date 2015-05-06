@@ -6,3 +6,5 @@ dist
 *.pyc
 /key.cfg
 /parts
+/static
+/node_modules

@@ -1,0 +1,14 @@
+{
+    "name": "TwoTieredKanban",
+    "author": "Jim Fulton",
+    "devDependencies": {
+        "angular": "*",
+        "angular-ui-router": "*",
+        "grunt": "*",
+        "grunt-contrib-watch": "*",
+        "grunt-contrib-coffee": "*"
+    },
+    "engines": {
+        "node": "*"
+    }
+}
