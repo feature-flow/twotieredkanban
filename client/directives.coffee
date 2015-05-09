@@ -10,6 +10,7 @@ directives.directive("kbProjectColumn", ->
       false
       )
   )
+
 directives.directive("kbExpandedColumn", ->
   restrict: "E"
   replace: true
@@ -20,41 +21,50 @@ directives.directive("kbExpandedColumn", ->
       false
       )
   )
+
 directives.directive("kbProject", ->
   restrict: "E"
   replace: true
   templateUrl: "kbProject.html"
   )
+
 directives.directive("kbExpandedProject", ->
   restrict: "E"
   replace: true
   templateUrl: "kbExpandedProject.html"
   )
+
 directives.directive("kbTaskColumn", ->
   restrict: "A"
   replace: true
   templateUrl: "kbTaskColumn.html"
   link: (scope, el) ->
-    scope.tasks = (task for own tid, task of scope.project.tasks[scope.state])
-    over = (ev) ->
-      ev?.preventDefault()
-      false
+    tasks = scope.project.tasks[scope.state]
+    if not tasks?
+      tasks = []
+      scope.project.tasks[scope.state] = tasks
+    scope.tasks = tasks
+
     el.bind("dragover", (ev) ->
       ev?.preventDefault()
       false
       )
+
     el.bind("drop", (ev) ->
       ev.preventDefault()
       id = ev.dataTransfer.getData("text")
       task = scope.board.tasks[id]
-      tasks = scope.project.tasks
       if task.state != scope.state
-        index = tasks[task.state].indexOf(task)
-        tasks[task.state][index .. index] = []
-        task.state = scope.state
-        tasks[task.state].push(task)
+        scope.$apply(->
+          old_tasks = scope.project.tasks[task.state]
+          index = old_tasks.indexOf(task)
+          old_tasks[index .. index] = []
+          task.state = scope.state
+          tasks.push(task)
+        )
       )
   )
+
 directives.directive("kbTask", ->
   restrict: "E"
   replace: true
