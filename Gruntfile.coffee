@@ -3,6 +3,8 @@ module.exports = (grunt) ->
         pkg: grunt.file.readJSON('package.json')
         watch:
             coffeescript:
+                options:
+                  sourceMap: true
                 files: ['client/*.coffee']
                 tasks: ['coffee:compile']
         coffee:
