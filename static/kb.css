@@ -1,0 +1,13 @@
+.kb_task_column {
+    border: solid;
+}
+.kb_project_column {
+    border: solid;
+}
+.kb_td_filler {
+    height: 100%;
+    width: 100%;
+}
+.kb_full_height {
+    height: 100%;
+}

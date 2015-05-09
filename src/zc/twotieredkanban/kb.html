@@ -3,7 +3,7 @@
   <head>
     <title>Two-Tiered Kanban</title>
     <meta charset="utf-8">
-    <!-- <link rel="stylesheet" type="text/css" href="kb.css"> -->
+    <link rel="stylesheet" type="text/css" href="/static/kb.css">
     <script src="/static/angular.js"></script>
     <script src="/static/angular-ui-router.js"></script>
     <script src="/static/controllers.js"></script>
@@ -13,44 +13,51 @@
   <body ng-app="kb">
 
     <script type="text/ng-template" id="kbProjectColumn.html">
-      <kb-project ng-repeat="project in state.projects"></kb-project>
+      <div class="kb_td_filler">
+        <kb-project ng-repeat="project in state.projects"></kb-project>
+      </div>
     </script>
 
     <script type="text/ng-template" id="kbExpandedColumn.html">
-      <kb-expanded-project ng-repeat="project in state.projects">
-      </kb-expanded-project>
+      <div class="kb_td_filler">
+        <kb-expanded-project ng-repeat="project in state.projects">
+        </kb-expanded-project>
+      </div>
     </script>
 
     <script type="text/ng-template" id="kbProject.html">
-      <div>{{project.name}}</div>
+      <div id="{{project.id}}" draggable="true">{{project.name}}</div>
     </script>
 
     <script type="text/ng-template" id="kbExpandedProject.html">
-      <table>
+      <table id="{{project.id}}" draggable="true">
         <caption>{{project.name}}</caption>
         <tr><th ng-repeat="state in state.substates">{{state}}</th></tr>
         <tr>
-          <td ng-repeat="state in state.substates">
-            <kb-task-column></kb-task-column>
+          <td ng-repeat="state in state.substates" kb-task-column>
           </td>
         </tr>
       </table>
     </script>
 
     <script type="text/ng-template" id="kbTaskColumn.html">
-      <kb-task ng-repeat="task in tasks"></kb-task>
+      <td class="kb_task_column"
+           id="{{project.id}}_{{state}}"
+           >
+        <kb-task ng-repeat="task in tasks"></kb-task>
+      </td>
     </script>
 
     <script type="text/ng-template" id="kbTask.html">
-      <div>{{task.name}}</div>
+      <div id="{{task.id}}" draggable="true">{{task.name}}</div>
     </script>
 
     <table ng-controller="main">
-      <tr><th ng-repeat="state in states">{{state.name}}</th></tr>
+      <tr><th ng-repeat="state in board.states">{{state.name}}</th></tr>
       <tr>
-        <td ng-repeat="state in states"
+        <td ng-repeat="state in board.states"
             ng-switch="state.substates && 'expanded'"
-            >
+            class="kb_project_column">
           <kb-expanded-column ng-switch-when="expanded"></kb-expanded-column>
           <kb-project-column ng-switch-default></kb-project-column>
         </td>
