@@ -11,6 +11,13 @@ class Task
     else
       @tasks[task.state] = [task]
 
+  move_subtask: (task, state) ->
+    old_tasks = @tasks[task.state]
+    index = old_tasks.indexOf(task)
+    old_tasks[index .. index] = []
+    task.state = state
+    @tasks[state].push(task)
+
 class Board
   constructor: (model, tasks...) ->
     @tasks = {}
@@ -41,6 +48,14 @@ class Board
           parent.add_subtask(task)
         else
           @states_by_name[task.state].projects.push(task)
+
+  move_project: (project, state) ->
+    old_projects = @states_by_name[project.state].projects
+    index = old_projects.indexOf(project)
+    old_projects[index .. index] = []
+    project.state = state.name
+    state.projects.push(project)
+
 
 model = [
     "Backlog", "Ready"

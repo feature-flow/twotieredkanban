@@ -25,13 +25,7 @@ directives.directive("kbProjectColumn", ->
         id = ev.dataTransfer.getData(drag_type)
         project = scope.board.tasks[id]
         if project.state != scope.state.name
-          scope.$apply(->
-            old_projects = scope.board.states_by_name[project.state].projects
-            index = old_projects.indexOf(project)
-            old_projects[index .. index] = []
-            project.state = scope.state.name
-            projects.push(project)
-          )
+          scope.$apply( -> scope.board.move_project(project, scope.state))
       )
 
     )
@@ -74,13 +68,7 @@ directives.directive("kbTaskColumn", ->
         id = ev.dataTransfer.getData(drag_type)
         task = scope.board.tasks[id]
         if task.state != scope.state
-          scope.$apply(->
-            old_tasks = scope.project.tasks[task.state]
-            index = old_tasks.indexOf(task)
-            old_tasks[index .. index] = []
-            task.state = scope.state
-            tasks.push(task)
-          )
+          scope.$apply( -> scope.project.move_subtask(task, scope.state))
       )
   )
 
