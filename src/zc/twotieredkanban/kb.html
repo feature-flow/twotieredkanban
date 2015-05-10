@@ -13,31 +13,29 @@
   <body ng-app="kb">
 
     <script type="text/ng-template" id="kbProjectColumn.html">
-      <div class="kb_td_filler">
-        <kb-project ng-repeat="project in state.projects"></kb-project>
-      </div>
-    </script>
-
-    <script type="text/ng-template" id="kbExpandedColumn.html">
-      <div class="kb_td_filler">
-        <kb-expanded-project ng-repeat="project in state.projects">
-        </kb-expanded-project>
+      <td class="kb_project_column">
+        <kb-project ng-repeat="project in projects"></kb-project>
       </div>
     </script>
 
     <script type="text/ng-template" id="kbProject.html">
-      <div id="{{project.id}}" draggable="true">{{project.name}}</div>
-    </script>
-
-    <script type="text/ng-template" id="kbExpandedProject.html">
-      <table id="{{project.id}}" draggable="true">
-        <caption>{{project.name}}</caption>
-        <tr><th ng-repeat="state in state.substates">{{state}}</th></tr>
-        <tr>
-          <td ng-repeat="state in state.substates" kb-task-column>
-          </td>
-        </tr>
-      </table>
+      <div ng-switch="state.substates && 'expanded'">
+        <table id="{{project.id}}"
+               draggable="true"
+               ng-switch-when="expanded"
+               >
+          <caption>{{project.name}}</caption>
+          <tr><th ng-repeat="state in state.substates">{{state}}</th></tr>
+          <tr>
+            <td ng-repeat="state in state.substates" kb-task-column>
+            </td>
+          </tr>
+        </table>
+        <div id="{{project.id}}"
+             draggable="true"
+             ng-switch-default
+             >{{project.name}}</div>
+      </div>
     </script>
 
     <script type="text/ng-template" id="kbTaskColumn.html">
@@ -54,14 +52,7 @@
 
     <table ng-controller="main">
       <tr><th ng-repeat="state in board.states">{{state.name}}</th></tr>
-      <tr>
-        <td ng-repeat="state in board.states"
-            ng-switch="state.substates && 'expanded'"
-            class="kb_project_column">
-          <kb-expanded-column ng-switch-when="expanded"></kb-expanded-column>
-          <kb-project-column ng-switch-default></kb-project-column>
-        </td>
-      </tr>
+      <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
     </table>
 
   </body>
