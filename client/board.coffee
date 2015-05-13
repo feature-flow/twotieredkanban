@@ -1,6 +1,7 @@
 services = angular.module("kb.board", [])
 
 class Task
+
   constructor: (@id, @name, @parent=null, @state="Ready") ->
     if not @parent?
       @tasks = {} # {state -> [task]}
@@ -19,7 +20,11 @@ class Task
     @tasks[state].push(task)
 
 class Board
+
   constructor: (model, tasks...) ->
+    @admins = []
+    @users = []
+    @generation = 0
     @tasks = {}
     @states = []
     @states_by_name = {}
@@ -36,18 +41,21 @@ class Board
 
     @add_tasks(tasks)
 
+  add_task: (task) ->
+    old = @tasks[task.id]
+    if old?
+      old.update(task)
+    else
+      @tasks[task.id] = task
+      if task.parent?
+        parent = @tasks[task.parent]
+        parent.add_subtask(task)
+      else
+        @states_by_name[task.state].projects.push(task)
+
   add_tasks: (tasks) ->
     for task in tasks
-      old = @tasks[task.id]
-      if old?
-        old.update(task)
-      else
-        @tasks[task.id] = task
-        if task.parent?
-          parent = @tasks[task.parent]
-          parent.add_subtask(task)
-        else
-          @states_by_name[task.state].projects.push(task)
+      @add_task(task)
 
   move_project: (project, state) ->
     old_projects = @states_by_name[project.state].projects
@@ -55,6 +63,33 @@ class Board
     old_projects[index .. index] = []
     project.state = state.name
     state.projects.push(project)
+
+  apply_updates: (updates) ->
+    for project_add in updates.adds
+      if project_add.id == ""
+        @admins[..] = project_add["admins"]
+        @users[..] = project_add["users"]
+      else
+        # Add projects first
+        for add in project_add.adds
+          if add.id == project_add.id
+            @add_task(
+              new Task(
+                project_add.id
+                add.name
+                null
+                if add.state? then add.state else "Backlog"
+                ))
+        # add any tasks
+        project = @tasks[project_add.id]
+        for add in project_add.adds
+          if add.id != project_add.id
+            project.add_subtask(
+              new Task(add.id, add.name, project.id,
+                       if add.state? then add.state else "Ready"))
+
+    @generation = updates.generation
+    
 
 
 model = [
@@ -80,3 +115,47 @@ board = new Board(
     )
 
 services.factory("Board", () -> board)
+
+services.factory("kbInterceptor", (Board) ->
+  header = "X-Generation"
+  
+  request: (config) ->
+    config.headers[header] = Board.generation.toString()
+    config
+
+  response: (response) ->
+    updates = response.data.updates
+    if updates?
+      Board.apply_updates(updates)
+
+    response
+  )
+
+services.config(($httpProvider) ->  
+    $httpProvider.interceptors.push('kbInterceptor')
+    )
+
+services.factory("Server", ($http) ->
+  poll: -> $http.get("/poll")
+  new_project: (name) ->
+    $http.post("/releases", {
+      name: name
+      description: ""
+      })
+  update_project: (project) ->
+    $http.put("/releases/" + project.id, {
+      name: project.name
+      state: project.state
+      }) 
+  new_task: (project, name) ->
+    $http.post("/releases/" + project.id, {
+      name: name
+      })
+  update_task: (task) ->
+    $http.put("/releases/" + task.parent + "/tasks/" + task.id, {
+      name: task.name
+      state: task.state
+      }) 
+  )
+
+services.run((Server) -> Server.poll())

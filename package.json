@@ -3,6 +3,9 @@
     "author": "Jim Fulton",
     "devDependencies": {
         "angular": "*",
+        "angular-animate": "*",
+        "angular-aria": "*",
+        "angular-material": "*",
         "angular-ui-router": "*",
         "grunt": "*",
         "grunt-contrib-watch": "*",

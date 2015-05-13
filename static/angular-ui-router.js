@@ -1,1 +1,0 @@
-../node_modules/angular-ui-router/release/angular-ui-router.js

@@ -3,9 +3,15 @@
   <head>
     <title>Two-Tiered Kanban</title>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/angular-material/angular-material.css">
     <link rel="stylesheet" type="text/css" href="/static/kb.css">
-    <script src="/static/angular.js"></script>
-    <script src="/static/angular-ui-router.js"></script>
+
+
+    <script src="/static/angular/angular.js"></script>
+    <script src="/static/angular-animate/angular-animate.js"></script>
+    <script src="/static/angular-aria/angular-aria.js"></script>
+    <script src="/static/angular-material/angular-material.js"></script>
+
     <script src="/static/controllers.js"></script>
     <script src="/static/directives.js"></script>
     <script src="/static/board.js"></script>
@@ -51,10 +57,28 @@
       <div id="{{task.id}}" draggable="true">{{task.name}}</div>
     </script>
 
-    <table ng-controller="main">
-      <tr><th ng-repeat="state in board.states">{{state.name}}</th></tr>
-      <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
-    </table>
+    <script type="text/ng-template" id="kbNewProject.html">
+      <md-dialog aria-label="New project">
+        <form novalidate name="form_controller">
+          Project name: <input type="text" ng-model="project_name" required><br>
+          <md-button ng-click="cancel()">
+            Cancel
+          </md-button>
+          <md-button ng-click="new_project($event)">
+            Add
+          </md-button>
+      </md-dialog>
+    </script>
+
+    <div ng-controller="main">
+      <table>
+        <tr><th ng-repeat="state in board.states">{{state.name}}</th></tr>
+        <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
+      </table>
+      <md-button ng-click="new_project($event)">
+        Add project
+      </md-button>
+    </div>
 
   </body>
 </html>
