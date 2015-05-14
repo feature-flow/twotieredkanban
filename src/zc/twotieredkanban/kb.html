@@ -30,17 +30,21 @@
 
     <script type="text/ng-template" id="kbProject.html">
       <md-card ng-switch="state.substates && 'expanded'">
-        <table id="{{project.id}}"
-               draggable="true"
-               ng-switch-when="expanded"
-               >
-          <caption>{{project.name}}</caption>
-          <tr><th ng-repeat="state in state.substates">{{state.label}}</th></tr>
-          <tr>
-            <td ng-repeat="state in state.substates" kb-task-column>
-            </td>
-          </tr>
-        </table>
+        <md-content>
+        <div id="{{project.id}}"
+             draggable="true"
+             ng-switch-when="expanded"
+             >
+          <table>
+            <caption>{{project.name}}</caption>
+            <tr><th ng-repeat="state in state.substates"
+                    >{{state.label}}</th></tr>
+            <tr>
+              <td ng-repeat="state in state.substates" kb-task-column>
+              </td>
+            </tr>
+          </table>
+        </div>
         <div id="{{project.id}}"
                  draggable="true"
                  ng-switch-default
@@ -50,7 +54,7 @@
                       icon="arrow_drop_down"
                       ng-click="expand()"
                       ></ng-md-icon>
-          <md-content ng-if="project_expanded">
+          <div ng-if="project_expanded">
             <ng-md-icon icon="arrow_drop_up"
                         ng-click="unexpand()"
                         ></ng-md-icon>
@@ -58,13 +62,20 @@
             <md-card ng-repeat="task in project.tasks[null]">
               {{task.name}}
             </md-card>
-            <ng-md-icon icon="add"
-                        ng-click="add_task($event)"
-                        ></ng-md-icon>
-            <ng-md-icon icon="mode_edit"
-                        ng-click="edit_project($event)"
-                        ></ng-md-icon>
-          </md-content>
+          </div>
+        </div>
+        </md-content>
+        <div class="md-actions"
+             layout="row"
+             layout-align="start center"
+             ng-if="state.substates || project_expanded"
+             >
+          <ng-md-icon icon="add"
+                      ng-click="add_task($event)"
+                      ></ng-md-icon>
+          <ng-md-icon icon="mode_edit"
+                      ng-click="edit_project($event)"
+                      ></ng-md-icon>
         </div>
       </md-card>
     </script>
