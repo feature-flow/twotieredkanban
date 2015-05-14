@@ -11,6 +11,9 @@
     <script src="/static/angular-animate/angular-animate.js"></script>
     <script src="/static/angular-aria/angular-aria.js"></script>
     <script src="/static/angular-material/angular-material.js"></script>
+    <script src="/static/angular-material-icons/angular-material-icons.js"
+            ></script>
+    <script src="/static/angular-sanitize/angular-sanitize.js"></script>
 
     <script src="/static/controllers.js"></script>
     <script src="/static/directives.js"></script>
@@ -38,10 +41,31 @@
             </td>
           </tr>
         </table>
-        <div id="{{project.id}}"
-             draggable="true"
-             ng-switch-default
-             >{{project.name}}</div>
+        <md-card id="{{project.id}}"
+                 draggable="true"
+                 ng-switch-default
+                 >
+          {{project.name}}
+          <ng-md-icon ng-if="! project_expanded"
+                      icon="arrow_drop_down"
+                      ng-click="expand()"
+                      ></ng-md-icon>
+          <md-content ng-if="project_expanded">
+            <ng-md-icon icon="arrow_drop_up"
+                        ng-click="unexpand()"
+                        ></ng-md-icon>
+            <div ng-bind-html="project.description | breakify"></div>
+            <md-card ng-repeat="task in project.tasks[null]">
+              {{task.name}}
+            </md-card>
+            <ng-md-icon icon="add"
+                        ng-click="add_task($event)"
+                        ></ng-md-icon>
+            <ng-md-icon icon="mode_edit"
+                        ng-click="edit_project($event)"
+                        ></ng-md-icon>
+          </md-content>
+        </md-card>
       </div>
     </script>
 
@@ -59,14 +83,70 @@
 
     <script type="text/ng-template" id="kbNewProject.html">
       <md-dialog aria-label="New project">
-        <form novalidate name="form_controller">
-          Project name: <input type="text" ng-model="project_name" required><br>
-          <md-button ng-click="cancel()">
-            Cancel
-          </md-button>
-          <md-button ng-click="new_project($event)">
-            Add
-          </md-button>
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            Project name: <input type="text"
+                                 ng-model="project_name"
+                                 required
+                                 ><br>
+            Description:<br>
+            <textarea ng-model="project_description"></textarea>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Add
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbEditProject.html">
+      <md-dialog aria-label="New project">
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            Project name: <input type="text"
+                                 ng-model="project_name"
+                                 required
+                                 ><br>
+            Description:<br>
+            <textarea ng-model="project_description"></textarea>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Apply
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbNewTask.html">
+      <md-dialog aria-label="New task">
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            Name: <input type="text"
+                         ng-model="task_name"
+                         required
+                         ><br>
+            Description:<br>
+            <textarea ng-model="task_description"></textarea>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Add
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
       </md-dialog>
     </script>
 

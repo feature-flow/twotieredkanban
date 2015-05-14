@@ -1,4 +1,6 @@
-directives = angular.module("kb.directives", [])
+directives = angular.module(
+  "kb.directives",
+  ['ngMdIcons', "ngMaterial", "ngSanitize"])
 
 directives.directive("kbProjectColumn", ->
   restrict: "A"
@@ -30,7 +32,7 @@ directives.directive("kbProjectColumn", ->
 
     )
 
-directives.directive("kbProject", ->
+directives.directive("kbProject", ($mdDialog) ->
   restrict: "E"
   replace: true
   templateUrl: "kbProject.html"
@@ -39,6 +41,49 @@ directives.directive("kbProject", ->
       if not ev.dataTransfer.types.length
         ev.dataTransfer.setData("text/project", ev.target.id)
       )
+
+    scope.project_expanded = false
+    scope.expand = -> scope.project_expanded = true
+    scope.unexpand = -> scope.project_expanded = false
+
+    double_newlines = /\n\n/g
+    scope.description = ->
+      scope.project.description.replace(double_newlines, "<br>")
+
+    scope.edit_project = (event) ->
+      $mdDialog.show(
+        controller: ($scope, Server, $mdDialog, project) ->
+          $scope.hide = -> $mdDialog.hide()
+          $scope.cancel = -> $mdDialog.cancel()
+          $scope.project_name = project.name
+          $scope.project_description = project.description
+
+          $scope.submit = () ->
+            Server.update_project(
+              project, $scope.project_name, $scope.project_description)
+            $scope.hide()
+
+        locals:
+          project: scope.project
+        templateUrl: "kbEditProject.html"
+        targetEvent: event
+        )
+
+    scope.add_task = (event) ->
+      $mdDialog.show(
+        controller: ($scope, Server, $mdDialog, project) ->
+          $scope.hide = -> $mdDialog.hide()
+          $scope.cancel = -> $mdDialog.cancel()
+          $scope.submit = () ->
+            Server.new_task(project, $scope.task_name, $scope.task_description)
+            $scope.hide()
+        locals:
+          project: scope.project
+        templateUrl: "kbNewTask.html"
+        targetEvent: event
+        )
+      
+
   )
 
 directives.directive("kbTaskColumn", ->
@@ -80,4 +125,8 @@ directives.directive("kbTask", ->
     el.bind("dragstart", (ev) ->
       ev.dataTransfer.setData("text/" + scope.project.id, ev.target.id)
       )
+  )
+
+directives.filter('breakify', ->
+  (text) -> text.replace("\n\n", "<br><br>")
   )

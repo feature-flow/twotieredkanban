@@ -140,16 +140,18 @@ class Release(Task):
         self.tasks.add(self)
 
     def update(self, state, **kw):
-        state, = [s for s in self.kanban.states if s['tag'] == state]
+        if state is not None:
+            state, = [s for s in self.kanban.states if s['tag'] == state]
         super(Release, self).update(state=state, **kw)
         self.tasks.add(self)
 
-        substates = state.get('substates')
-        if substates:
-            for task in list(self.tasks):
-                if not task.state:
-                    task.state = substates[0]
-                    self.tasks.add(task)
+        if state is not None:
+            substates = state.get('substates')
+            if substates:
+                for task in list(self.tasks):
+                    if not task.state:
+                        task.state = substates[0]
+                        self.tasks.add(task)
 
     def update_task(self, task_id, state, **kw):
         task = self.tasks[task_id]

@@ -6,6 +6,8 @@
         "angular-animate": "*",
         "angular-aria": "*",
         "angular-material": "*",
+        "angular-material-icons": "*",
+        "angular-sanitize": "*",
         "angular-ui-router": "*",
         "grunt": "*",
         "grunt-contrib-watch": "*",

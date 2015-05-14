@@ -2,15 +2,17 @@ services = angular.module("kb.board", [])
 
 class Task
 
-  constructor: (@id, @name, @parent=null, @state="Ready") ->
+  constructor: (@id, @name, @description, @state, @blocked, @created,
+                @assignee, @size, @parent=null) ->
     if not @parent?
-      @tasks = {} # {state -> [task]}
+      @tasks = {null: []} # {state -> [task]}, null state is all
 
   add_subtask: (task) ->
     if @tasks[task.state]?
       @tasks[task.state].push(task)
     else
       @tasks[task.state] = [task]
+    @tasks[null].push(task)
 
   move_subtask: (task, state) ->
     old_tasks = @tasks[task.state]
@@ -19,9 +21,16 @@ class Task
     task.state = state
     @tasks[state].push(task)
 
+  update: (task) ->
+    @name = task.name
+    @description = task.description
+    @blocked = task.blocked
+    @created = task.created
+    @assignee = task.assignee
+
 class Board
 
-  constructor: (model, tasks...) ->
+  constructor: (model) ->
     @admins = []
     @users = []
     @generation = 0
@@ -39,8 +48,6 @@ class Board
       @states.push(state)
       @states_by_name[state.name] = state
 
-    @add_tasks(tasks)
-
   add_task: (task) ->
     old = @tasks[task.id]
     if old?
@@ -48,14 +55,9 @@ class Board
     else
       @tasks[task.id] = task
       if task.parent?
-        parent = @tasks[task.parent]
-        parent.add_subtask(task)
+        task.parent.add_subtask(task)
       else
         @states_by_name[task.state].projects.push(task)
-
-  add_tasks: (tasks) ->
-    for task in tasks
-      @add_task(task)
 
   move_project: (project, state) ->
     old_projects = @states_by_name[project.state].projects
@@ -77,16 +79,31 @@ class Board
               new Task(
                 project_add.id
                 add.name
-                null
+                add.description
                 if add.state? then add.state else "Backlog"
+                add.blocked
+                add.created
+                add.assignee
+                add.size
                 ))
+    for project_add in updates.adds
+      if project_add.id != ""
         # add any tasks
         project = @tasks[project_add.id]
         for add in project_add.adds
           if add.id != project_add.id
             project.add_subtask(
-              new Task(add.id, add.name, project.id,
-                       if add.state? then add.state else "Ready"))
+              new Task(
+                add.id
+                add.name
+                add.description
+                if add.state? then add.state else "Ready"
+                add.blocked
+                add.created
+                add.assignee
+                add.size
+                project
+                ))
 
     @generation = updates.generation
     
@@ -101,18 +118,7 @@ model = [
     "Acceptance", "Deploying", "Deployed"
   ]
 
-board = new Board(
-    model
-    new Task("t1", "Build one")
-    new Task("t11", "sit on it", "t1")
-    new Task("t12", "get up", "t1")
-    new Task("t2", "Walk the dog", null, "Development")
-    new Task("t21", "put on leash", "t2", "Doing")
-    new Task("t22", "walk", "t2")
-    new Task("t3", "Garage")
-    new Task("t31", "throw out junk", "t3")
-    new Task("t32", "fix floor", "t3")
-    )
+board = new Board(model)
 
 services.factory("Board", () -> board)
 
@@ -137,22 +143,23 @@ services.config(($httpProvider) ->
 
 services.factory("Server", ($http) ->
   poll: -> $http.get("/poll")
-  new_project: (name) ->
+  new_project: (name, descriotion) ->
     $http.post("/releases", {
       name: name
-      description: ""
+      description: description
       })
-  update_project: (project) ->
+  update_project: (project, name, description) ->
     $http.put("/releases/" + project.id, {
-      name: project.name
-      state: project.state
+      name: name
+      description: description
       }) 
-  new_task: (project, name) ->
+  new_task: (project, name, description) ->
     $http.post("/releases/" + project.id, {
       name: name
+      description: description
       })
   update_task: (task) ->
-    $http.put("/releases/" + task.parent + "/tasks/" + task.id, {
+    $http.put("/releases/" + task.parent.id + "/tasks/" + task.id, {
       name: task.name
       state: task.state
       }) 
