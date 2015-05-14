@@ -81,37 +81,14 @@
       <md-card id="{{task.id}}" draggable="true">{{task.name}}</md-card>
     </script>
 
-    <script type="text/ng-template" id="kbNewProject.html">
-      <md-dialog aria-label="New project">
-        <md-dialog-content>
-          <form novalidate name="form_controller">
-            Project name: <input type="text"
-                                 ng-model="project_name"
-                                 required
-                                 ><br>
-            Description:<br>
-            <textarea ng-model="project_description"></textarea>
-            <div class="md-actions" layout="row" layout-align="end center">
-              <md-button ng-click="cancel()">
-                Cancel
-              </md-button>
-              <md-button ng-click="submit()">
-                Add
-              </md-button>
-            </div>
-          </form>
-        </md-dialog-content>
-      </md-dialog>
-    </script>
-
     <script type="text/ng-template" id="kbEditProject.html">
-      <md-dialog aria-label="New project">
+      <md-dialog>
         <md-dialog-content>
           <form novalidate name="form_controller">
-            Project name: <input type="text"
-                                 ng-model="project_name"
-                                 required
-                                 ><br>
+            Name: <input type="text"
+                         ng-model="project_name"
+                         required
+                         ><br>
             Description:<br>
             <textarea ng-model="project_description"></textarea>
             <div class="md-actions" layout="row" layout-align="end center">
@@ -119,7 +96,7 @@
                 Cancel
               </md-button>
               <md-button ng-click="submit()">
-                Apply
+                {{action_label}}
               </md-button>
             </div>
           </form>

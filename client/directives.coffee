@@ -57,7 +57,7 @@ directives.directive("kbProject", ($mdDialog) ->
           $scope.cancel = -> $mdDialog.cancel()
           $scope.project_name = project.name
           $scope.project_description = project.description
-
+          $scope.action_label = "Apply"
           $scope.submit = () ->
             Server.update_project(
               project, $scope.project_name, $scope.project_description)
