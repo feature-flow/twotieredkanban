@@ -27,6 +27,8 @@ class Task
     @blocked = task.blocked
     @created = task.created
     @assignee = task.assignee
+    @size = task.size
+    @completed = task.completed
 
     if @parent? and task.state != @state
       @parent.move_subtask(this, task.state)
@@ -90,17 +92,18 @@ class Board
         # Add projects first
         for add in project_add.adds
           if add.id == project_add.id
-            @add_task(
-              new Task(
-                project_add.id
-                add.name
-                add.description
-                if add.state? then add.state else "backlog"
-                add.blocked
-                add.created
-                add.assignee
-                add.size
-                ))
+            project = new Task(
+              project_add.id
+              add.name
+              add.description
+              if add.state? then add.state else "backlog"
+              add.blocked
+              add.created
+              add.assignee
+              add.size
+              ) 
+            project.completed = add.completed
+            @add_task(project)
     for project_add in updates.adds
       if project_add.id != ""
         # add any tasks
@@ -179,10 +182,12 @@ services.factory("Server", ($http) ->
       name: name
       description: description
       })
-  update_task: (task) ->
+  update_task: (task, name, description, size, blocked) ->
     $http.put("/releases/" + task.parent.id + "/tasks/" + task.id, {
-      name: task.name
-      state: task.state
+      name: name
+      description: description
+      size: size
+      blocked: blocked
       }) 
   move_task: (task, state) ->
     $http.put("/releases/#{ task.parent.id }/move", {

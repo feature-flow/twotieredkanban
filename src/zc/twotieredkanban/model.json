@@ -7,7 +7,7 @@
          { "label": "Doing", "working": true },
          "Needs Review",
          { "label": "Review", "working": true },
-         "Done"
+         { "label": "Done", "complete": true }
         ]
  },
  "Acceptance",

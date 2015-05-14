@@ -75,6 +75,7 @@ class Task(persistent.Persistent):
     assignee = None
     blocked = ''
     size = 1
+    complete = False
     size_match = re.compile(r"\s*\[\s*(\d+)\s*\]\s*").match
 
     def __init__(self, name, description, state=None):
@@ -91,7 +92,7 @@ class Task(persistent.Persistent):
             self.size = int(m.group(1))
 
     def update(self, name=None, description=None, state=None,
-               assignee=None, blocked=None):
+               assignee=None, blocked=None, size=None):
         if name is not None:
             self.update_name(name)
         if description is not None:
@@ -102,6 +103,8 @@ class Task(persistent.Persistent):
             self.assignee = assignee
         if blocked is not None:
             self.blocked = blocked
+        if size is not None:
+            self.size = size
 
     def json_reduce(self):
         return dict(id = self.id,
@@ -116,7 +119,6 @@ class Task(persistent.Persistent):
 
 class Release(Task):
 
-    size = 0
     archived = ()
 
     def __init__(self, kanban, name, description):
@@ -136,7 +138,6 @@ class Release(Task):
             state = None
         task = Task(name, description, state)
         self.tasks.add(task)
-        self.size += task.size
         self.tasks.add(self)
 
     def update(self, state, **kw):
@@ -156,16 +157,25 @@ class Release(Task):
     def update_task(self, task_id, state, **kw):
         task = self.tasks[task_id]
         size = task.size
+        complete = task.complete
         if state:
             state, = [s for s in self.state['substates'] if s['tag'] == state]
+            task.complete = state.get("complete")
         task.update(state=state, **kw)
         self.tasks.add(task)
-        if task.size != size:
-            self.size += task.size - size
+        if task.size != size or task.complete != complete:
             self.tasks.add(self)
+
+    @property
+    def size(self):
+        return sum(t.size for t in self.tasks if t is not self)
 
     def archive(self, task_id):
         task = self.tasks[task_id]
         self.archived += (task, )
         self.tasks.remove(task)
 
+    def json_reduce(self):
+        data = super(Release, self).json_reduce()
+        data.update(completed = sum(t.size for t in self.tasks if t.complete))
+        return data

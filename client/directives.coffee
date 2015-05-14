@@ -32,6 +32,32 @@ directives.directive("kbProjectColumn", (Server) ->
 
     )
 
+edit_task = ($mdDialog, task, event) ->
+  $mdDialog.show(
+    controller: ($scope, Server, $mdDialog, task) ->
+      $scope.hide = -> $mdDialog.hide()
+      $scope.cancel = -> $mdDialog.cancel()
+      $scope.task_name = task.name
+      $scope.task_description = task.description
+      $scope.task_size = task.size
+      $scope.task_blocked = task.blocked
+      $scope.submit = () ->
+        Server.update_task(
+          task
+          $scope.task_name
+          $scope.task_description or ""
+          $scope.task_size
+          $scope.task_blocked or ""
+          )
+        $scope.hide()
+
+    locals:
+      task: task
+    templateUrl: "kbEditTask.html"
+    targetEvent: event
+    )
+
+
 directives.directive("kbProject", ($mdDialog) ->
   restrict: "E"
   replace: true
@@ -116,7 +142,7 @@ directives.directive("kbTaskColumn", (Server) ->
       )
   )
 
-directives.directive("kbTask", ->
+directives.directive("kbTask", ($mdDialog) ->
   restrict: "E"
   replace: true
   templateUrl: "kbTask.html"
@@ -124,6 +150,8 @@ directives.directive("kbTask", ->
     el.bind("dragstart", (ev) ->
       ev.dataTransfer.setData("text/" + scope.project.id, ev.target.id)
       )
+
+    scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
   )
 
 directives.filter('breakify', ->

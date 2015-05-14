@@ -138,12 +138,14 @@ class API:
 
     @put("/releases/:release_id/tasks/:task_id")
     def update_task(self, release_id, task_id,
-                       name=None, description=None, state=None,
-                       assignee=None, blocked=None,
-                       ):
+                    name=None, description=None, state=None,
+                    assignee=None, blocked=None, size=None,
+                    ):
         self.kanban[release_id].update_task(
             task_id, name=name, description=description,
-            state=state, assignee=assignee, blocked=blocked)
+            state=state, assignee=assignee, blocked=blocked,
+            size=int(size) if size is not None else None,
+            )
         return self.response()
 
     @delete("/releases/:release_id/tasks/:task_id")

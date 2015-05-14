@@ -36,7 +36,9 @@
              ng-switch-when="expanded"
              >
           <table>
-            <caption>{{project.name}}</caption>
+            <caption>
+              {{project.name}} [{{project.completed}}/{{project.size}}]
+            </caption>
             <tr><th ng-repeat="state in state.substates"
                     >{{state.label}}</th></tr>
             <tr>
@@ -49,7 +51,7 @@
                  draggable="true"
                  ng-switch-default
                  >
-          {{project.name}}
+          {{project.name}} [{{project.completed}}/{{project.size}}]
           <ng-md-icon ng-if="! project_expanded"
                       icon="arrow_drop_down"
                       ng-click="expand()"
@@ -59,8 +61,9 @@
                         ng-click="unexpand()"
                         ></ng-md-icon>
             <div ng-bind-html="project.description | breakify"></div>
-            <md-card ng-repeat="task in project.tasks[null]">
-              {{task.name}}
+            <md-card ng-repeat="task in project.tasks[null]"
+                     >
+              {{task.name}} [{{task.size}}]
             </md-card>
           </div>
         </div>
@@ -89,7 +92,10 @@
     </script>
 
     <script type="text/ng-template" id="kbTask.html">
-      <md-card id="{{task.id}}" draggable="true">{{task.name}}</md-card>
+      <md-card id="{{task.id}}"
+               draggable="true"
+               ng-click="edit_task($event)"
+               >{{task.name}} [{{task.size}}]</md-card>
     </script>
 
     <script type="text/ng-template" id="kbEditProject.html">
@@ -131,6 +137,29 @@
               </md-button>
               <md-button ng-click="submit()">
                 Add
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbEditTask.html">
+      <md-dialog aria-label="New task">
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            Name: <input type="text" ng-model="task_name" required><br>
+            Description:<br>
+            <textarea ng-model="task_description"></textarea><br>
+            Size: <input type="text" ng-model="task_size" required><br>
+            Blocked? Reason:<br>
+            <textarea ng-model="task_blocked"></textarea>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Apply
               </md-button>
             </div>
           </form>
