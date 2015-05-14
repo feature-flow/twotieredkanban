@@ -29,7 +29,7 @@
     </script>
 
     <script type="text/ng-template" id="kbProject.html">
-      <div ng-switch="state.substates && 'expanded'">
+      <md-card ng-switch="state.substates && 'expanded'">
         <table id="{{project.id}}"
                draggable="true"
                ng-switch-when="expanded"
@@ -41,7 +41,7 @@
             </td>
           </tr>
         </table>
-        <md-card id="{{project.id}}"
+        <div id="{{project.id}}"
                  draggable="true"
                  ng-switch-default
                  >
@@ -65,8 +65,8 @@
                         ng-click="edit_project($event)"
                         ></ng-md-icon>
           </md-content>
-        </md-card>
-      </div>
+        </div>
+      </md-card>
     </script>
 
     <script type="text/ng-template" id="kbTaskColumn.html">
