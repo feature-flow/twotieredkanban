@@ -1,4 +1,5 @@
-["Ready",
+["Backlog",
+ "Ready",
  {
      "label": "Development",
      "substates": [
@@ -6,10 +7,10 @@
          { "label": "Doing", "working": true },
          "Needs Review",
          { "label": "Review", "working": true },
-         "Done",
-         "Deployed"
+         "Done"
         ]
-    },
- "Deploy",
+ },
+ "Acceptance",
+ "Deploying",
  "Deployed"
 ]

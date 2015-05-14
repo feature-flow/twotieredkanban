@@ -28,6 +28,9 @@ class Task
     @created = task.created
     @assignee = task.assignee
 
+    if @parent? and task.state != @state
+      @parent.move_subtask(this, task.state)
+
 class Board
 
   constructor: (model) ->
@@ -39,12 +42,18 @@ class Board
     @states_by_name = {}
     for state in model
       if typeof(state) == "string"
-        state =
-          name: state
-          label: state
+        state = { label: state }
       if not state.name?
-        state.name = state.label
+        state.name = state.label.toLowerCase()
       state.projects = []
+      if state.substates
+        substates = []
+        for substate in state.substates
+          substates.push(
+            label: substate
+            name: substate.toLowerCase().replace(" ", "_")
+            )
+        state.substates = substates
       @states.push(state)
       @states_by_name[state.name] = state
 
@@ -52,6 +61,11 @@ class Board
     old = @tasks[task.id]
     if old?
       old.update(task)
+      if task.state != old.state
+        if old.parent?
+          old.parent.move_subtask(old, task.state)
+        else
+          @move_project(old, task.state)
     else
       @tasks[task.id] = task
       if task.parent?
@@ -60,6 +74,7 @@ class Board
         @states_by_name[task.state].projects.push(task)
 
   move_project: (project, state) ->
+    state = @states_by_name[state]
     old_projects = @states_by_name[project.state].projects
     index = old_projects.indexOf(project)
     old_projects[index .. index] = []
@@ -80,7 +95,7 @@ class Board
                 project_add.id
                 add.name
                 add.description
-                if add.state? then add.state else "Backlog"
+                if add.state? then add.state else "backlog"
                 add.blocked
                 add.created
                 add.assignee
@@ -92,12 +107,12 @@ class Board
         project = @tasks[project_add.id]
         for add in project_add.adds
           if add.id != project_add.id
-            project.add_subtask(
+            @add_task(
               new Task(
                 add.id
                 add.name
                 add.description
-                if add.state? then add.state else "Ready"
+                if add.state? then add.state else "ready"
                 add.blocked
                 add.created
                 add.assignee
@@ -113,7 +128,7 @@ model = [
     "Backlog", "Ready"
   ,
     label: "Development"
-    substates: ["Ready", "Doing", "NeedsReview", "Review", "Done"]
+    substates: ["Ready", "Doing", "Needs Review", "Review", "Done"]
   ,
     "Acceptance", "Deploying", "Deployed"
   ]
@@ -143,7 +158,7 @@ services.config(($httpProvider) ->
 
 services.factory("Server", ($http) ->
   poll: -> $http.get("/poll")
-  new_project: (name, descriotion) ->
+  new_project: (name, description) ->
     $http.post("/releases", {
       name: name
       description: description
@@ -152,7 +167,13 @@ services.factory("Server", ($http) ->
     $http.put("/releases/" + project.id, {
       name: name
       description: description
-      }) 
+      })
+  move_project: (project, state) ->
+    $http.put("/move", {
+      release_ids: [project.id] # XXX update server api to take 1
+      state: state.name
+      })
+    
   new_task: (project, name, description) ->
     $http.post("/releases/" + project.id, {
       name: name
@@ -163,6 +184,11 @@ services.factory("Server", ($http) ->
       name: task.name
       state: task.state
       }) 
+  move_task: (task, state) ->
+    $http.put("/releases/#{ task.parent.id }/move", {
+      task_ids: [task.id] # XXX update server api to take 1
+      state: state.name
+      })
   )
 
 services.run((Server) -> Server.poll())

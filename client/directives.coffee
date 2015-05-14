@@ -2,7 +2,7 @@ directives = angular.module(
   "kb.directives",
   ['ngMdIcons', "ngMaterial", "ngSanitize"])
 
-directives.directive("kbProjectColumn", ->
+directives.directive("kbProjectColumn", (Server) ->
   restrict: "A"
   replace: true
   templateUrl: "kbProjectColumn.html"
@@ -27,7 +27,7 @@ directives.directive("kbProjectColumn", ->
         id = ev.dataTransfer.getData(drag_type)
         project = scope.board.tasks[id]
         if project.state != scope.state.name
-          scope.$apply( -> scope.board.move_project(project, scope.state))
+          Server.move_project(project, scope.state)
       )
 
     )
@@ -82,19 +82,17 @@ directives.directive("kbProject", ($mdDialog) ->
         templateUrl: "kbNewTask.html"
         targetEvent: event
         )
-      
-
   )
 
-directives.directive("kbTaskColumn", ->
+directives.directive("kbTaskColumn", (Server) ->
   restrict: "A"
   replace: true
   templateUrl: "kbTaskColumn.html"
   link: (scope, el) ->
-    tasks = scope.project.tasks[scope.state]
+    tasks = scope.project.tasks[scope.state.name]
     if not tasks?
       tasks = []
-      scope.project.tasks[scope.state] = tasks
+      scope.project.tasks[scope.state.name] = tasks
     scope.tasks = tasks
 
     drag_type = "text/" + scope.project.id
@@ -113,7 +111,7 @@ directives.directive("kbTaskColumn", ->
         id = ev.dataTransfer.getData(drag_type)
         task = scope.board.tasks[id]
         if task.state != scope.state
-          scope.$apply( -> scope.project.move_subtask(task, scope.state))
+          Server.move_task(task, scope.state)
       )
   )
 

@@ -35,7 +35,7 @@
                ng-switch-when="expanded"
                >
           <caption>{{project.name}}</caption>
-          <tr><th ng-repeat="state in state.substates">{{state}}</th></tr>
+          <tr><th ng-repeat="state in state.substates">{{state.label}}</th></tr>
           <tr>
             <td ng-repeat="state in state.substates" kb-task-column>
             </td>
@@ -71,14 +71,14 @@
 
     <script type="text/ng-template" id="kbTaskColumn.html">
       <td class="kb_task_column"
-           id="{{project.id}}_{{state}}"
+           id="{{project.id}}_{{state.name}}"
            >
         <kb-task ng-repeat="task in tasks"></kb-task>
       </td>
     </script>
 
     <script type="text/ng-template" id="kbTask.html">
-      <div id="{{task.id}}" draggable="true">{{task.name}}</div>
+      <md-card id="{{task.id}}" draggable="true">{{task.name}}</md-card>
     </script>
 
     <script type="text/ng-template" id="kbNewProject.html">
@@ -152,7 +152,7 @@
 
     <div ng-controller="main">
       <table>
-        <tr><th ng-repeat="state in board.states">{{state.name}}</th></tr>
+        <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
         <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
       </table>
       <md-button ng-click="new_project($event)">
