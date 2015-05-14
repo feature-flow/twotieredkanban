@@ -8,7 +8,7 @@ controllers.controller("kbNewProject", ($scope, Server, $mdDialog) ->
     $mdDialog.cancel()
 
   $scope.submit = () ->
-    Server.new_project($scope.project_name, $scope.project_description)
+    Server.new_project($scope.project_name, $scope.project_description or "")
     $scope.hide()
   )
 

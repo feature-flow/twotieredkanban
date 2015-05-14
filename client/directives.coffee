@@ -75,7 +75,8 @@ directives.directive("kbProject", ($mdDialog) ->
           $scope.hide = -> $mdDialog.hide()
           $scope.cancel = -> $mdDialog.cancel()
           $scope.submit = () ->
-            Server.new_task(project, $scope.task_name, $scope.task_description)
+            Server.new_task(project, $scope.task_name,
+                            $scope.task_description or "")
             $scope.hide()
         locals:
           project: scope.project
