@@ -61,10 +61,7 @@
                         ng-click="unexpand()"
                         ></ng-md-icon>
             <div ng-bind-html="project.description | breakify"></div>
-            <md-card ng-repeat="task in project.tasks[null]"
-                     >
-              {{task.name}} [{{task.size}}]
-            </md-card>
+            <kb-task ng-repeat="task in project.tasks[null]"></kb-task
           </div>
         </div>
         </md-content>
@@ -87,11 +84,11 @@
       <td class="kb_task_column"
            id="{{project.id}}_{{state.name}}"
            >
-        <kb-task ng-repeat="task in tasks"></kb-task>
+        <kb-dev-task ng-repeat="task in tasks"></kb-task>
       </td>
     </script>
 
-    <script type="text/ng-template" id="kbTask.html">
+    <script type="text/ng-template" id="kbDevTask.html">
       <md-card id="{{task.id}}"
                draggable="true"
                ng-click="edit_task($event)"

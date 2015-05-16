@@ -142,10 +142,24 @@ directives.directive("kbTaskColumn", (Server) ->
       )
   )
 
+task_template = '
+<md-card ng-click="edit_task($event)">
+  {{task.name}} [{{task.size}}]
+</md-card>'
+
 directives.directive("kbTask", ($mdDialog) ->
   restrict: "E"
   replace: true
-  templateUrl: "kbTask.html"
+  template: task_template
+  link: (scope, el) ->
+    scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
+  )
+
+
+directives.directive("kbDevTask", ($mdDialog) ->
+  restrict: "E"
+  replace: true
+  templateUrl: "kbDevTask.html"
   link: (scope, el) ->
     el.bind("dragstart", (ev) ->
       ev.dataTransfer.setData("text/" + scope.project.id, ev.target.id)
