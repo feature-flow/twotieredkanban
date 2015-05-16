@@ -19,6 +19,8 @@ class Task
     index = old_tasks.indexOf(task)
     old_tasks[index .. index] = []
     task.state = state
+    if not @tasks[state]
+      @tasks[state] = []
     @tasks[state].push(task)
 
   update: (task) ->
@@ -46,7 +48,7 @@ class Board
       if typeof(state) == "string"
         state = { label: state }
       if not state.name?
-        state.name = state.label.toLowerCase()
+        state.name = state.label.toLowerCase().replace(" ", "_")
       state.projects = []
       if state.substates
         substates = []
@@ -104,9 +106,10 @@ class Board
               ) 
             project.completed = add.completed
             @add_task(project)
+
+    # add any tasks
     for project_add in updates.adds
       if project_add.id != ""
-        # add any tasks
         project = @tasks[project_add.id]
         for add in project_add.adds
           if add.id != project_add.id
