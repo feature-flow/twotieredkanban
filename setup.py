@@ -5,7 +5,6 @@ install_requires = [
     'gevent',
     'gevent-websocket',
     'setuptools',
-    'zc.dojoform',
     'zc.generationalset',
     'zc.recipe.deployment',
     'zc.recipe.rhrc',
