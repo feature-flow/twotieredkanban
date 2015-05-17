@@ -198,5 +198,3 @@ services.factory("Server", ($http) ->
       state: state.name
       })
   )
-
-services.run((Server) -> Server.poll())

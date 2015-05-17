@@ -14,10 +14,22 @@
     <script src="/static/angular-material-icons/angular-material-icons.js"
             ></script>
     <script src="/static/angular-sanitize/angular-sanitize.js"></script>
+    <script src="/static/angular-ui-router/release/angular-ui-router.js"
+            ></script>
+
+    <script type="text/javascript">
+      angular.module("kb.initial", [])
+        .constant("INITIAL_EMAIL", %s)
+        .constant("INITIAL_EMAIL_HASH", %s)
+    </script>
+
+    <script src="https://login.persona.org/include.js"></script>
+    <script src="/static/persona.js"></script>
 
     <script src="/static/controllers.js"></script>
     <script src="/static/directives.js"></script>
     <script src="/static/board.js"></script>
+    <script src="/static/login.js"></script>
     <script src="/static/app.js"></script>
   </head>
   <body ng-app="kb">
@@ -164,15 +176,32 @@
       </md-dialog>
     </script>
 
-    <div ng-controller="main">
-      <table>
-        <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
-        <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
-      </table>
-      <md-button ng-click="new_project($event)">
-        Add project
-      </md-button>
-    </div>
+    <script type="text/ng-template" id="kbBoard.html">
+      <div ng-controller="kbBoard">
+        <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20" />
+        {{email}}
+        <md-button ng-click="logout()">
+          Logout
+        </md-button>
+        <table>
+          <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
+          <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
+        </table>
+        <md-button ng-click="new_project($event)">
+          Add project
+        </md-button>
+      </div>
+    </script>
 
+    <script type="text/ng-template" id="kbLogin.html">
+      <md-content>
+        You need to login to use the two-tiered kanban board.
+        <md-button ng-click="login()">
+          Login
+        </md-button>
+      </md-content>
+    </script>
+
+    <div ui-view></div>
   </body>
 </html>

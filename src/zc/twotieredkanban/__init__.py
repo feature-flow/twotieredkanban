@@ -1,13 +1,11 @@
+from zc.twotieredkanban.persona import Persona
 import bobo
 import datetime
-import gevent.queue
 import json
 import logging
 import os
 import persistent
-import requests
 import time
-import zc.dojoform
 import zc.generationalset
 import webob
 
@@ -42,19 +40,13 @@ class Encoder(json.JSONEncoder):
         return obj.json_reduce()
 
 @bobo.subroute("", scan=True)
-class API:
+class API(Persona):
+
+    email = ''
 
     def __init__(self, request):
-        self.request = request
-        self.connection = connection = request.environ['zodb.connection']
-        email = request.remote_user
-        # if not email:
-        #     self.error(401, "You must authenticate")
-        self.root = root = connection.root
-        self.kanban = root.kanban
-        # if not email in self.kanban.users:
-        #     self.error(403, "You are not allowed to access this resource")
-        self.email = email
+        super(API, self).__init__(request)
+        self.kanban = self.root.kanban
 
     def error(self, status, body='', **kw):
         self.connection.transaction_manager.abort()
@@ -72,27 +64,19 @@ class API:
         return response
 
     def check(self, func):
+        if not self.email:
+            self.error(401, "You must authenticate")
+        return
+        if email not in self.kanban.users:
+            self.error(403, "You're not authorized to use this Kanban.")
         if ('admin' in func.__name__  and
             self.email not in self.kanban.admins):
             self.error(403, "You must be an adminstrator")
 
-    @get("/")
+    @bobo.get("/")
     def index_html(self):
-        return read_file("kb.html")
-
-    @get("/dojo/zc.dojo.js", content_type="application/javascript")
-    def zc_dojo_js(self):
-        return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
-                                      "resources/zc.dojo.js"))
-
-    @get("/zc.dojo.css", content_type="text/css")
-    def zc_dojo_css(self):
-        return read_file(os.path.join(os.path.dirname(zc.dojoform.__file__),
-                                      "resources/zc.dojo.css"))
-
-    @get("/model.json")
-    def model_json(self):
-        return self.response(states=self.kanban.states)
+        return read_file("kb.html") % (
+            json.dumps(self.email), json.dumps(self.email_hash(self.email)))
 
     @get("/poll")
     def poll(self):
@@ -168,4 +152,6 @@ def initialize_database(initial_email):
             if not hasattr(conn.root, 'kanban'):
                 from zc.twotieredkanban.model import Kanban
                 conn.root.kanban = Kanban(initial_email)
+        zc.twotieredkanban.persona.initialize_database(database)
+
     return initialize
