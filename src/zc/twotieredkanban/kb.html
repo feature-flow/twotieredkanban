@@ -41,54 +41,48 @@
     </script>
 
     <script type="text/ng-template" id="kbProject.html">
-      <md-card ng-switch="state.substates && 'expanded'">
+      <md-card id="{{project.id}}" draggable="true">
         <md-content>
-        <div id="{{project.id}}"
-             draggable="true"
-             ng-switch-when="expanded"
-             >
-          <table>
-            <caption>
+          <div ng-switch="state.substates && 'expanded'">
+            <table ng-switch-when="expanded">
+              <caption>
+                {{project.name}} [{{project.completed}}/{{project.size}}]
+              </caption>
+              <tr><th ng-repeat="state in state.substates"
+                      >{{state.label}}</th></tr>
+              <tr>
+                <td ng-repeat="state in state.substates" kb-task-column>
+                </td>
+              </tr>
+            </table>
+            <div ng-switch-default>
               {{project.name}} [{{project.completed}}/{{project.size}}]
-            </caption>
-            <tr><th ng-repeat="state in state.substates"
-                    >{{state.label}}</th></tr>
-            <tr>
-              <td ng-repeat="state in state.substates" kb-task-column>
-              </td>
-            </tr>
-          </table>
-        </div>
-        <div id="{{project.id}}"
-                 draggable="true"
-                 ng-switch-default
-                 >
-          {{project.name}} [{{project.completed}}/{{project.size}}]
-          <ng-md-icon ng-if="! project_expanded"
-                      icon="arrow_drop_down"
-                      ng-click="expand()"
-                      ></ng-md-icon>
-          <div ng-if="project_expanded">
-            <ng-md-icon icon="arrow_drop_up"
-                        ng-click="unexpand()"
-                        ></ng-md-icon>
-            <div ng-bind-html="project.description | breakify"></div>
-            <kb-task ng-repeat="task in project.tasks[null]"></kb-task
+              <ng-md-icon ng-if="! project_expanded"
+                          icon="arrow_drop_down"
+                          ng-click="expand()"
+                          ></ng-md-icon>
+              <div ng-if="project_expanded">
+                <ng-md-icon icon="arrow_drop_up"
+                            ng-click="unexpand()"
+                            ></ng-md-icon>
+                <div ng-bind-html="project.description | breakify"></div>
+                <kb-task ng-repeat="task in project.tasks[null]"></kb-task>
+              </div>
+            </div>
           </div>
-        </div>
+          <div class="md-actions"
+               layout="row"
+               layout-align="start center"
+               ng-if="state.has_substates || project_expanded"
+               >
+            <ng-md-icon icon="add"
+                        ng-click="add_task($event)"
+                        ></ng-md-icon>
+            <ng-md-icon icon="mode_edit"
+                        ng-click="edit_project($event)"
+                        ></ng-md-icon>
+          </div>
         </md-content>
-        <div class="md-actions"
-             layout="row"
-             layout-align="start center"
-             ng-if="state.substates || project_expanded"
-             >
-          <ng-md-icon icon="add"
-                      ng-click="add_task($event)"
-                      ></ng-md-icon>
-          <ng-md-icon icon="mode_edit"
-                      ng-click="edit_project($event)"
-                      ></ng-md-icon>
-        </div>
       </md-card>
     </script>
 
