@@ -50,7 +50,8 @@ class Board
       if not state.name?
         state.name = state.label.toLowerCase().replace(" ", "_")
       state.projects = []
-      if state.substates
+      state.has_substates = state.substates?
+      if state.substates?
         substates = []
         for substate in state.substates
           substates.push(
