@@ -105,12 +105,14 @@
       <md-dialog>
         <md-dialog-content>
           <form novalidate name="form_controller">
-            Name: <input type="text"
-                         ng-model="project_name"
-                         required
-                         ><br>
-            Description:<br>
-            <textarea ng-model="project_description"></textarea>
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="project_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="project_description"></textarea>
+            </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
               <md-button ng-click="cancel()">
                 Cancel
@@ -128,12 +130,14 @@
       <md-dialog aria-label="New task">
         <md-dialog-content>
           <form novalidate name="form_controller">
-            Name: <input type="text"
-                         ng-model="task_name"
-                         required
-                         ><br>
-            Description:<br>
-            <textarea ng-model="task_description"></textarea>
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="task_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="task_description"></textarea>
+            </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
               <md-button ng-click="cancel()">
                 Cancel
@@ -151,12 +155,22 @@
       <md-dialog aria-label="New task">
         <md-dialog-content>
           <form novalidate name="form_controller">
-            Name: <input type="text" ng-model="task_name" required><br>
-            Description:<br>
-            <textarea ng-model="task_description"></textarea><br>
-            Size: <input type="text" ng-model="task_size" required><br>
-            Blocked? Reason:<br>
-            <textarea ng-model="task_blocked"></textarea>
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="task_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="task_description"></textarea>
+            </md-input-container>
+            <md-input-container>
+              <label>Size</label>
+              <input type="text" ng-model="task_size" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Blocked? Reason</label>
+              <textarea ng-model="task_blocked"></textarea>
+            </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
               <md-button ng-click="cancel()">
                 Cancel
