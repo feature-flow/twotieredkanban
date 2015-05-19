@@ -193,8 +193,9 @@
             <md-select ng-model="user_menu">
               <md-select-label>
                 <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
+                     class="kb-avatar"
                      />
-                {{email}}
+                <span class="kb-avatar-email">{{email}}</span>
               </md-select-label>
               <md-option ng-click="logout()">Logout</md-option>
             </md-select>
