@@ -20,3 +20,28 @@ md-card {
 .kb-avatar {
     margin-right: 6pt;
 }
+
+md-card.kb-project, .kb-project md-content {
+    background-color: #f9f9f9;
+}
+
+md-card.kb-dev-task {
+    background-color: #fff999;
+}
+
+.kb_working md-card.kb-dev-task {
+    background-color: #dfd;
+}
+
+.kb_complete md-card.kb-dev-task {
+    background-color: #ddf;
+}
+
+md-card.kb-dev-task.kb_blocked {
+    background-color: #fdd;
+}
+
+.kb_blocked_reason::before {
+    content: "Blocked: ";
+    font-weight: bold;
+} 

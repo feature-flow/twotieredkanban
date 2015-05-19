@@ -53,11 +53,14 @@ class Board
       state.has_substates = state.substates?
       if state.substates?
         substates = []
-        for substate in state.substates
+        for substate, i in state.substates
           substates.push(
             label: substate
             name: substate.toLowerCase().replace(" ", "_")
+            working: i % 2
+            complete: i == state.substates.length - 1
             )
+           
         state.substates = substates
       @states.push(state)
       @states_by_name[state.name] = state

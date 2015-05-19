@@ -41,7 +41,7 @@
     </script>
 
     <script type="text/ng-template" id="kbProject.html">
-      <md-card id="{{project.id}}" draggable="true">
+      <md-card id="{{project.id}}" draggable="true" class="kb-project">
         <md-content>
           <div ng-switch="state.substates && 'expanded'">
             <table ng-switch-when="expanded">
@@ -87,18 +87,24 @@
     </script>
 
     <script type="text/ng-template" id="kbTaskColumn.html">
-      <td class="kb_task_column"
-           id="{{project.id}}_{{state.name}}"
-           >
+      <td ng-class="{ kb_working: state.working, kb_complete: state.complete }"
+          id="{{project.id}}_{{state.name}}"
+          >
         <kb-dev-task ng-repeat="task in tasks"></kb-task>
       </td>
     </script>
 
     <script type="text/ng-template" id="kbDevTask.html">
       <md-card id="{{task.id}}"
+               class="kb-dev-task"
                draggable="true"
+               ng-class="{kb_blocked: task.blocked}"
                ng-click="edit_task($event)"
-               >{{task.name}} [{{task.size}}]</md-card>
+               >{{task.name}} [{{task.size}}]
+        <div ng-if="task.blocked" class="kb_blocked_reason">
+          {{task.blocked}}
+        </div>
+      </md-card>
     </script>
 
     <script type="text/ng-template" id="kbEditProject.html">
