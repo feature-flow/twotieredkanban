@@ -185,12 +185,21 @@
     </script>
 
     <script type="text/ng-template" id="kbBoard.html">
-      <div ng-controller="kbBoard">
-        <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20" />
-        {{email}}
-        <md-button ng-click="logout()">
-          Logout
-        </md-button>
+      <md-content ng-controller="kbBoard">
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2>Two-tier Kanban</h2>
+            <span flex></span>
+            <md-select ng-model="user_menu">
+              <md-select-label>
+                <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
+                     />
+                {{email}}
+              </md-select-label>
+              <md-option ng-click="logout()">Logout</md-option>
+            </md-select>
+          </div>
+        </md-toolbar>
         <table>
           <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
           <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
@@ -198,7 +207,7 @@
         <md-button ng-click="new_project($event)">
           Add project
         </md-button>
-      </div>
+      </md-content>
     </script>
 
     <script type="text/ng-template" id="kbLogin.html">

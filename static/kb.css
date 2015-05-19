@@ -1,13 +1,18 @@
-.kb_task_column {
-    border: solid;
+table {
+    border-collapse:collapse;
 }
-.kb_project_column {
-    border: solid;
+
+table,td,th { 
+    border: 1px solid grey;
 }
-.kb_td_filler {
-    height: 100%;
-    width: 100%;
+
+th {
+    border-bottom: 2px solid black;
+    text-align: center;
+    padding: 3px;
+    background-color: #eee;
 }
-.kb_full_height {
-    height: 100%;
+
+md-card {
+    padding: 6pt;
 }
