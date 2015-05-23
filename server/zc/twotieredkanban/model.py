@@ -72,7 +72,7 @@ class Kanban(persistent.Persistent):
 
 class Task(persistent.Persistent):
 
-    assignee = None
+    assigned = None
     blocked = ''
     size = 1
     complete = False
@@ -92,15 +92,15 @@ class Task(persistent.Persistent):
             self.size = int(m.group(1))
 
     def update(self, name=None, description=None, state=None,
-               assignee=None, blocked=None, size=None):
+               assigned=None, blocked=None, size=None):
         if name is not None:
             self.update_name(name)
         if description is not None:
             self.description = description
         if state is not None:
             self.state = state
-        if assignee is not None:
-            self.assignee = assignee
+        if assigned is not None:
+            self.assigned = assigned
         if blocked is not None:
             self.blocked = blocked
         if size is not None:
@@ -113,7 +113,7 @@ class Task(persistent.Persistent):
                     state = self.state['tag'] if self.state else None,
                     blocked = self.blocked,
                     created = self.created,
-                    assignee = self.assignee,
+                    assigned = self.assigned,
                     size = self.size,
                     )
 

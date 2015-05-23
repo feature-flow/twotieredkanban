@@ -48,9 +48,9 @@ class API(Persona):
         super(API, self).__init__(request)
         self.kanban = self.root.kanban
 
-    def error(self, status, body='', **kw):
+    def error(self, status, body):
         self.connection.transaction_manager.abort()
-        raise bobo.BoboException(status, body, **kw)
+        raise bobo.BoboException(status, body, "application/json")
 
     def response(self, **data):
         response = webob.Response(content_type="application/json")
@@ -66,12 +66,13 @@ class API(Persona):
     def check(self, func):
         if not self.email:
             self.error(401, "You must authenticate")
-        return
-        if email not in self.kanban.users:
-            self.error(403, "You're not authorized to use this Kanban.")
-        if ('admin' in func.__name__  and
-            self.email not in self.kanban.admins):
-            self.error(403, "You must be an adminstrator")
+        if self.email not in self.kanban.users:
+            self.error(403,
+                       dict(error="You're not authorized to use this Kanban.",
+                            bad_user=True),
+                       )
+        if ('admin' in func.__name__  and self.email not in self.kanban.admins):
+            self.error(403, dict(error="You must be an adminstrator"))
 
     @bobo.get("/")
     def index_html(self):
@@ -103,11 +104,11 @@ class API(Persona):
     @put("/releases/:release_id")
     def update_release(self, release_id,
                        name=None, description=None, state=None,
-                       assignee=None, blocked=None,
+                       assigned=None, blocked=None,
                        ):
         self.kanban[release_id].update(
             name=name, description=description, state=state,
-            assignee=assignee, blocked=blocked)
+            assigned=assigned, blocked=blocked)
         return self.response()
 
     @delete("/releases/:release_id")
@@ -123,11 +124,11 @@ class API(Persona):
     @put("/releases/:release_id/tasks/:task_id")
     def update_task(self, release_id, task_id,
                     name=None, description=None, state=None,
-                    assignee=None, blocked=None, size=None,
+                    assigned=None, blocked=None, size=None,
                     ):
         self.kanban[release_id].update_task(
             task_id, name=name, description=description,
-            state=state, assignee=assignee, blocked=blocked,
+            state=state, assigned=assigned, blocked=blocked,
             size=int(size) if size is not None else None,
             )
         return self.response()
@@ -142,7 +143,7 @@ class API(Persona):
         for task_id in task_ids:
             data = dict(state=state)
             if state in self.kanban.working_states:
-                data['assignee'] = self.email
+                data['assigned'] = self.email
             self.update_task(release_id, task_id, **data)
         return self.response()
 

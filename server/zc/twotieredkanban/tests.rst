@@ -15,42 +15,21 @@ When we create a kanban object, we need to pass in an initial admin
 email.  Emails are used to *authorize* access. Persona,
 https://login.persona.org/about, is used to *authenticate* emails.
 
-The web server has some boring URLs to loading pages. We'll glos over
-these except to point out that pages need to be authenticated:
+Requests that retrieve data are authenticated:
 
-    >>> _ = test_app().get('/model.json', status=401)
+    >>> _ = test_app().get('/poll', status=401)
 
     >>> admin = test_app('admin@example.com')
-    >>> pprint(admin.get('/model.json').json)
-    {u'states': [{u'label': u'Ready', u'tag': u'ready'},
-                 {u'label': u'Development',
-                  u'substates': [{u'label': u'Ready', u'tag': u'ready'},
-                                 {u'label': u'Doing',
-                                  u'tag': u'doing',
-                                  u'working': True},
-                                 {u'label': u'Needs Review',
-                                  u'tag': u'needs_review'},
-                                 {u'label': u'Review',
-                                  u'tag': u'review',
-                                  u'working': True},
-                                 {u'label': u'Done', u'tag': u'done'},
-                                 {u'label': u'Deployed', u'tag': u'deployed'}],
-                  u'tag': u'development'},
-                 {u'label': u'Deploy', u'tag': u'deploy'},
-                 {u'label': u'Deployed', u'tag': u'deployed'}],
-     u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
+    >>> pprint(admin.get('/poll').json)
+    {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
                              u'id': u'',
                              u'users': [u'admin@example.com']}],
                   u'generation': 2}}
 
-We can adjust the model, but that's a different story.
-
-We get a model description. We also got an update for the kanban.  We
-didn't send any generational information, so we got all updates since
-generation 0.  We can also poll for updates.  This time, we're going
-to invoke the request a little differently using a test helper that
-keeps track of generations the way an app would, by sending an
-X-Generation header with the last generation it got.
+This time, we're going to invoke the request a little differently
+using a test helper that keeps track of generations the way an app
+would, by sending an X-Generation header with the last generation it
+got.
 
     >>> pprint(get(admin, '/poll').json)
     {u'updates': {u'adds': [{u'admins': [u'admin@example.com'],
@@ -89,7 +68,7 @@ Ordinary users can't manage users:
     >>> user = test_app('user1@foo.com')
     >>> _ = get(user, '/poll')
     >>> put(user, '/', dict(users=[], admins=['user1@foo.com']), status=403)
-    <403 Forbidden text/html body='You must ...ator'/27>
+    <403 Forbidden ...>
 
 But ordinary users can do everythig else.
 
@@ -100,6 +79,7 @@ Creating releases
     ...              dict(name='kanban', description='Build the kanban')).json)
     {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
                                     u'blocked': u'',
+                                    u'completed': 0,
                                     u'created': 1406405514,
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
@@ -126,6 +106,7 @@ Creating tasks
                                     u'state': None},
                                    {u'assigned': None,
                                     u'blocked': u'',
+                                    u'completed': 0,
                                     u'created': 1406405514,
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
@@ -144,6 +125,7 @@ Updating releases and tasks
     ...            dict(state='development')).json)
     {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
                                     u'blocked': u'',
+                                    u'completed': 0,
                                     u'created': 1406405514,
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
@@ -175,6 +157,7 @@ Updating releases and tasks
                                     u'state': u'doing'},
                                    {u'assigned': None,
                                     u'blocked': u'',
+                                    u'completed': 0,
                                     u'created': 1406405514,
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
@@ -205,15 +188,16 @@ support this.
                   u'generation': ...}}
 
     >>> pprint(put(user, '/move',
-    ...            dict(state='deploy', release_ids=[release_id])).json)
+    ...            dict(state='deploying', release_ids=[release_id])).json)
     {u'updates': {u'adds': [{u'adds': [{u'assigned': None,
                                     u'blocked': u'',
+                                    u'completed': 0,
                                     u'created': 1406405514,
                                     u'description': u'Build the kanban',
                                     u'id': u'00000000000000000000000000000001',
                                     u'name': u'kanban',
                                     u'size': 2,
-                                    u'state': u'deploy'}],
+                                    u'state': u'deploying'}],
                          u'id': u'00000000000000000000000000000001'}],
                   u'generation': ...}}
 
