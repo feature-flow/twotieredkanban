@@ -39,7 +39,7 @@ setup(
     description = long_description.strip().split('\n')[1],
     packages = [name.split('.')[0], name],
     namespace_packages = [name.split('.')[0]],
-    package_dir = {'': 'src'},
+    package_dir = {'': 'server'},
     install_requires = install_requires,
     zip_safe = False,
     entry_points=entry_points,
