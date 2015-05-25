@@ -55,8 +55,8 @@ class API(Persona):
     def response(self, **data):
         response = webob.Response(content_type="application/json")
         generation = self.request.headers.get('x-generation', 0)
-        updates = self.kanban.releases.generational_updates(int(generation))
-        if updates and len(updates) > 1:
+        updates = self.kanban.updates(int(generation))
+        if updates:
             data['updates'] = updates
         response.body = json.dumps(data, cls=Encoder)
         response.cache_control = 'no-cache'
@@ -85,15 +85,7 @@ class API(Persona):
 
     @put("/")
     def admin(self, users, admins):
-        self.kanban.users = users
-        self.kanban.admins = admins
-        self.kanban.changed()
-        return self.response()
-
-    @put("/move")
-    def move_releases(self, release_ids, state):
-        for release_id in release_ids:
-            self.update_release(release_id, state=state)
+        self.kanban.update(users, admins)
         return self.response()
 
     @post("/releases")
@@ -102,49 +94,31 @@ class API(Persona):
         return self.response()
 
     @put("/releases/:release_id")
-    def update_release(self, release_id,
-                       name=None, description=None, state=None,
-                       assigned=None, blocked=None,
-                       ):
-        self.kanban[release_id].update(
-            name=name, description=description, state=state,
-            assigned=assigned, blocked=blocked)
+    def update_release(self, release_id, name=None, description=''):
+        self.kanban.update_task(release_id, name, description)
         return self.response()
 
-    @delete("/releases/:release_id")
-    def delete_release(self, request, release_id):
-        self.kanban.archive(release_id)
+    @put("/move/:task_id")
+    def move_release(self, task_id, state):
+        self.kanban.transition(task_id, state)
         return self.response()
 
     @post("/releases/:release_id")
-    def add_task(self, release_id, name, description):
-        self.kanban[release_id].new_task(name, description)
+    def add_task(self, release_id, name, description='', size=1, blocked=None):
+        self.kanban.new_task(release_id, name, description, size, blocked)
         return self.response()
 
-    @put("/releases/:release_id/tasks/:task_id")
-    def update_task(self, release_id, task_id,
-                    name=None, description=None, state=None,
-                    assigned=None, blocked=None, size=None,
+    @put("/tasks/:task_id")
+    def update_task(self, task_id,
+                    name, description='', size=1, blocked=None, assigned=None,
                     ):
-        self.kanban[release_id].update_task(
-            task_id, name=name, description=description,
-            state=state, assigned=assigned, blocked=blocked,
-            size=int(size) if size is not None else None,
-            )
+        self.kanban.update_task(
+            task_id, name, description, size, blocked, assigned)
         return self.response()
 
-    @delete("/releases/:release_id/tasks/:task_id")
-    def delete_task(self, request, release_id, task_id):
-        self.kanban[release_id].archive(task_id)
-        return self.response()
-
-    @put("/releases/:release_id/move")
-    def move_tasks(self, release_id, task_ids, state):
-        for task_id in task_ids:
-            data = dict(state=state)
-            if state in self.kanban.working_states:
-                data['assigned'] = self.email
-            self.update_task(release_id, task_id, **data)
+    @delete("/tasks/:task_id")
+    def delete_task(self, request, task_id):
+        self.kanban.archive_task(task_id)
         return self.response()
 
 def initialize_database(initial_email):

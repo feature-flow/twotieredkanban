@@ -1,16 +1,7 @@
-["Backlog",
- "Ready",
- {
-     "label": "Development",
-     "substates": [
-         "Ready",
-         { "label": "Doing", "working": true },
-         "Needs Review",
-         { "label": "Review", "working": true },
-         { "label": "Done", "complete": true }
-        ]
- },
- "Acceptance",
- "Deploying",
- "Deployed"
+["Backlog", "Ready", "Development", "Acceptance", "Deploying", "Deployed",
+ {"label": "Ready", "parent": "development"},
+ {"label": "Doing", "parent": "development", "working": true},
+ {"label": "Needs review", "parent": "development"},
+ {"label": "Review", "parent": "development", "working": true},
+ {"label": "Done", "parent": "development", "complete": true}
 ]
