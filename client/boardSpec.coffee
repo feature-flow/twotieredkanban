@@ -12,147 +12,270 @@ describe("Kanban Board", ->
     expect(board.admins.length).toBe(0)
     )
 
-  # Initial users:
+  # Initial users and states:
   it("Can be populated by updates", ->
     board.apply_updates(
-      adds: [
-          admins: ['admin@example.com']
-          id: ''
-          users: ['admin@example.com']
+      {
+        "generation": 13,
+        "kanban": {
+          "admins": [
+            "admin@example.com"
+          ],
+          "users": [
+            "admin@example.com"
           ]
-      generation: 3
+        },
+        "states": {
+          "adds": [
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000001",
+              "label": "Backlog",
+              "order": 0,
+              "parent": null,
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000002",
+              "label": "Ready",
+              "order": 1048576,
+              "parent": null,
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000003",
+              "label": "Development",
+              "order": 2097152,
+              "parent": null,
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000004",
+              "label": "Ready",
+              "order": 2097152,
+              "parent": "00000000000000000000000000000003",
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000005",
+              "label": "Doing",
+              "order": 2097152,
+              "parent": "00000000000000000000000000000003",
+              "working": true
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000006",
+              "label": "Needs review",
+              "order": 2097152,
+              "parent": "00000000000000000000000000000003",
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000007",
+              "label": "Review",
+              "order": 2097152,
+              "parent": "00000000000000000000000000000003",
+              "working": true
+            },
+            {
+              "complete": true,
+              "id": "00000000000000000000000000000008",
+              "label": "Done",
+              "order": 2097152,
+              "parent": "00000000000000000000000000000003",
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000009",
+              "label": "Acceptance",
+              "order": 3145728,
+              "parent": null,
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000010",
+              "label": "Deploying",
+              "order": 4194304,
+              "parent": null,
+              "working": false
+            },
+            {
+              "complete": false,
+              "id": "00000000000000000000000000000011",
+              "label": "Deployed",
+              "order": 5242880,
+              "parent": null,
+              "working": false
+            }
+          ]
+        }
+      }
       )
     expect(board.users.length).toBe(1)
     expect(board.admins.length).toBe(1)
-    expect(board.generation).toBe(3)
+    expect(board.generation).toBe(13)
+    expect(board.states.length).toBe(6)
+    expect(board.states[2].substates.length).toBe(5)
 
     # Add release:
     board.apply_updates(
-      adds: [
-        adds: [
-          assigned: null
-          blocked: ''
-          created: 1406405514
-          description: 'Build the kanban'
-          id: '00000000000000000000000000000001'
-          name: 'kanban'
-          size: 0
-          state: null
+      {
+        "generation": 15,
+        "tasks": {
+          "adds": [
+            {
+              "description": "Build the kanban",
+              "id": "00000000000000000000000000000012",
+              "name": "kanban",
+              "state": null
+            }
           ]
-        id: '00000000000000000000000000000001'
-        ]
-      generation: 4
+        }
+      }
     )
-    expect(board.states_by_name.backlog.projects.length).toBe(1)
+    expect(board.states[0].projects.length).toBe(1)
     project = board.states[0].projects[0]
     expect(board.tasks[project.id]).toBe(project)
-    expect(project.id).toBe('00000000000000000000000000000001')
+    expect(project.id).toBe('00000000000000000000000000000012')
     expect(project.name).toBe("kanban")
     expect(project.description).toBe("Build the kanban")
     expect(project.size).toBe(0)
-    expect(project.state).toBe('backlog')
+    expect(project.state).toBe(board.states[0].id)
     for state, tasks of project.tasks
       expect(tasks.length).toBe(0)
 
-    expect(board.generation).toBe(4)
+    expect(board.generation).toBe(15)
 
     # Create task:
-    board.apply_updates(
-      adds: [
-        adds: [
-            assigned: null
-            blocked: ''
-            created: 1406405514
-            description: 'Create backend'
-            id: '00000000000000000000000000000002'
-            name: 'backend'
-            size: 1
-            state: null
-          ,
-            assigned: null
-            blocked: ''
-            created: 1406405514
-            description: 'Build the kanban'
-            id: '00000000000000000000000000000001'
-            name: 'kanban'
-            size: 1
-            state: null
+    data = {
+        "generation": 16,
+        "tasks": {
+          "adds": [
+            {
+              "assigned": null,
+              "blocked": null,
+              "created": 1406405514,
+              "description": "Create backend",
+              "id": "00000000000000000000000000000013",
+              "name": "backend",
+              "parent": "00000000000000000000000000000012",
+              "size": 1,
+              "state": null
+            }
           ]
-        id: '00000000000000000000000000000001'
-        ]
-      generation: 6
-    )
-    expect(board.states_by_name.backlog.projects.length).toBe(1)
+        }
+      }
+    board.apply_updates(data)
+    expect(board.states[0].projects.length).toBe(1)
     expect(project.size).toBe(1)
-    task = board.tasks['00000000000000000000000000000002']
-    expect(task.id).toBe('00000000000000000000000000000002')
-    expect(task.blocked).toBe('')
+    task = board.tasks[data.tasks.adds[0].id]
+    expect(task.id).toBe(data.tasks.adds[0].id)
+    expect(task.blocked).toBe(null)
     expect(task.description).toBe('Create backend')
     expect(task.name).toBe('backend')
     expect(task.size).toBe(1)
-    expect(task.state).toBe('ready')
+    expect(task.state).toBe(board.default_substate)
     expect(task.parent).toBe(project)
-
     expect(project.tasks[null]).toEqual([task])
-    expect(project.tasks['ready']).toEqual([task])
+    expect(project.tasks[board.default_substate]).toEqual([task])
+    expect(board.generation).toBe(data.generation)
+    expect(project.size).toBe(1)
 
-    expect(board.generation).toBe(6)
-
-    # Move a release and update a task
-    board.apply_updates(
-      adds: [
-        adds: [
-            assigned: null
-            blocked: ''
-            created: 1406405514
-            description: 'Build the kanban'
-            id: '00000000000000000000000000000001'
-            name: 'kanban'
-            size: 1
-            state: 'development'
-          ,
-            assigned: null
-            blocked: ''
-            created: 1406405514
-            description: 'Create backend'
-            id: '00000000000000000000000000000002'
-            name: 'backend'
-            size: 2
-            state: 'ready'
-          ]
-        id: '00000000000000000000000000000001'
+    # Update a release
+    data = {
+      "generation": 17,
+      "tasks": {
+        "adds": [
+          {
+            "description": "",
+            "id": "00000000000000000000000000000012",
+            "name": "kanban development",
+            "state": null
+          }
         ]
-      generation: 8
-    )
-    expect(project.state).toBe('development')
-    expect(board.generation).toBe(8)
-    expect(board.states[0].projects.length).toBe(0)
-    expect(board.states[2].projects.length).toBe(1)
-    expect(task.size).toBe(2)
-    expect(task.state).toBe('ready')
+      }
+    }
+    board.apply_updates(data)
+    expect(project.name).toBe("kanban development")
+
+    # Update a task
+    data = {
+      "generation": 18,
+      "tasks": {
+        "adds": [
+          {
+            "assigned": "user2@example.com",
+            "blocked": null,
+            "created": 1406405514,
+            "description": "",
+            "id": "00000000000000000000000000000013",
+            "name": "backend",
+            "parent": "00000000000000000000000000000012",
+            "size": 2,
+            "state": null
+          }
+        ]
+      }
+    } 
+    board.apply_updates(data)
+    expect(task.assigned).toBe(data.tasks.adds[0].assigned)
+    expect(task.size).toBe(data.tasks.adds[0].size)
+    expect(project.size).toBe(2)
+    old_state = task.state
+    expect(old_state).toBe(board.default_substate)
+    expect(project.tasks[task.state].length).toBe(1)
 
     # Move a task
-    board.apply_updates(
-      adds: [
-        adds: [
-            assigned: null
-            blocked: ''
-            created: 1406405514
-            description: 'Create backend'
-            id: '00000000000000000000000000000002'
-            name: 'backend'
-            size: 2
-            state: 'needs_review'
-          ]
-        id: '00000000000000000000000000000001'
+    data = {
+      "generation": 19,
+      "tasks": {
+        "adds": [
+          {
+            "assigned": "user2@example.com",
+            "blocked": null,
+            "created": 1406405514,
+            "description": "",
+            "id": "00000000000000000000000000000013",
+            "name": "backend",
+            "parent": "00000000000000000000000000000012",
+            "size": 1,
+            "state": "00000000000000000000000000000006"
+          }
         ]
-      generation: 8
-    )
-    expect(task.state).toBe('needs_review')
-    expect(project.tasks[null]).toEqual([task])
-    expect(project.tasks['needs_review']).toEqual([task])
-    expect(project.tasks['ready'].length).toBe(0)
-  )
+      }
+    }
+    board.apply_updates(data)
+    expect(task.state).toBe(data.tasks.adds[0].state)
+    expect(project.tasks[task.state].length).toBe(1)
+    expect(project.tasks[old_state].length).toBe(0)
+    expect(board.states[2].substates[2].id).toBe(task.state)
 
+    # Move a project
+    data = {
+        "generation": 20,
+        "tasks": {
+          "adds": [
+            {
+              "description": "",
+              "id": "00000000000000000000000000000012",
+              "name": "kanban development",
+              "state": "00000000000000000000000000000010"
+            }
+          ]
+        }
+      }
+    board.apply_updates(data)
+    expect(project.state).toBe(data.tasks.adds[0].state)
+    expect(board.states[0].projects.length).toBe(0)
+    expect(board.states[4].projects.length).toBe(1)
+  )
 )
 
