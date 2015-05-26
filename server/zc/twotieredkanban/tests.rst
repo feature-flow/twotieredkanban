@@ -22,14 +22,15 @@ Requests that retrieve data are authenticated:
     >>> admin = test_app('admin@example.com')
 
     >>> import json
-    >>> def dumps(data, path=None):
-    ...     if path:
-    ...         for name in path.split('/'):
-    ...             data = data[name]
+    >>> def updates(data):
+    ...     data = data.json
+    ...     if len(data) != 1:
+    ...         print "extra data"
+    ...     data = data["updates"]
     ...     print json.dumps(data, sort_keys=True, indent=2)
     ...     return data
 
-    >>> _ = dumps(admin.get('/poll').json, 'updates')
+    >>> _ = updates(admin.get('/poll'))
     {
       "generation": 13,
       "kanban": {
@@ -140,7 +141,7 @@ using a test helper that keeps track of generations the way an app
 would, by sending an X-Generation header with the last generation it
 got.
 
-    >>> data = dumps(get(admin, '/poll').json, "updates")
+    >>> data = updates(get(admin, '/poll'))
     {
       "generation": 13,
       "kanban": {
@@ -263,18 +264,25 @@ Updating users
 To update users, simply replace the users and admin lists by putting
 to ``/``:
 
-    >>> pprint(put(admin, '/', dict(
+    >>> _ = updates(put(admin, '/', dict(
     ...     users=['admin@example.com', 'helper@foo.com',
     ...            'user1@foo.com', 'user2@example.com'],
-    ...     admins=['admin@example.com', 'helper@foo.com'],
-    ...     )).json)
-    {u'updates': {u'generation': 14,
-                  u'kanban': {u'admins': [u'admin@example.com',
-                                          u'helper@foo.com'],
-                              u'users': [u'admin@example.com',
-                                         u'helper@foo.com',
-                                         u'user1@foo.com',
-                                         u'user2@example.com']}}}
+    ...     admins=['admin@example.com', 'helper@foo.com'])))
+    {
+      "generation": 14,
+      "kanban": {
+        "admins": [
+          "admin@example.com",
+          "helper@foo.com"
+        ],
+        "users": [
+          "admin@example.com",
+          "helper@foo.com",
+          "user1@foo.com",
+          "user2@example.com"
+        ]
+      }
+    }
 
 Ordinary users can't manage users:
 
@@ -288,61 +296,89 @@ But ordinary users can do everythig else.
 Creating releases
 =================
 
-    >>> data = post(user, '/releases',
-    ...             dict(name='kanban', description='Build the kanban')).json
-    >>> pprint(data)
-    {u'updates': {u'generation': 15,
-                  u'tasks': {u'adds':
-                    [{u'description': u'Build the kanban',
-                      u'id': u'00000000000000000000000000000012',
-                      u'name': u'kanban',
-                      u'state': None}]}}}
+    >>> data = updates(post(user, '/releases',
+    ...             dict(name='kanban', description='Build the kanban')))
+    {
+      "generation": 15,
+      "tasks": {
+        "adds": [
+          {
+            "description": "Build the kanban",
+            "id": "00000000000000000000000000000012",
+            "name": "kanban",
+            "state": null
+          }
+        ]
+      }
+    }
 
 Creating tasks
 ==============
 
-    >>> release_id = data['updates']['tasks']['adds'][0]['id']
-    >>> data = post(user, '/releases/' + release_id,
-    ...        dict(name='backend', description='Create backend')).json
-    >>> pprint(data)
-    {u'updates': {u'generation': 16,
-                  u'tasks': {u'adds':
-                      [{u'assigned': None,
-                        u'blocked': None,
-                        u'created': 1406405514,
-                        u'description': u'Create backend',
-                        u'id': u'00000000000000000000000000000013',
-                        u'name': u'backend',
-                        u'parent': u'00000000000000000000000000000012',
-                        u'size': 1,
-                        u'state': None}]}}}
-    >>> task_id = data['updates']['tasks']['adds'][0]['id']
+    >>> release_id = data['tasks']['adds'][0]['id']
+    >>> data = updates(post(user, '/releases/' + release_id,
+    ...              dict(name='backend', description='Create backend')))
+    {
+      "generation": 16,
+      "tasks": {
+        "adds": [
+          {
+            "assigned": null,
+            "blocked": null,
+            "created": 1406405514,
+            "description": "Create backend",
+            "id": "00000000000000000000000000000013",
+            "name": "backend",
+            "parent": "00000000000000000000000000000012",
+            "size": 1,
+            "state": null
+          }
+        ]
+      }
+    }
+    >>> task_id = data['tasks']['adds'][0]['id']
 
 
 Updating releases and tasks
 ===========================
 
-    >>> pprint(put(user, '/releases/' + release_id,
-    ...            dict(name='kanban development')).json)
-    {u'updates': {u'generation': 17,
-              u'tasks': {u'adds': [{u'description': u'',
-                                    u'id': u'00000000000000000000000000000012',
-                                    u'name': u'kanban development',
-                                    u'state': None}]}}}
+    >>> _ = updates(put(user, '/releases/' + release_id,
+    ...           dict(name='kanban development')))
+    {
+      "generation": 17,
+      "tasks": {
+        "adds": [
+          {
+            "description": "",
+            "id": "00000000000000000000000000000012",
+            "name": "kanban development",
+            "state": null
+          }
+        ]
+      }
+    }
 
-    >>> pprint(put(user, '/tasks/' + task_id,
+    >>> _ = updates(put(user, '/tasks/' + task_id,
     ...            dict(assigned='user2@example.com',
-    ...                 name='backend')).json)
-    {u'updates': {u'generation': 18,
-          u'tasks': {u'adds': [{u'assigned': u'user2@example.com',
-                                u'blocked': None,
-                                u'created': 1406405514,
-                                u'description': u'',
-                                u'id': u'00000000000000000000000000000013',
-                                u'name': u'backend',
-                                u'parent': u'00000000000000000000000000000012',
-                                u'size': 1,
-                                u'state': None}]}}}
+    ...                 name='backend')))
+    {
+      "generation": 18,
+      "tasks": {
+        "adds": [
+          {
+            "assigned": "user2@example.com",
+            "blocked": null,
+            "created": 1406405514,
+            "description": "",
+            "id": "00000000000000000000000000000013",
+            "name": "backend",
+            "parent": "00000000000000000000000000000012",
+            "size": 1,
+            "state": null
+          }
+        ]
+      }
+    }
 
 
 Moves
@@ -352,31 +388,45 @@ In the kanban, a user can select tasks or releases and move
 them (change state), and we supply a specialize interface to
 support this.
 
-    >>> data = put(user, '/move/' + task_id,
-    ...            dict(state=states['Needs review'])).json
-    >>> pprint(data)
-    {u'updates': {u'generation': 19,
-        u'tasks': {u'adds': [{u'assigned': u'user2@example.com',
-                              u'blocked': None,
-                              u'created': 1406405514,
-                              u'description': u'',
-                              u'id': u'00000000000000000000000000000013',
-                              u'name': u'backend',
-                              u'parent': u'00000000000000000000000000000012',
-                              u'size': 1,
-                              u'state': u'00000000000000000000000000000006'}]}}}
-    >>> data['updates']['tasks']['adds'][0]['state'] == states['Needs review']
+    >>> data = updates(put(user, '/move/' + task_id,
+    ...              dict(state=states['Needs review'])))
+    {
+      "generation": 19,
+      "tasks": {
+        "adds": [
+          {
+            "assigned": "user2@example.com",
+            "blocked": null,
+            "created": 1406405514,
+            "description": "",
+            "id": "00000000000000000000000000000013",
+            "name": "backend",
+            "parent": "00000000000000000000000000000012",
+            "size": 1,
+            "state": "00000000000000000000000000000006"
+          }
+        ]
+      }
+    }
+    >>> data['tasks']['adds'][0]['state'] == states['Needs review']
     True
 
-    >>> data = put(user, '/move/' + release_id,
-    ...            dict(state=states['Deploying'])).json
-    >>> pprint(data)
-    {u'updates': {u'generation': 20,
-        u'tasks': {u'adds': [{u'description': u'',
-                              u'id': u'00000000000000000000000000000012',
-                              u'name': u'kanban development',
-                              u'state': u'00000000000000000000000000000010'}]}}}
-    >>> data['updates']['tasks']['adds'][0]['state'] == states['Deploying']
+    >>> data = updates(put(user, '/move/' + release_id,
+    ...            dict(state=states['Deploying'])))
+    {
+      "generation": 20,
+      "tasks": {
+        "adds": [
+          {
+            "description": "",
+            "id": "00000000000000000000000000000012",
+            "name": "kanban development",
+            "state": "00000000000000000000000000000010"
+          }
+        ]
+      }
+    }
+    >>> data['tasks']['adds'][0]['state'] == states['Deploying']
     True
 
 Deleting tasks and releases
@@ -389,18 +439,30 @@ We can delete tasks and releases. When we do, they are archived.
     >>> release = kanban.tasks[release_id]
     >>> task = kanban.tasks[task_id]
 
-    >>> pprint(delete(user, '/tasks/' + task_id).json)
-    {u'updates': {u'generation': 21,
-              u'tasks': {u'removals': [u'00000000000000000000000000000013']}}}
+    >>> _ = updates(delete(user, '/tasks/' + task_id))
+    {
+      "generation": 21,
+      "tasks": {
+        "removals": [
+          "00000000000000000000000000000013"
+        ]
+      }
+    }
 
 
     >>> conn.sync()
     >>> list(release.archive) == [task]
     True
 
-    >>> pprint(delete(user, '/tasks/' + release_id).json)
-    {u'updates': {u'generation': 22,
-              u'tasks': {u'removals': [u'00000000000000000000000000000012']}}}
+    >>> _ = updates(delete(user, '/tasks/' + release_id))
+    {
+      "generation": 22,
+      "tasks": {
+        "removals": [
+          "00000000000000000000000000000012"
+        ]
+      }
+    }
 
     >>> conn.sync()
     >>> list(kanban.tasks) == []
