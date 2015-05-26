@@ -30,7 +30,12 @@ class Kanban(persistent.Persistent):
         for i, state in enumerate(state_data):
             if isinstance(state, basestring):
                 state = dict(label=state)
-            self.states.add(State(i*(1<<20), **state))
+            substates = state.pop("substates", ())
+            state = State(i*(1<<20), **state)
+            self.states.add(state)
+            for sub in substates:
+                sub['parent'] = state.id
+                self.states.add(State(i*(1<<20), **sub))
 
     def updates(self, generation):
         updates = self.changes.generational_updates(generation)

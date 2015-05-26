@@ -20,13 +20,120 @@ Requests that retrieve data are authenticated:
     >>> _ = test_app().get('/poll', status=401)
 
     >>> admin = test_app('admin@example.com')
-    >>> pprint(admin.get('/poll').json)
-    {u'updates': {u'generation': 15,
-                  u'kanban': {u'admins': [u'admin@example.com'],
-                              u'users': [u'admin@example.com']},
-                  u'states': {u'adds': [{u'complete': False,
-                  ...
-                  u'tasks': {}}}
+
+    >>> import json
+    >>> def dumps(data, path=None):
+    ...     if path:
+    ...         for name in path.split('/'):
+    ...             data = data[name]
+    ...     print json.dumps(data, sort_keys=True, indent=2)
+    ...     return data
+
+    >>> _ = dumps(admin.get('/poll').json, 'updates')
+    {
+      "generation": 15,
+      "kanban": {
+        "admins": [
+          "admin@example.com"
+        ],
+        "users": [
+          "admin@example.com"
+        ]
+      },
+      "states": {
+        "adds": [
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000001",
+            "label": "Backlog",
+            "order": 0,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000002",
+            "label": "Ready",
+            "order": 1048576,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000003",
+            "label": "Development",
+            "order": 2097152,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000004",
+            "label": "Ready",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000005",
+            "label": "Doing",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": true
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000006",
+            "label": "Needs review",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000007",
+            "label": "Review",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": true
+          },
+          {
+            "complete": true,
+            "id": "00000000000000000000000000000008",
+            "label": "Done",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000009",
+            "label": "Acceptance",
+            "order": 3145728,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000010",
+            "label": "Deploying",
+            "order": 4194304,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000011",
+            "label": "Deployed",
+            "order": 5242880,
+            "parent": null,
+            "working": false
+          }
+        ]
+      },
+      "tasks": {}
+    }
 
 
 This time, we're going to invoke the request a little differently
@@ -34,82 +141,114 @@ using a test helper that keeps track of generations the way an app
 would, by sending an X-Generation header with the last generation it
 got.
 
-    >>> data = get(admin, '/poll').json
-    >>> pprint(data)
-    {u'updates': {u'generation': 15,
-                  u'kanban': {u'admins': [u'admin@example.com'],
-                              u'users': [u'admin@example.com']},
-                  u'states': {u'adds':
-                      [{u'complete': False,
-                        u'id': u'00000000000000000000000000000001',
-                        u'label': u'Backlog',
-                        u'order': 0,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000002',
-                        u'label': u'Ready',
-                        u'order': 1048576,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000003',
-                        u'label': u'Development',
-                        u'order': 2097152,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000004',
-                        u'label': u'Acceptance',
-                        u'order': 3145728,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000005',
-                        u'label': u'Deploying',
-                        u'order': 4194304,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000006',
-                        u'label': u'Deployed',
-                        u'order': 5242880,
-                        u'parent': None,
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000007',
-                        u'label': u'Ready',
-                        u'order': 6291456,
-                        u'parent': u'development',
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000008',
-                        u'label': u'Doing',
-                        u'order': 7340032,
-                        u'parent': u'development',
-                        u'working': True},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000009',
-                        u'label': u'Needs review',
-                        u'order': 8388608,
-                        u'parent': u'development',
-                        u'working': False},
-                       {u'complete': False,
-                        u'id': u'00000000000000000000000000000010',
-                        u'label': u'Review',
-                        u'order': 9437184,
-                        u'parent': u'development',
-                        u'working': True},
-                       {u'complete': True,
-                        u'id': u'00000000000000000000000000000011',
-                        u'label': u'Done',
-                        u'order': 10485760,
-                        u'parent': u'development',
-                        u'working': False}]},
-                  u'tasks': {}}}
+    >>> data = dumps(get(admin, '/poll').json, "updates")
+    {
+      "generation": 15,
+      "kanban": {
+        "admins": [
+          "admin@example.com"
+        ],
+        "users": [
+          "admin@example.com"
+        ]
+      },
+      "states": {
+        "adds": [
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000001",
+            "label": "Backlog",
+            "order": 0,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000002",
+            "label": "Ready",
+            "order": 1048576,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000003",
+            "label": "Development",
+            "order": 2097152,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000004",
+            "label": "Ready",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000005",
+            "label": "Doing",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": true
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000006",
+            "label": "Needs review",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000007",
+            "label": "Review",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": true
+          },
+          {
+            "complete": true,
+            "id": "00000000000000000000000000000008",
+            "label": "Done",
+            "order": 2097152,
+            "parent": "00000000000000000000000000000003",
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000009",
+            "label": "Acceptance",
+            "order": 3145728,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000010",
+            "label": "Deploying",
+            "order": 4194304,
+            "parent": null,
+            "working": false
+          },
+          {
+            "complete": false,
+            "id": "00000000000000000000000000000011",
+            "label": "Deployed",
+            "order": 5242880,
+            "parent": null,
+            "working": false
+          }
+        ]
+      },
+      "tasks": {}
+    }
 
     >>> states = dict((state['label'], state['id'])
-    ...               for state in data['updates']['states']['adds'])
+    ...               for state in data['states']['adds'])
 
 
 If we call it again, there won't be any updates:
@@ -227,7 +366,7 @@ support this.
                               u'name': u'backend',
                               u'parent': u'00000000000000000000000000000012',
                               u'size': 1,
-                              u'state': u'00000000000000000000000000000009'}]}}}
+                              u'state': u'00000000000000000000000000000006'}]}}}
     >>> data['updates']['tasks']['adds'][0]['state'] == states['Needs review']
     True
 
@@ -238,7 +377,7 @@ support this.
         u'tasks': {u'adds': [{u'description': u'',
                               u'id': u'00000000000000000000000000000012',
                               u'name': u'kanban development',
-                              u'state': u'00000000000000000000000000000005'}]}}}
+                              u'state': u'00000000000000000000000000000010'}]}}}
     >>> data['updates']['tasks']['adds'][0]['state'] == states['Deploying']
     True
 
@@ -270,4 +409,3 @@ We can delete tasks and releases. When we do, they are archived.
     True
     >>> kanban.archive[release_id] == release
     True
-
