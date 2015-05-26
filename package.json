@@ -10,9 +10,9 @@
     "angular-mocks": "^1.3.15",
     "angular-sanitize": "*",
     "angular-ui-router": "*",
-    "grunt": "*",
-    "grunt-contrib-coffee": "*",
-    "grunt-contrib-watch": "*",
+    "grunt": "^0.4.5",
+    "grunt-contrib-coffee": "^0.13.0",
+    "grunt-contrib-watch": "^0.6.1",
     "jasmine-core": "^2.3.4",
     "karma": "^0.12.31",
     "karma-chrome-launcher": "^0.1.12",
@@ -20,5 +20,14 @@
   },
   "engines": {
     "node": "*"
+  },
+  "dependencies": {
+    "angular": "^1.3.15",
+    "angular-animate": "^1.3.15",
+    "angular-aria": "^1.3.15",
+    "angular-material": "^0.9.4",
+    "angular-material-icons": "^0.4.0",
+    "angular-sanitize": "^1.3.15",
+    "angular-ui-router": "^0.2.15"
   }
 }
