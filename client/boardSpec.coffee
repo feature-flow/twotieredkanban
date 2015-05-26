@@ -162,6 +162,7 @@ describe("Kanban Board", ->
             {
               "assigned": null,
               "blocked": null,
+              "complete": null,
               "created": 1406405514,
               "description": "Create backend",
               "id": "00000000000000000000000000000013",
@@ -188,6 +189,7 @@ describe("Kanban Board", ->
     expect(project.tasks[board.default_substate]).toEqual([task])
     expect(board.generation).toBe(data.generation)
     expect(project.size).toBe(1)
+    expect(project.completed).toBe(0)
 
     # Update a release
     data = {
@@ -214,6 +216,7 @@ describe("Kanban Board", ->
           {
             "assigned": "user2@example.com",
             "blocked": null,
+            "complete": null,
             "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000013",
@@ -241,13 +244,14 @@ describe("Kanban Board", ->
           {
             "assigned": "user2@example.com",
             "blocked": null,
+            "complete": 1406405514,
             "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000013",
             "name": "backend",
             "parent": "00000000000000000000000000000012",
-            "size": 1,
-            "state": "00000000000000000000000000000006"
+            "size": 2,
+            "state": "00000000000000000000000000000008"
           }
         ]
       }
@@ -256,7 +260,9 @@ describe("Kanban Board", ->
     expect(task.state).toBe(data.tasks.adds[0].state)
     expect(project.tasks[task.state].length).toBe(1)
     expect(project.tasks[old_state].length).toBe(0)
-    expect(board.states[2].substates[2].id).toBe(task.state)
+    expect(board.states[2].substates[4].id).toBe(task.state)
+    expect(project.size).toBe(2)
+    expect(project.completed).toBe(2)
 
     # Move a project
     data = {

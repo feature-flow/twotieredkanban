@@ -79,6 +79,12 @@ class Kanban(persistent.Persistent):
         if ((task.parent is None or state.parent is None) and
             task.parent is not state.parent):
             raise TaskValueError("Invalid state")
+        if task.parent:
+            if state.complete:
+                if not task.complete:
+                    task.complete = time.time()
+            else:
+                task.complete = None
         task.state = state
         self.tasks.changed(task)
 
@@ -129,6 +135,7 @@ class Task(persistent.Persistent):
     assigned = None
     state = None
     archive = ()
+    complete = None
 
     def __init__(self, name, description='', size=1, blocked=None, parent=None):
         self.id = uuid.uuid1().hex
@@ -151,5 +158,6 @@ class Task(persistent.Persistent):
                           created = self.created,
                           assigned = self.assigned,
                           size = self.size,
+                          complete = self.complete,
                           )
         return result

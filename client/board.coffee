@@ -1,11 +1,11 @@
 services = angular.module("kb.board", [])
 
 class Task
-
   constructor: (@id, @name, @description, @state, @blocked, @created,
-                @assigned, @size, @parent=null) ->
+                @assigned, @size, @complete, @parent=null) ->
     if not @parent?
       @tasks = {null: []} # {state -> [task]}, null state is all
+      @completed = 0
     if not @size
       @size = 0
 
@@ -19,18 +19,22 @@ class Task
 
   update_project_size: ->
     @size = 0
+    @completed = 0
     for task in @tasks[null]
       @size += task.size
+      if task.complete?
+        @completed += task.size
 
 
   move_subtask: (task, state) ->
-    old_tasks = @tasks[task.state]
-    index = old_tasks.indexOf(task)
-    old_tasks[index .. index] = []
-    task.state = state
-    if not @tasks[state]
-      @tasks[state] = []
-    @tasks[state].push(task)
+    if state != task.state
+      old_tasks = @tasks[task.state]
+      index = old_tasks.indexOf(task)
+      old_tasks[index .. index] = []
+      task.state = state
+      if not @tasks[state]
+        @tasks[state] = []
+      @tasks[state].push(task)
 
   update: (task) ->
     @name = task.name
@@ -40,7 +44,7 @@ class Task
       @created = task.created
       @assigned = task.assigned
       @size = task.size
-      @completed = task.completed
+      @complete = task.complete
       @parent.move_subtask(this, task.state)
       @parent.update_project_size()
 
@@ -133,6 +137,7 @@ class Board
               task.created
               task.assigned
               task.size
+              task.complete
               project
               ))
 

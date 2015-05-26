@@ -325,6 +325,7 @@ Creating tasks
           {
             "assigned": null,
             "blocked": null,
+            "complete": null,
             "created": 1406405514,
             "description": "Create backend",
             "id": "00000000000000000000000000000013",
@@ -368,6 +369,7 @@ Updating releases and tasks
           {
             "assigned": "user2@example.com",
             "blocked": null,
+            "complete": null,
             "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000013",
@@ -389,7 +391,7 @@ them (change state), and we supply a specialize interface to
 support this.
 
     >>> data = updates(put(user, '/move/' + task_id,
-    ...              dict(state=states['Needs review'])))
+    ...              dict(state=states['Done'])))
     {
       "generation": 19,
       "tasks": {
@@ -397,19 +399,23 @@ support this.
           {
             "assigned": "user2@example.com",
             "blocked": null,
+            "complete": 1406405514,
             "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000013",
             "name": "backend",
             "parent": "00000000000000000000000000000012",
             "size": 1,
-            "state": "00000000000000000000000000000006"
+            "state": "00000000000000000000000000000008"
           }
         ]
       }
     }
-    >>> data['tasks']['adds'][0]['state'] == states['Needs review']
+    >>> data['tasks']['adds'][0]['state'] == states['Done']
     True
+
+Note that because the task reached the Done state, it was markec
+complete with the current time.
 
     >>> data = updates(put(user, '/move/' + release_id,
     ...            dict(state=states['Deploying'])))
