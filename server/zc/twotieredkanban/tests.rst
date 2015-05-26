@@ -31,7 +31,7 @@ Requests that retrieve data are authenticated:
 
     >>> _ = dumps(admin.get('/poll').json, 'updates')
     {
-      "generation": 15,
+      "generation": 13,
       "kanban": {
         "admins": [
           "admin@example.com"
@@ -131,8 +131,7 @@ Requests that retrieve data are authenticated:
             "working": false
           }
         ]
-      },
-      "tasks": {}
+      }
     }
 
 
@@ -143,7 +142,7 @@ got.
 
     >>> data = dumps(get(admin, '/poll').json, "updates")
     {
-      "generation": 15,
+      "generation": 13,
       "kanban": {
         "admins": [
           "admin@example.com"
@@ -243,8 +242,7 @@ got.
             "working": false
           }
         ]
-      },
-      "tasks": {}
+      }
     }
 
     >>> states = dict((state['label'], state['id'])
@@ -270,7 +268,7 @@ to ``/``:
     ...            'user1@foo.com', 'user2@example.com'],
     ...     admins=['admin@example.com', 'helper@foo.com'],
     ...     )).json)
-    {u'updates': {u'generation': 16,
+    {u'updates': {u'generation': 14,
                   u'kanban': {u'admins': [u'admin@example.com',
                                           u'helper@foo.com'],
                               u'users': [u'admin@example.com',
@@ -293,7 +291,7 @@ Creating releases
     >>> data = post(user, '/releases',
     ...             dict(name='kanban', description='Build the kanban')).json
     >>> pprint(data)
-    {u'updates': {u'generation': 17,
+    {u'updates': {u'generation': 15,
                   u'tasks': {u'adds':
                     [{u'description': u'Build the kanban',
                       u'id': u'00000000000000000000000000000012',
@@ -307,7 +305,7 @@ Creating tasks
     >>> data = post(user, '/releases/' + release_id,
     ...        dict(name='backend', description='Create backend')).json
     >>> pprint(data)
-    {u'updates': {u'generation': 18,
+    {u'updates': {u'generation': 16,
                   u'tasks': {u'adds':
                       [{u'assigned': None,
                         u'blocked': None,
@@ -326,7 +324,7 @@ Updating releases and tasks
 
     >>> pprint(put(user, '/releases/' + release_id,
     ...            dict(name='kanban development')).json)
-    {u'updates': {u'generation': 19,
+    {u'updates': {u'generation': 17,
               u'tasks': {u'adds': [{u'description': u'',
                                     u'id': u'00000000000000000000000000000012',
                                     u'name': u'kanban development',
@@ -335,7 +333,7 @@ Updating releases and tasks
     >>> pprint(put(user, '/tasks/' + task_id,
     ...            dict(assigned='user2@example.com',
     ...                 name='backend')).json)
-    {u'updates': {u'generation': 20,
+    {u'updates': {u'generation': 18,
           u'tasks': {u'adds': [{u'assigned': u'user2@example.com',
                                 u'blocked': None,
                                 u'created': 1406405514,
@@ -357,7 +355,7 @@ support this.
     >>> data = put(user, '/move/' + task_id,
     ...            dict(state=states['Needs review'])).json
     >>> pprint(data)
-    {u'updates': {u'generation': 21,
+    {u'updates': {u'generation': 19,
         u'tasks': {u'adds': [{u'assigned': u'user2@example.com',
                               u'blocked': None,
                               u'created': 1406405514,
@@ -373,7 +371,7 @@ support this.
     >>> data = put(user, '/move/' + release_id,
     ...            dict(state=states['Deploying'])).json
     >>> pprint(data)
-    {u'updates': {u'generation': 22,
+    {u'updates': {u'generation': 20,
         u'tasks': {u'adds': [{u'description': u'',
                               u'id': u'00000000000000000000000000000012',
                               u'name': u'kanban development',
@@ -392,7 +390,7 @@ We can delete tasks and releases. When we do, they are archived.
     >>> task = kanban.tasks[task_id]
 
     >>> pprint(delete(user, '/tasks/' + task_id).json)
-    {u'updates': {u'generation': 23,
+    {u'updates': {u'generation': 21,
               u'tasks': {u'removals': [u'00000000000000000000000000000013']}}}
 
 
@@ -401,7 +399,7 @@ We can delete tasks and releases. When we do, they are archived.
     True
 
     >>> pprint(delete(user, '/tasks/' + release_id).json)
-    {u'updates': {u'generation': 24,
+    {u'updates': {u'generation': 22,
               u'tasks': {u'removals': [u'00000000000000000000000000000012']}}}
 
     >>> conn.sync()

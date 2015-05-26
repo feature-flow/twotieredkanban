@@ -12,11 +12,9 @@ class Kanban(persistent.Persistent):
     id = 'kanban'
 
     def __init__(self, admin, state_data='model.json'):
-        self.changes = zc.generationalset.GSet()
-        self.states = zc.generationalset.GSet("states")
-        self.changes.add(self.states)
-        self.tasks = zc.generationalset.GSet("tasks")
-        self.changes.add(self.tasks)
+        self.changes = changes = zc.generationalset.GSet()
+        self.states = zc.generationalset.GSet("states", changes)
+        self.tasks = zc.generationalset.GSet("tasks", changes)
         self.update([admin], [admin])
         self.archive = BTrees.OOBTree.OOBTree() # {release_id -> subset }
 
