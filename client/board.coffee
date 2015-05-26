@@ -178,11 +178,6 @@ services.factory("Server", ($http) ->
       name: name
       description: description
       })
-  move_project: (project, state) ->
-    $http.put("/move", {
-      release_ids: [project.id] # XXX update server api to take 1
-      state: state.name
-      })
 
   new_task: (project, name, description) ->
     $http.post("/releases/" + project.id, {
@@ -190,15 +185,12 @@ services.factory("Server", ($http) ->
       description: description
       })
   update_task: (task, name, description, size, blocked) ->
-    $http.put("/releases/" + task.parent.id + "/tasks/" + task.id, {
+    $http.put("/tasks/" + task.id, {
       name: name
       description: description
       size: size
       blocked: blocked
       })
   move_task: (task, state) ->
-    $http.put("/releases/#{ task.parent.id }/move", {
-      task_ids: [task.id] # XXX update server api to take 1
-      state: state.name
-      })
+    $http.put("/move/#{ task.id }", { state: state.id })
   )

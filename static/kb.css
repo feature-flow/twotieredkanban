@@ -45,3 +45,10 @@ md-card.kb-dev-task.kb_blocked {
     content: "Blocked: ";
     font-weight: bold;
 } 
+
+.kb_project_column {
+    height: 72pt;
+}
+.kb_task_column {
+    height: 20pt;
+}

@@ -87,7 +87,8 @@
     </script>
 
     <script type="text/ng-template" id="kbTaskColumn.html">
-      <td ng-class="{ kb_working: state.working, kb_complete: state.complete }"
+      <td class="kb_task_column"
+          ng-class="{ kb_working: state.working, kb_complete: state.complete }"
           id="{{project.id}}_{{state.name}}"
           >
         <kb-dev-task ng-repeat="task in tasks"></kb-task>
