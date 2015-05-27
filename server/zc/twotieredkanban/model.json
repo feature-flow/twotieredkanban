@@ -1,0 +1,13 @@
+["Backlog", "Ready",
+ {
+     "label": "Development",
+     "substates": [
+         {"label": "Ready"},
+         {"label": "Doing", "working": true},
+         {"label": "Needs review"},
+         {"label": "Review", "working": true},
+         {"label": "Done", "complete": true}
+     ]
+ },
+  "Acceptance", "Deploying", "Deployed"
+]

@@ -14,6 +14,7 @@ import pkg_resources
 import uuid
 import webtest
 import zc.twotieredkanban
+import zc.twotieredkanban.persona
 
 
 demo_db = '''
@@ -42,18 +43,20 @@ def setUp(test):
         configuration = demo_db,
         max_connections = '4',
         thread_transaction_manager = 'False',
+        initializer =
+        "zc.twotieredkanban:initialize_database('admin@example.com.com')"
         )
-    globs['db'] = app.database
-    globs['conn'] = app.database.open()
+    globs['db'] = db = app.database
+    globs['conn'] = conn = app.database.open()
     globs['pprint'] = pprint
     globs['pdb'] = pdb
 
     @glob
     def test_app(email=None):
         extra_environ = {}
-        if email:
-            extra_environ['REMOTE_USER'] = email
         tapp = webtest.TestApp(app, extra_environ=extra_environ)
+        if email:
+            zc.twotieredkanban.persona.set_cookie(tapp, conn.root, email)
         return tapp
 
     def update_app(app, resp):

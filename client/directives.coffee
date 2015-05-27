@@ -26,8 +26,8 @@ directives.directive("kbProjectColumn", (Server) ->
         ev.preventDefault()
         id = ev.dataTransfer.getData(drag_type)
         project = scope.board.tasks[id]
-        if project.state != scope.state.name
-          Server.move_project(project, scope.state)
+        if project.state != scope.state.id
+          Server.move_task(project, scope.state)
       )
 
     )
@@ -116,10 +116,10 @@ directives.directive("kbTaskColumn", (Server) ->
   replace: true
   templateUrl: "kbTaskColumn.html"
   link: (scope, el) ->
-    tasks = scope.project.tasks[scope.state.name]
+    tasks = scope.project.tasks[scope.state.id]
     if not tasks?
       tasks = []
-      scope.project.tasks[scope.state.name] = tasks
+      scope.project.tasks[scope.state.id] = tasks
     scope.tasks = tasks
 
     drag_type = "text/" + scope.project.id

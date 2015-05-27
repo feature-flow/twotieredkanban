@@ -50,7 +50,7 @@ class Persona(object):
                     json.dumps(verification_data),
                     content_type="application/json",
                     )
-                response.set_cookie(TOKEN, self.root.serializer.dumps(email))
+                set_cookie(response, self.root, email)
                 return response
             else:
                 raise bobo.BoboException('403', verification_data['reason'])
@@ -76,3 +76,6 @@ def initialize_database(database):
                 map(chr, [random.choice(pop) for i in range(99)]))
             serializer = itsdangerous.URLSafeTimedSerializer(secret)
             conn.root.serializer = serializer
+
+def set_cookie(jar, root, email):
+    jar.set_cookie(TOKEN, root.serializer.dumps(email))
