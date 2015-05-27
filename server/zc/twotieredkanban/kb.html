@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Two-Tiered Kanban</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/angular-material/angular-material.css">
+    <link rel="stylesheet" type="text/css" href="/static/kb.css">
+
+
+    <script src="/static/angular/angular.js"></script>
+    <script src="/static/angular-animate/angular-animate.js"></script>
+    <script src="/static/angular-aria/angular-aria.js"></script>
+    <script src="/static/angular-material/angular-material.js"></script>
+    <script src="/static/angular-material-icons/angular-material-icons.js"
+            ></script>
+    <script src="/static/angular-sanitize/angular-sanitize.js"></script>
+    <script src="/static/angular-ui-router/release/angular-ui-router.js"
+            ></script>
+
+    <script type="text/javascript">
+      angular.module("kb.initial", [])
+        .constant("INITIAL_EMAIL", %s)
+        .constant("INITIAL_EMAIL_HASH", %s)
+    </script>
+
+    <script src="https://login.persona.org/include.js"></script>
+    <script src="/static/persona.js"></script>
+
+    <script src="/static/controllers.js"></script>
+    <script src="/static/directives.js"></script>
+    <script src="/static/board.js"></script>
+    <script src="/static/login.js"></script>
+    <script src="/static/app.js"></script>
+  </head>
+  <body ng-app="kb">
+
+    <script type="text/ng-template" id="kbProjectColumn.html">
+      <td class="kb_project_column">
+        <kb-project ng-repeat="project in projects"></kb-project>
+      </div>
+    </script>
+
+    <script type="text/ng-template" id="kbProject.html">
+      <md-card id="{{project.id}}" draggable="true" class="kb-project">
+        <md-content>
+          <div ng-switch="state.substates && 'expanded'">
+            <table ng-switch-when="expanded">
+              <caption>
+                {{project.name}} [{{project.completed}}/{{project.size}}]
+              </caption>
+              <tr><th ng-repeat="state in state.substates"
+                      >{{state.label}}</th></tr>
+              <tr>
+                <td ng-repeat="state in state.substates" kb-task-column>
+                </td>
+              </tr>
+            </table>
+            <div ng-switch-default>
+              {{project.name}} [{{project.completed}}/{{project.size}}]
+              <ng-md-icon ng-if="! project_expanded"
+                          icon="arrow_drop_down"
+                          ng-click="expand()"
+                          ></ng-md-icon>
+              <div ng-if="project_expanded">
+                <ng-md-icon icon="arrow_drop_up"
+                            ng-click="unexpand()"
+                            ></ng-md-icon>
+                <div ng-bind-html="project.description | breakify"></div>
+                <kb-task ng-repeat="task in project.tasks[null]"></kb-task>
+              </div>
+            </div>
+          </div>
+          <div class="md-actions"
+               layout="row"
+               layout-align="start center"
+               ng-if="state.has_substates || project_expanded"
+               >
+            <ng-md-icon icon="add"
+                        ng-click="add_task($event)"
+                        ></ng-md-icon>
+            <ng-md-icon icon="mode_edit"
+                        ng-click="edit_project($event)"
+                        ></ng-md-icon>
+          </div>
+        </md-content>
+      </md-card>
+    </script>
+
+    <script type="text/ng-template" id="kbTaskColumn.html">
+      <td class="kb_task_column"
+          ng-class="{ kb_working: state.working, kb_complete: state.complete }"
+          id="{{project.id}}_{{state.name}}"
+          >
+        <kb-dev-task ng-repeat="task in tasks"></kb-task>
+      </td>
+    </script>
+
+    <script type="text/ng-template" id="kbDevTask.html">
+      <md-card id="{{task.id}}"
+               class="kb-dev-task"
+               draggable="true"
+               ng-class="{kb_blocked: task.blocked}"
+               ng-click="edit_task($event)"
+               >{{task.name}} [{{task.size}}]
+        <div ng-if="task.blocked" class="kb_blocked_reason">
+          {{task.blocked}}
+        </div>
+      </md-card>
+    </script>
+
+    <script type="text/ng-template" id="kbEditProject.html">
+      <md-dialog>
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="project_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="project_description"></textarea>
+            </md-input-container>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                {{action_label}}
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbNewTask.html">
+      <md-dialog aria-label="New task">
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="task_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="task_description"></textarea>
+            </md-input-container>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Add
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbEditTask.html">
+      <md-dialog aria-label="New task">
+        <md-dialog-content>
+          <form novalidate name="form_controller">
+            <md-input-container>
+              <label>Name</label>
+              <input type="text" ng-model="task_name" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Description</label>
+              <textarea ng-model="task_description"></textarea>
+            </md-input-container>
+            <md-input-container>
+              <label>Size</label>
+              <input type="text" ng-model="task_size" required>
+            </md-input-container>
+            <md-input-container>
+              <label>Blocked? Reason</label>
+              <textarea ng-model="task_blocked"></textarea>
+            </md-input-container>
+            <div class="md-actions" layout="row" layout-align="end center">
+              <md-button ng-click="cancel()">
+                Cancel
+              </md-button>
+              <md-button ng-click="submit()">
+                Apply
+              </md-button>
+            </div>
+          </form>
+        </md-dialog-content>
+      </md-dialog>
+    </script>
+
+    <script type="text/ng-template" id="kbBoard.html">
+      <md-content ng-controller="kbBoard">
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2>Two-tier kanban</h2>
+            <span flex></span>
+            <md-select ng-model="user_menu">
+              <md-select-label>
+                <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
+                     class="kb-avatar"
+                     />
+                <span class="kb-avatar-email">{{email}}</span>
+              </md-select-label>
+              <md-option ng-click="logout()">Logout</md-option>
+            </md-select>
+          </div>
+        </md-toolbar>
+        <table>
+          <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
+          <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
+        </table>
+        <md-button ng-click="new_project($event)">
+          Add project
+        </md-button>
+      </md-content>
+    </script>
+
+    <script type="text/ng-template" id="kbLogin.html">
+      <md-content>
+        You need to login to use the two-tiered kanban board.
+        <md-button ng-click="login()">
+          Login
+        </md-button>
+      </md-content>
+    </script>
+
+    <div ui-view></div>
+  </body>
+</html>
