@@ -5,6 +5,8 @@ A two-tiered kanban models processes with nested subprocesses.  A
 typical example is a product-develolpment process with a nested
 software-development process.
 
+.. image:: screenshot.png
+
 Why two-tiered kanban?  The goal of a lean organization is to provide
 value to its stakeholders.  The efforts of the organization must
 remain focussed on providing value.  Typical kanban boards focus on
