@@ -1,6 +1,18 @@
 Installation
 ============
 
+- Intall npm.
+
+  On Mac::
+
+     brew install npm
+
+- install grunt.
+
+  ::
+
+     npm install -g grunt-cli
+
 - Clone the repository.
 
 - Change to the project directory.
