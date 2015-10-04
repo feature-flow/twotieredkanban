@@ -1,0 +1,12 @@
+
+- burn-down chart
+- user admin
+- export/import
+- demo version
+- archive
+- browse archive
+- velocity
+- help/feedback
+- integration with tools:
+  - asana
+  - jira
