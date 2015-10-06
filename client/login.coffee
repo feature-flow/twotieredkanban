@@ -16,7 +16,7 @@ module.config(($stateProvider) ->
     })
   )
 
-module.factory("kbAuthInterceptor", (Board, $rootScope) ->
+module.factory("kbAuthInterceptor", ($rootScope) ->
   response: (response) ->
     if response.status == 401
       $rootScope.$emit("unauthenticated")
