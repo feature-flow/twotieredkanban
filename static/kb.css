@@ -52,3 +52,7 @@ md-card.kb-dev-task.kb_blocked {
 .kb_task_column {
     height: 20pt;
 }
+
+.centered-items {
+    align-items: center;
+}

@@ -196,15 +196,28 @@
           <div class="md-toolbar-tools">
             <h2>Two-tier kanban</h2>
             <span flex></span>
-            <md-select ng-model="user_menu">
-              <md-select-label>
-                <img ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
+
+
+            <md-menu md-position-mode="target-right target" >
+              <md-button aria-label="Open demo menu"
+                         ng-click="$mdOpenMenu($event)"
+                         >
+                <div layout="row" class="centered-items">
+                  <img
+                     ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
                      class="kb-avatar"
+                     width="20"
+                     height="20"
                      />
-                <span class="kb-avatar-email">{{email}}</span>
-              </md-select-label>
-              <md-option ng-click="logout()">Logout</md-option>
-            </md-select>
+                  <span class="kb-avatar-email">{{email}}</span>
+                </div>
+              </md-button>
+              <md-menu-content width="4" >
+                <md-menu-item>
+                  <md-button ng-click="logout()">Logout</md-button>
+                </md-menu-item>
+              </md-menu-content>
+            </md-menu>
           </div>
         </md-toolbar>
         <table>
