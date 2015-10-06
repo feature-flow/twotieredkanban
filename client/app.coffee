@@ -1,6 +1,5 @@
 app = angular.module(
   'kb', [
-    'kb.controllers'
     'kb.directives'
     'kb.login'
     'ui.router'
@@ -18,7 +17,7 @@ app.config(($stateProvider, $urlRouterProvider) ->
     })
   .state("board", {
     url: "/board"
-    templateUrl: "kbBoard.html"
+    template: "<kb-board></kb-board>"
     })
   )
 

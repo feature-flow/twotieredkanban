@@ -1,6 +1,34 @@
 directives = angular.module(
   "kb.directives",
-  ['ngMdIcons', "ngMaterial", "ngSanitize"])
+  ['kb.board', 'ngMdIcons', "ngMaterial", "ngSanitize"])
+
+directives.directive('kbBoard', (Board, $mdDialog, Persona, Server, kbUser) ->
+  restrict: "E"
+  replace: true
+  templateUrl: "kbBoard.html"
+  link: (scope) ->
+
+    scope.board = Board
+    scope.email = kbUser.email
+    scope.email_hash = kbUser.email_hash
+    Server.poll()
+
+    scope.logout = -> Persona.logout()
+
+    scope.new_project = (event) ->
+      $mdDialog.show(
+        controller: (scope, Server, $mdDialog) ->
+          scope.hide = -> $mdDialog.hide()
+          scope.cancel = -> $mdDialog.cancel()
+          scope.action_label = "Add"
+          scope.submit = () ->
+            Server.new_project(
+              scope.project_name, scope.project_description or "")
+            scope.hide()
+        templateUrl: "kbEditProject.html"
+        targetEvent: event
+        )
+  )
 
 directives.directive("kbProjectColumn", (Server) ->
   restrict: "A"
