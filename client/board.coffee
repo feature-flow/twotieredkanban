@@ -166,8 +166,9 @@ services.config(($httpProvider) ->
     $httpProvider.interceptors.push('kbInterceptor')
     )
 
-services.factory("Server", ($http) ->
+services.factory("Server", ($http, INITIAL_EMAIL, Board) ->
   poll: -> $http.get("/poll")
+  is_admin: -> INITIAL_EMAIL in Board.admins
   new_project: (name, description) ->
     $http.post("/releases", {
       name: name

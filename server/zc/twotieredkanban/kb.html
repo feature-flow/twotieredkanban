@@ -29,6 +29,7 @@
     <script src="/static/board.js"></script>
     <script src="/static/directives.js"></script>
     <script src="/static/login.js"></script>
+    <script src="/static/users.js"></script>
     <script src="/static/app.js"></script>
   </head>
   <body ng-app="kb">
@@ -197,7 +198,6 @@
             <h2>Two-tier kanban</h2>
             <span flex></span>
 
-
             <md-menu md-position-mode="target-right target" >
               <md-button aria-label="Open demo menu"
                          ng-click="$mdOpenMenu($event)"
@@ -215,6 +215,10 @@
               <md-menu-content width="4" >
                 <md-menu-item>
                   <md-button ng-click="logout()">Logout</md-button>
+                </md-menu-item>
+                <md-menu-item ng-show="is_admin">
+                  <md-button ng-click="manage_users($event)"
+                             >Manage users</md-button>
                 </md-menu-item>
               </md-menu-content>
             </md-menu>

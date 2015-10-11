@@ -1,34 +1,40 @@
 directives = angular.module(
   "kb.directives",
-  ['kb.board', 'ngMdIcons', "ngMaterial", "ngSanitize"])
+  ['kb.board', 'kb.login', 'kb.users', 'ngMdIcons', "ngMaterial", "ngSanitize"])
 
-directives.directive('kbBoard', (Board, $mdDialog, Persona, Server, kbUser) ->
-  restrict: "E"
-  replace: true
-  templateUrl: "kbBoard.html"
-  link: (scope) ->
+directives.directive(
+  'kbBoard',
+  (Board, $mdDialog, Persona, Server, kbUser, kbUsers) ->
+    restrict: "E"
+    replace: true
+    templateUrl: "kbBoard.html"
+    link: (scope) ->
 
-    scope.board = Board
-    scope.email = kbUser.email
-    scope.email_hash = kbUser.email_hash
-    Server.poll()
-
-    scope.logout = -> Persona.logout()
-
-    scope.new_project = (event) ->
-      $mdDialog.show(
-        controller: (scope, Server, $mdDialog) ->
-          scope.hide = -> $mdDialog.hide()
-          scope.cancel = -> $mdDialog.cancel()
-          scope.action_label = "Add"
-          scope.submit = () ->
-            Server.new_project(
-              scope.project_name, scope.project_description or "")
-            scope.hide()
-        templateUrl: "kbEditProject.html"
-        targetEvent: event
+      scope.board = Board
+      scope.email = kbUser.email
+      scope.email_hash = kbUser.email_hash
+      Server.poll().then(() ->
+        scope.is_admin = Server.is_admin()
         )
-  )
+
+      scope.logout = -> Persona.logout()
+
+      scope.new_project = (event) ->
+        $mdDialog.show(
+          controller: (scope, Server, $mdDialog) ->
+            scope.hide = -> $mdDialog.hide()
+            scope.cancel = -> $mdDialog.cancel()
+            scope.action_label = "Add"
+            scope.submit = () ->
+              Server.new_project(
+                scope.project_name, scope.project_description or "")
+              scope.hide()
+          templateUrl: "kbEditProject.html"
+          targetEvent: event
+          )
+
+      scope.manage_users = kbUsers.manage
+    )
 
 directives.directive("kbProjectColumn", (Server) ->
   restrict: "A"
@@ -198,4 +204,16 @@ directives.directive("kbDevTask", ($mdDialog) ->
 
 directives.filter('breakify', ->
   (text) -> text.replace("\n\n", "<br><br>")
+  )
+
+directives.directive('kbReturn', () ->
+  restrict: 'A'
+  scope: { result: '=kbReturn', keydown: '=' }
+  link: (scope) ->
+    scope.keydown = (event) ->
+      key = event.which or event.keyCode
+      if key == 13
+        scope.result(true)
+      if key == 27
+        scope.result(false)
   )

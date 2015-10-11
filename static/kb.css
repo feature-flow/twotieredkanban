@@ -56,3 +56,17 @@ md-card.kb-dev-task.kb_blocked {
 .centered-items {
     align-items: center;
 }
+
+.user-table table,tr,td {
+    border: none;
+}
+.user-table .md-button {
+    border: none;
+    margin-left: 0px;
+}
+.user-table h4 {
+    margin: 0px 0px 1ex;
+}
+.user-table table {
+    width: 40em;
+}
