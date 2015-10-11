@@ -217,3 +217,30 @@ directives.directive('kbReturn', () ->
       if key == 27
         scope.result(false)
   )
+
+directives.factory('kbDialog', ($mdDialog, $injector) ->
+  show: (props) ->
+    $mdDialog.show(
+      controller: ($scope, $mdDialog) ->
+        for name, val of props.scope
+          $scope[name] = val
+        $scope.cancel = $mdDialog.cancel
+        $scope.hide = $mdDialog.hide
+        if props.controller?
+          props.controller($scope)
+      targetEvent: event
+      template: """
+        <md-dialog aria-label="{{ title }}">
+          <md-dialog-content>#{ props.template }</md-dialog-content>
+          <div class="md-actions" layout="row" layout-align="end center">
+            <md-button ng-click="cancel()">
+              Cancel
+            </md-button>
+            <md-button ng-click="submit()" ng-disabled="disabled">
+              {{ action }}
+            </md-button>
+          </div>
+        </md-dialog>
+        """
+      )
+  )

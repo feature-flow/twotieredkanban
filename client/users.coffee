@@ -1,35 +1,20 @@
-m = angular.module('kb.users', ['kb.board'])
+m = angular.module('kb.users', ['kb.board', 'kb.directives'])
 
-m.factory('kbUsers', (Board, $http, $mdDialog) ->
+m.factory('kbUsers', (Board, $http, kbDialog) ->
   manage: (event) ->
-    $mdDialog.show(
-      controller: ($scope, $mdDialog) ->
-        $scope.users =
-           admins: Board.admins
-           users: Board.users
-        $scope.disabled = true
+    kbDialog.show(
+      scope:
+        title: 'Users'
+        action: 'Update'
+        users:
+          admins: Board.admins
+          users: Board.users
+        disabled: true
+      template: '<kb-users ng-model="users" ng-change="changed()"></kb-users>'
+      controller: ($scope) ->
         $scope.changed = () -> $scope.disabled = false
-        $scope.title = "Users"
-        $scope.action = "Update"
-        $scope.cancel = $mdDialog.cancel
         $scope.submit = () ->
-           $http.put('/', $scope.users).then(() -> $mdDialog.hide())
-      template: '''
-        <md-dialog aria-label="{{ title }}">
-          <md-dialog-content>
-          <kb-users ng-model="users" ng-change="changed()"></kb-users>
-          </md-dialog-content>
-          <div class="md-actions" layout="row" layout-align="end center">
-            <md-button ng-click="cancel()">
-              Cancel
-            </md-button>
-            <md-button ng-click="submit()" ng-disabled="disabled">
-              {{ action }}
-            </md-button>
-          </div>
-        </md-dialog>
-        '''
-      targetEvent: event
+           $http.put('/', $scope.users).then(() -> $scope.hide())
       )
   )
 
