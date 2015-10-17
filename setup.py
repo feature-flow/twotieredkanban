@@ -15,7 +15,10 @@ install_requires = [
     'zc.persona',
     'zope.exceptions',                  # XXX required by zodbwsgi
     ]
-extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
+extras_require = dict(
+    test=['manuel', 'mock', 'zope.testing', 'webtest'],
+    jira='jira PyJWT cryptography'.split(),
+    )
 
 entry_points = """
 [zc.buildout]

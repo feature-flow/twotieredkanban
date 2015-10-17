@@ -6,8 +6,11 @@ import logging
 import os
 import persistent
 import time
+import sys
 import zc.generationalset
 import webob
+import zc.twotieredkanban.jira
+
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +123,11 @@ class API(Persona):
     def delete_task(self, request, task_id):
         self.kanban.archive_task(task_id)
         return self.response()
+
+    @bobo.post('/jira')
+    def post_jira(self):
+        zc.twotieredkanban.jira.webhook(self.kanban, self.request)
+        return 'OK'
 
 def initialize_database(initial_email):
     def initialize(database):

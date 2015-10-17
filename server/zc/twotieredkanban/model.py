@@ -137,7 +137,8 @@ class Task(persistent.Persistent):
     archive = ()
     complete = None
 
-    def __init__(self, name, description='', size=1, blocked=None, parent=None):
+    def __init__(self, name, description='', size=1, blocked=None, parent=None,
+                 assigned=None):
         self.id = uuid.uuid1().hex
         self.created = time.time()
         self.name = name
