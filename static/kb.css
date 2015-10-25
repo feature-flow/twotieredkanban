@@ -70,3 +70,7 @@ md-card.kb-dev-task.kb_blocked {
 .user-table table {
     width: 40em;
 }
+
+.kb-board button.kb-try-now span {
+    color: #3f51b5
+}

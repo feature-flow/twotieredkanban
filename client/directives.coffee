@@ -13,11 +13,12 @@ directives.directive(
       scope.board = Board
       scope.email = kbUser.email
       scope.email_hash = kbUser.email_hash
-      Server.poll().then(() ->
-        scope.is_admin = Server.is_admin()
-        )
+      Board.ready.then( -> scope.is_admin = Server.is_admin())
 
       scope.logout = -> Persona.logout()
+
+      scope.status = Server.status
+      scope.try_now = -> Server.start_polling()
 
       scope.new_project = (event) ->
         $mdDialog.show(

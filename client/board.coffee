@@ -50,7 +50,7 @@ class Task
 
 class Board
 
-  constructor:  ->
+  constructor:  () ->
     @admins = []
     @users = []
     @generation = 0
@@ -82,7 +82,12 @@ class Board
     project.state = state.id
     state.projects.push(project)
 
+  _resolve: ->
+
   apply_updates: (updates) ->
+    @_resolve()
+    @_resolve = ->
+
     if updates.kanban?
         @admins[..] = updates.kanban["admins"]
         @users[..]  = updates.kanban["users"]
@@ -143,9 +148,13 @@ class Board
 
     @generation = updates.generation
 
-board = new Board()
-
-services.factory("Board", () -> board)
+services.factory(
+  "Board"
+  ($q) ->
+    board = new Board()
+    board.ready = $q((resolve) -> board._resolve = resolve)
+    board
+  )
 
 services.factory("kbInterceptor", (Board) ->
   header = "X-Generation"
@@ -166,32 +175,88 @@ services.config(($httpProvider) ->
     $httpProvider.interceptors.push('kbInterceptor')
     )
 
-services.factory("Server", ($http, INITIAL_EMAIL, Board) ->
-  poll: -> $http.get("/poll")
-  is_admin: -> INITIAL_EMAIL in Board.admins
-  new_project: (name, description) ->
-    $http.post("/releases", {
-      name: name
-      description: description
-      })
-  update_project: (project, name, description) ->
-    $http.put("/releases/" + project.id, {
-      name: name
-      description: description
-      })
+services.run((Server, $rootScope) ->
+  Server.start_polling()
+  document.addEventListener("visibilitychange", () ->
+    if document.visibilityState == 'visible'
+      $rootScope.$apply(Server.start_polling)
+    else  
+      Server.stop_polling()
+    )
+  )
 
-  new_task: (project, name, description) ->
-    $http.post("/releases/" + project.id, {
-      name: name
-      description: description
-      })
-  update_task: (task, name, description, size, blocked) ->
-    $http.put("/tasks/" + task.id, {
-      name: name
-      description: description
-      size: size
-      blocked: blocked
-      })
-  move_task: (task, state) ->
-    $http.put("/move/#{ task.id }", { state: state.id })
+services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
+
+  class Poller
+    constructor: () ->
+      @active = true
+      @status = 'starting'
+
+    cancel: ->
+      @active = false
+      @status = 'canceled'
+
+    wait: (waiting, retry) ->
+      if @active
+        if waiting > 0
+          @status = "Failed: retrying in #{ Math.round(waiting) } seconds"
+          $timeout(
+            () => @wait(waiting-1, retry)
+            Math.min(waiting*1000, 1000)
+            )
+        else
+          @status = 'connecting'
+          @poll("/poll", retry)
+
+    poll: (url='/longpoll', retry=.5) ->
+      $http.get(url).then(
+        () =>
+          if @active
+            @status = 'connected'
+            @poll()
+        (resp) =>
+          if @active
+            @status = 'failed'
+            retry *= 2 if retry < 33
+            @wait((Math.random() + .5) * retry, retry)
+        )
+
+  poller = new Poller()
+
+  {
+    start_polling: ->
+      poller.cancel()
+      poller = new Poller()
+      poller.poll('/poll')
+    stop_polling: ->
+      poller.cancel()
+    status: ->
+      poller.status
+    is_admin: -> INITIAL_EMAIL in Board.admins
+    new_project: (name, description) ->
+      $http.post("/releases", {
+        name: name
+        description: description
+        })
+    update_project: (project, name, description) ->
+      $http.put("/releases/" + project.id, {
+        name: name
+        description: description
+        })
+
+    new_task: (project, name, description) ->
+      $http.post("/releases/" + project.id, {
+        name: name
+        description: description
+        })
+    update_task: (task, name, description, size, blocked) ->
+      $http.put("/tasks/" + task.id, {
+        name: name
+        description: description
+        size: size
+        blocked: blocked
+        })
+    move_task: (task, state) ->
+      $http.put("/move/#{ task.id }", { state: state.id })
+    }
   )

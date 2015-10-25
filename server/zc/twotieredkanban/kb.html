@@ -192,10 +192,17 @@
     </script>
 
     <script type="text/ng-template" id="kbBoard.html">
-      <md-content>
+      <md-content class="kb-board">
         <md-toolbar>
           <div class="md-toolbar-tools">
-            <h2>Two-tier kanban</h2>
+            <h2>Two-tier kanban
+              <span ng-show="status() != 'connected'">
+                ({{ status() }}
+                <md-button class="md-raised kb-try-now" ng-click="try_now()">
+                  Try now
+                </md-button>)
+              </span>
+            </h2>
             <span flex></span>
 
             <md-menu md-position-mode="target-right target" >

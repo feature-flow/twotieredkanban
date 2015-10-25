@@ -1,4 +1,7 @@
 from zc.twotieredkanban.persona import Persona
+from gevent.event import Event
+import gevent.hub
+
 import bobo
 import datetime
 import json
@@ -29,8 +32,6 @@ def delete(*args, **kw):
 def read_file(path):
     with open(os.path.join(os.path.dirname(__file__), path)) as f:
         return f.read()
-
-clients = set()
 
 class Encoder(json.JSONEncoder):
 
@@ -83,6 +84,33 @@ class API(Persona):
     def poll(self):
         return self.response()
 
+    @get("/longpoll")
+    def longpoll(self):
+        generation = self.request.headers.get('x-generation', 0)
+        updates = self.kanban.updates(int(generation))
+        if updates:
+            return self.response()
+
+        oid = self.kanban.tasks._p_oid
+        self.connection.close()
+
+        if oid not in waiting:
+            waiting[oid] = []
+
+        event = Event()
+        waiting[oid].append(event)
+        event.wait(300) # Timeout cuz client might have gone away
+        try:
+            waiting[oid].remove(event)
+        except ValueError:
+            pass
+
+        response = webob.Response(content_type="application/json")
+        response.body = '{}'
+        response.cache_control = 'no-cache'
+        response.pragma = 'no-cache'
+        return response
+
     @put("/")
     def admin(self, users, admins):
         self.kanban.update(users, admins)
@@ -123,10 +151,28 @@ class API(Persona):
 
 def initialize_database(initial_email):
     def initialize(database):
+
         with database.transaction() as conn:
             if not hasattr(conn.root, 'kanban'):
                 from zc.twotieredkanban.model import Kanban
                 conn.root.kanban = Kanban(initial_email)
         zc.twotieredkanban.persona.initialize_database(database)
 
+        orig_invalidate = database.invalidate
+        def patched_invalidate(tid, oids, *a, **kw):
+            orig_invalidate(tid, oids, *a, **kw)
+            invalidated(oids)
+        database.invalidate = patched_invalidate
+
     return initialize
+
+async = gevent.hub.get_hub().loop.async()
+def invalidated(oids):
+    for oid in oids:
+        events = waiting.get(oid)
+        while events:
+            events.pop().set()
+
+    async.send()
+
+waiting = {}

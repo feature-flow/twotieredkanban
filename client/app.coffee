@@ -3,6 +3,7 @@ app = angular.module(
     'kb.directives'
     'kb.login'
     'ui.router'
+    'kb.board'
     ])
 
 app.config(($stateProvider, $urlRouterProvider) ->
@@ -11,8 +12,7 @@ app.config(($stateProvider, $urlRouterProvider) ->
   $stateProvider
   .state("Loading", {
     url: "/"
-    controller: ($state, Server) ->
-      Server.poll().then( -> $state.go("board"))
+    controller: ($state, Board) -> Board.ready.then( -> $state.go("board"))
     template: "<md-content>Loading ...<md-content>"
     })
   .state("board", {
@@ -20,4 +20,3 @@ app.config(($stateProvider, $urlRouterProvider) ->
     template: "<kb-board></kb-board>"
     })
   )
-
