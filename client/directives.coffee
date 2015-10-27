@@ -40,7 +40,10 @@ directives.directive(
 directives.directive("kbProjectColumn", (Server) ->
   restrict: "A"
   replace: true
-  templateUrl: "kbProjectColumn.html"
+  template: '
+    <td class="kb_project_column">
+      <kb-project ng-repeat="project in projects"></kb-project>
+    </div>'
   link: (scope, el) ->
 
     projects = scope.state.projects
@@ -149,7 +152,13 @@ directives.directive("kbProject", ($mdDialog) ->
 directives.directive("kbTaskColumn", (Server) ->
   restrict: "A"
   replace: true
-  templateUrl: "kbTaskColumn.html"
+  template: '
+    <td class="kb_task_column"
+        ng-class="{ kb_working: state.working, kb_complete: state.complete }"
+        id="{{project.id}}_{{state.name}}"
+        >
+      <kb-dev-task ng-repeat="task in tasks"></kb-task>
+    </td>'
   link: (scope, el) ->
     tasks = scope.project.tasks[scope.state.id]
     if not tasks?
@@ -177,15 +186,13 @@ directives.directive("kbTaskColumn", (Server) ->
       )
   )
 
-task_template = '
-<md-card ng-click="edit_task($event)">
-  {{task.name}} [{{task.size}}]
-</md-card>'
-
 directives.directive("kbTask", ($mdDialog) ->
   restrict: "E"
   replace: true
-  template: task_template
+  template: '
+    <md-card ng-click="edit_task($event)">
+      {{task.name}} [{{task.size}}]
+    </md-card>'
   link: (scope, el) ->
     scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
   )
@@ -194,7 +201,17 @@ directives.directive("kbTask", ($mdDialog) ->
 directives.directive("kbDevTask", ($mdDialog) ->
   restrict: "E"
   replace: true
-  templateUrl: "kbDevTask.html"
+  template: '
+    <md-card id="{{task.id}}"
+             class="kb-dev-task"
+             draggable="true"
+             ng-class="{kb_blocked: task.blocked}"
+             ng-click="edit_task($event)"
+             >{{task.name}} [{{task.size}}]
+      <div ng-if="task.blocked" class="kb_blocked_reason">
+        {{task.blocked}}
+      </div>
+    </md-card>'
   link: (scope, el) ->
     el.bind("dragstart", (ev) ->
       ev.dataTransfer.setData("text/" + scope.project.id, ev.target.id)

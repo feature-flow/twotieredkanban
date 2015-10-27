@@ -34,12 +34,6 @@
   </head>
   <body ng-app="kb">
 
-    <script type="text/ng-template" id="kbProjectColumn.html">
-      <td class="kb_project_column">
-        <kb-project ng-repeat="project in projects"></kb-project>
-      </div>
-    </script>
-
     <script type="text/ng-template" id="kbProject.html">
       <md-card id="{{project.id}}" draggable="true" class="kb-project">
         <md-content>
@@ -83,28 +77,6 @@
                         ></ng-md-icon>
           </div>
         </md-content>
-      </md-card>
-    </script>
-
-    <script type="text/ng-template" id="kbTaskColumn.html">
-      <td class="kb_task_column"
-          ng-class="{ kb_working: state.working, kb_complete: state.complete }"
-          id="{{project.id}}_{{state.name}}"
-          >
-        <kb-dev-task ng-repeat="task in tasks"></kb-task>
-      </td>
-    </script>
-
-    <script type="text/ng-template" id="kbDevTask.html">
-      <md-card id="{{task.id}}"
-               class="kb-dev-task"
-               draggable="true"
-               ng-class="{kb_blocked: task.blocked}"
-               ng-click="edit_task($event)"
-               >{{task.name}} [{{task.size}}]
-        <div ng-if="task.blocked" class="kb_blocked_reason">
-          {{task.blocked}}
-        </div>
       </md-card>
     </script>
 
@@ -237,15 +209,6 @@
         </table>
         <md-button ng-click="new_project($event)">
           Add project
-        </md-button>
-      </md-content>
-    </script>
-
-    <script type="text/ng-template" id="kbLogin.html">
-      <md-content>
-        You need to login to use the two-tiered kanban board.
-        <md-button ng-click="login()">
-          Login
         </md-button>
       </md-content>
     </script>
