@@ -127,8 +127,8 @@ class API(Persona):
         return self.response()
 
     @put("/move/:task_id")
-    def move_release(self, task_id, state):
-        self.kanban.transition(task_id, state)
+    def move_release(self, task_id, parent_id, state):
+        self.kanban.transition(task_id, parent_id, state)
         return self.response()
 
     @post("/releases/:release_id")

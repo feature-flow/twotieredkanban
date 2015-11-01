@@ -1,86 +1,76 @@
 services = angular.module("kb.board", [])
 
-class Task
-  constructor: (@id, @name, @description, @state, @blocked, @created,
-                @assigned, @size, @complete, @parent=null) ->
-    if not @parent?
-      @tasks = {null: []} # {state -> [task]}, null state is all
-      @completed = 0
-    if not @size
-      @size = 0
+ar_remove = (list, element) -> list.splice(list.indexOf(element), 1)
+
+class TaskContainer
+  constructor: (@total_size = 0, @total_completed = 0, @count=0) ->
+    @subtasks_by_state = {} # {state_id -> [task]
+
+  subtasks: (state) ->
+    if not @subtasks_by_state[state]?
+      @subtasks_by_state[state] = []
+    @subtasks_by_state[state]
 
   add_subtask: (task) ->
-    if @tasks[task.state]?
-      @tasks[task.state].push(task)
-    else
-      @tasks[task.state] = [task]
-    @tasks[null].push(task)
-    @update_project_size()
+    @subtasks(task.state).push(task)
+    @subtasks().push(task)
+    @update_stats()
 
-  update_project_size: ->
-    @size = 0
-    @completed = 0
-    for task in @tasks[null]
-      @size += task.size
-      if task.complete?
-        @completed += task.size
+  remove_subtask: (task) ->
+     ar_remove(@subtasks(task.state), task)
+     ar_remove(@subtasks(), task)
+     @update_stats()
 
+  update_stats: () ->
+    @total_completed = @total_size = @count = 0
+    for task in @subtasks()
+      @count += 1
+      @total_size += task.size
+      if task.complete then @total_completed += 1
+      
 
-  move_subtask: (task, state) ->
-    if state != task.state
-      old_tasks = @tasks[task.state]
-      index = old_tasks.indexOf(task)
-      old_tasks[index .. index] = []
-      task.state = state
-      if not @tasks[state]
-        @tasks[state] = []
-      @tasks[state].push(task)
+class Task extends TaskContainer
+  constructor: (@id, @name, @description, @state, @blocked, @created,
+                @assigned, @size=0, @complete=false, @parent=null) ->
+    super()
 
   update: (task) ->
     @name = task.name
     @description = task.description
-    if @parent?
-      @blocked = task.blocked
-      @created = task.created
-      @assigned = task.assigned
-      @size = task.size
-      @complete = task.complete
-      @parent.move_subtask(this, task.state)
-      @parent.update_project_size()
+    @blocked = task.blocked
+    @created = task.created
+    @assigned = task.assigned
+    @size = task.size
+    @complete = task.complete
+    @parent = task.parent
+    @state = task.state
 
-class Board
+class Board extends TaskContainer
 
   constructor:  () ->
+    super()
     @admins = []
     @users = []
     @generation = 0
-    @tasks = {}
-    @states = []
-    @states_by_id = {}
+    @tasks = {} # {id -> task} for all tasks
+    @states = [] # [top-level-state]
+    @states_by_id = {} # {id -> top-level-state
 
   add_task: (task) ->
     old = @tasks[task.id]
+    add = true
     if old?
+      if task.parent != old.parent or task.state != old.state
+        (if old.parent? then old.parent else this).remove_subtask(old)
+      else
+        add = false
       old.update(task)
-      if task.state != old.state
-        if old.parent?
-          old.parent.move_subtask(old, task.state)
-        else
-          @move_project(old, task.state)
+      task = old
     else
       @tasks[task.id] = task
-      if task.parent?
-        task.parent.add_subtask(task)
-      else
-        @states_by_id[task.state].projects.push(task)
 
-  move_project: (project, state) ->
-    state = @states_by_id[state]
-    old_projects = @states_by_id[project.state].projects
-    index = old_projects.indexOf(project)
-    old_projects[index .. index] = []
-    project.state = state.id
-    state.projects.push(project)
+    if add
+      (if task.parent? then task.parent else this).add_subtask(task)
 
   _resolve: ->
 
@@ -93,26 +83,33 @@ class Board
         @users[..]  = updates.kanban["users"]
 
     if updates.states?
-      # TODO: only handling new states
+      # XXX not checking changes in parentage.
+      # We probably won't allow that.
 
       # top-level states
       for state in updates.states.adds
         if not state.parent?
-          @states.push(state)
-          @states_by_id[state.id] = state
-          state.projects = []
-          state.has_substates = false
+          if @states_by_id[state.id]?
+            angular.extend(@states_by_id[state.id], state)
+          else
+            @states.push(state)
+            @states_by_id[state.id] = state
+            state.projects = @subtasks(state.id)
+            state.has_substates = false
 
       # substates
       for state in updates.states.adds
         if state.parent?
-          parent = @states_by_id[state.parent]
-          if not parent.substates?
-            parent.substates = []
-            parent.has_substates = true
-          parent.substates.push(state)
-          if not @default_substate?
-            @default_substate = state.id
+          if @states_by_id[state.id]?
+            angular.extend(@states_by_id[state.id], state)
+          else
+            parent = @states_by_id[state.parent]
+            if not parent.substates?
+              parent.substates = []
+              parent.has_substates = true
+            parent.substates.push(state)
+            if not @default_substate?
+              @default_substate = state.id
 
     if updates.tasks?
       # TODO: only handling new and updates
@@ -256,7 +253,11 @@ services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
         size: size
         blocked: blocked
         })
-    move_task: (task, state) ->
-      $http.put("/move/#{ task.id }", { state: state.id })
+    move_task: (task, parent, state) ->
+      $http.put("/move/#{ task.id }"
+                {
+                  state: state.id
+                  parent_id: if parent? then parent.id else null
+                })
     }
   )

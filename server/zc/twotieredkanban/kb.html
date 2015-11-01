@@ -34,23 +34,86 @@
   </head>
   <body ng-app="kb">
 
+    <script type="text/ng-template" id="kbBoard.html">
+      <md-content class="kb-board">
+
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2>Two-tier kanban
+              <span ng-show="status() != 'connected'">
+                ({{ status() }}
+                <md-button class="md-raised kb-try-now" ng-click="try_now()">
+                  Try now
+                </md-button>)
+              </span>
+            </h2>
+            <span flex></span>
+
+            <md-menu md-position-mode="target-right target" >
+              <md-button aria-label="Open demo menu"
+                         ng-click="$mdOpenMenu($event)"
+                         >
+                <div layout="row" class="centered-items">
+                  <img
+                     ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
+                     class="kb-avatar"
+                     width="20"
+                     height="20"
+                     />
+                  <span class="kb-avatar-email">{{email}}</span>
+                </div>
+              </md-button>
+              <md-menu-content width="4" >
+                <md-menu-item>
+                  <md-button ng-click="logout()">Logout</md-button>
+                </md-menu-item>
+                <md-menu-item ng-show="is_admin">
+                  <md-button ng-click="manage_users($event)"
+                             >Manage users</md-button>
+                </md-menu-item>
+              </md-menu-content>
+            </md-menu>
+          </div>
+        </md-toolbar>
+
+        <table>
+          <tr><th ng-repeat="state in states.slice(1)">{{state.label}}</th></tr>
+          <tr><td ng-repeat="state in states.slice(1)"
+                  kb-project-column state="state">
+          </td></tr>
+        </table>
+
+        <div class="backlog">
+          <h4>{{ states[0].label }}</h4>
+          <kb-project-column state="states[0]"></kb-project-column>
+          <md-button ng-click="new_project($event)">
+            Add project
+          </md-button>
+        </div>
+
+      </md-content>
+    </script>
+
     <script type="text/ng-template" id="kbProject.html">
       <md-card id="{{project.id}}" draggable="true" class="kb-project">
         <md-content>
           <div ng-switch="state.substates && 'expanded'">
             <table ng-switch-when="expanded">
               <caption>
-                {{project.name}} [{{project.completed}}/{{project.size}}]
+                {{ project.name}}
+                [{{ project.total_completed }}/{{ project.total_size }}]
               </caption>
               <tr><th ng-repeat="state in state.substates"
                       >{{state.label}}</th></tr>
               <tr>
-                <td ng-repeat="state in state.substates" kb-task-column>
+                <td ng-repeat="state in state.substates"
+                    kb-task-column state="state" project="project">
                 </td>
               </tr>
             </table>
             <div ng-switch-default>
-              {{project.name}} [{{project.completed}}/{{project.size}}]
+              {{ project.name }}
+              [{{ project.total_completed}}/{{ project.total_size }}]
               <ng-md-icon ng-if="! project_expanded"
                           icon="arrow_drop_down"
                           ng-click="expand()"
@@ -60,7 +123,8 @@
                             ng-click="unexpand()"
                             ></ng-md-icon>
                 <div ng-bind-html="project.description | breakify"></div>
-                <kb-task ng-repeat="task in project.tasks[null]"></kb-task>
+                <kb-task ng-repeat="task in project.subtasks()" task="task">
+                </kb-task>
               </div>
             </div>
           </div>
@@ -81,7 +145,7 @@
     </script>
 
     <script type="text/ng-template" id="kbEditProject.html">
-      <md-dialog>
+      <md-dialog class="kb-edit-project">
         <md-dialog-content>
           <form novalidate name="form_controller">
             <md-input-container>
@@ -161,56 +225,6 @@
           </form>
         </md-dialog-content>
       </md-dialog>
-    </script>
-
-    <script type="text/ng-template" id="kbBoard.html">
-      <md-content class="kb-board">
-        <md-toolbar>
-          <div class="md-toolbar-tools">
-            <h2>Two-tier kanban
-              <span ng-show="status() != 'connected'">
-                ({{ status() }}
-                <md-button class="md-raised kb-try-now" ng-click="try_now()">
-                  Try now
-                </md-button>)
-              </span>
-            </h2>
-            <span flex></span>
-
-            <md-menu md-position-mode="target-right target" >
-              <md-button aria-label="Open demo menu"
-                         ng-click="$mdOpenMenu($event)"
-                         >
-                <div layout="row" class="centered-items">
-                  <img
-                     ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
-                     class="kb-avatar"
-                     width="20"
-                     height="20"
-                     />
-                  <span class="kb-avatar-email">{{email}}</span>
-                </div>
-              </md-button>
-              <md-menu-content width="4" >
-                <md-menu-item>
-                  <md-button ng-click="logout()">Logout</md-button>
-                </md-menu-item>
-                <md-menu-item ng-show="is_admin">
-                  <md-button ng-click="manage_users($event)"
-                             >Manage users</md-button>
-                </md-menu-item>
-              </md-menu-content>
-            </md-menu>
-          </div>
-        </md-toolbar>
-        <table>
-          <tr><th ng-repeat="state in board.states">{{state.label}}</th></tr>
-          <tr><td ng-repeat="state in board.states" kb-project-column></td></tr>
-        </table>
-        <md-button ng-click="new_project($event)">
-          Add project
-        </md-button>
-      </md-content>
     </script>
 
     <div ui-view></div>

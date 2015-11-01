@@ -73,11 +73,21 @@ class Kanban(persistent.Persistent):
             task.size = size
         self.tasks.changed(task)
 
-    def transition(self, task_id, state):
+    def transition(self, task_id, parent_id, state):
         task = self.tasks[task_id]
+        parent = self.tasks[parent_id] if parent_id is not None else None
+        if parent is not task.parent:
+            if task.parent is None:
+                # We're demoting a release to a task. Make sure it has
+                # no children
+                if any(t for t in self.tasks if t.parent is task):
+                    raise TaskValueError(
+                        "Can't make non-empty project into a task")
+            task.parent = parent
+
         state = self.states[state]
         if ((task.parent is None or state.parent is None) and
-            task.parent is not state.parent):
+            task.parent is not state.parent): # both or neither are None
             raise TaskValueError("Invalid state")
         if task.parent:
             if state.complete:

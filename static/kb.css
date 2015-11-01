@@ -47,10 +47,10 @@ md-card.kb-dev-task.kb_blocked {
 } 
 
 .kb_project_column {
-    height: 72pt;
+    height: 3ex;
 }
 .kb_task_column {
-    height: 20pt;
+    height: 1ex;
 }
 
 .centered-items {
@@ -72,5 +72,22 @@ md-card.kb-dev-task.kb_blocked {
 }
 
 .kb-board button.kb-try-now span {
-    color: #3f51b5
+    color: #3f51b5;
+}
+
+table tr .dragover {
+    border: 4px solid green;
+}
+
+.kb-task-divider {
+    height: .5ex;
+}
+.kb-task-tail {
+    flex-grow: 1;
+}
+
+.kb-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }

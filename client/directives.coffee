@@ -2,15 +2,19 @@ directives = angular.module(
   "kb.directives",
   ['kb.board', 'kb.login', 'kb.users', 'ngMdIcons', "ngMaterial", "ngSanitize"])
 
-directives.directive(
+directive = (name, func) -> directives.directive(name, func)
+
+directive(
   'kbBoard',
   (Board, $mdDialog, Persona, Server, kbUser, kbUsers) ->
     restrict: "E"
     replace: true
     templateUrl: "kbBoard.html"
+    scope: {}
     link: (scope) ->
 
       scope.board = Board
+      scope.states = Board.states
       scope.email = kbUser.email
       scope.email_hash = kbUser.email_hash
       Board.ready.then( -> scope.is_admin = Server.is_admin())
@@ -37,38 +41,49 @@ directives.directive(
       scope.manage_users = kbUsers.manage
     )
 
-directives.directive("kbProjectColumn", (Server) ->
-  restrict: "A"
+directive("kbProjectColumn", () ->
   replace: true
   template: '
-    <td class="kb_project_column">
-      <kb-project ng-repeat="project in projects"></kb-project>
-    </div>'
+    <td class="kb_project_column"">
+      <div class="kb-column">
+        <div ng-repeat="project in state.projects">
+          <kb-project-divider state="state"></kb-project-divider>
+          <kb-project state="state" project="project"></kb-project>
+        </div>
+        <kb-project-divider state="state" class="kb-task-tail">
+        </kb-project-divider>
+      </div>
+    </td>'
+  scope: { state: '=' }
+  link: (scope, el) ->
+  )
+
+highlight_drag = (el) ->
+  el.on('dragenter', (ev) -> el.addClass('dragover'))
+  el.on('dragleave', (ev) -> el.removeClass('dragover'))
+
+directive('kbProjectDivider', (Board, Server) ->
+  replace: true
+  template: '<div class="kb-task-divider"></div>'
+  scope: { state: '=' }
   link: (scope, el) ->
 
-    projects = scope.state.projects
-    scope.projects = projects
-
-    drag_type = "text/project"
+    highlight_drag(el)
 
     el.bind("dragover", (ev) ->
-      if drag_type in ev.dataTransfer.types
-          ev.preventDefault()
-          false
-      else
-          true
+      ev.preventDefault()
+      false
       )
 
     el.bind("drop", (ev) ->
-      if drag_type in ev.dataTransfer.types
-        ev.preventDefault()
-        id = ev.dataTransfer.getData(drag_type)
-        project = scope.board.tasks[id]
-        if project.state != scope.state.id
-          Server.move_task(project, scope.state)
+      ev.preventDefault()
+      el.removeClass('dragover')
+      id = ev.dataTransfer.getData('text/task')
+      project = Board.tasks[id]
+      if project.state != scope.state.id
+        Server.move_task(project, undefined, scope.state)
       )
-
-    )
+  )
 
 edit_task = ($mdDialog, task, event) ->
   $mdDialog.show(
@@ -95,15 +110,18 @@ edit_task = ($mdDialog, task, event) ->
     targetEvent: event
     )
 
-
-directives.directive("kbProject", ($mdDialog) ->
+directive("kbProject", ($mdDialog, Board) ->
   restrict: "E"
   replace: true
   templateUrl: "kbProject.html"
+  scope: { state: '=', project: '=' }
   link: (scope, el) ->
+
     el.bind("dragstart", (ev) ->
       if not ev.dataTransfer.types.length
-        ev.dataTransfer.setData("text/project", ev.target.id)
+        if scope.project.count > 0
+          ev.dataTransfer.setData("text/project", true)
+        ev.dataTransfer.setData("text/task", ev.target.id)
       )
 
     scope.project_expanded = false
@@ -149,27 +167,37 @@ directives.directive("kbProject", ($mdDialog) ->
         )
   )
 
-directives.directive("kbTaskColumn", (Server) ->
-  restrict: "A"
+directive("kbTaskColumn", () ->
   replace: true
   template: '
     <td class="kb_task_column"
         ng-class="{ kb_working: state.working, kb_complete: state.complete }"
         id="{{project.id}}_{{state.name}}"
         >
-      <kb-dev-task ng-repeat="task in tasks"></kb-task>
+      <div class="kb-column">
+        <div ng-repeat="task in tasks">
+          <kb-task-divider state="state" project="project"></kb-task-divider>
+          <kb-dev-task task="task"></kb-dev-task>
+        </div>
+        <kb-task-divider state="state" project="project" class="kb-task-tail">
+        </kb-task-divider>
     </td>'
+  scope: { state: '=', project: '=' }
   link: (scope, el) ->
-    tasks = scope.project.tasks[scope.state.id]
-    if not tasks?
-      tasks = []
-      scope.project.tasks[scope.state.id] = tasks
-    scope.tasks = tasks
+    scope.tasks = scope.project.subtasks(scope.state.id)
+  )
 
-    drag_type = "text/" + scope.project.id
+directive('kbTaskDivider', (Server, Board) ->
+  replace: true
+  template: '<div class="kb-task-divider"></div>'
+  scope: { state: '=', project: '=' }
+  link: (scope, el) ->
+    scope.tasks = scope.project.subtasks(scope.state.id)
+    highlight_drag(el)
 
+    droppable = (ev) -> 'text/project' not in ev.dataTransfer.types
     el.bind("dragover", (ev) ->
-      if drag_type in ev.dataTransfer.types
+      if droppable(ev)
         ev.preventDefault()
         false
       else
@@ -177,18 +205,19 @@ directives.directive("kbTaskColumn", (Server) ->
       )
 
     el.bind("drop", (ev) ->
-      if drag_type in ev.dataTransfer.types
+      if droppable(ev)
         ev.preventDefault()
-        id = ev.dataTransfer.getData(drag_type)
-        task = scope.board.tasks[id]
-        if task.state != scope.state
-          Server.move_task(task, scope.state)
+        id = ev.dataTransfer.getData('text/task')
+        task = Board.tasks[id]
+        if task.state != scope.state or task.parent != scope.project
+          Server.move_task(task, scope.project, scope.state)
       )
   )
 
-directives.directive("kbTask", ($mdDialog) ->
-  restrict: "E"
+
+directive("kbTask", ($mdDialog) ->
   replace: true
+  scope: { task: '=' }
   template: '
     <md-card ng-click="edit_task($event)">
       {{task.name}} [{{task.size}}]
@@ -198,8 +227,7 @@ directives.directive("kbTask", ($mdDialog) ->
   )
 
 
-directives.directive("kbDevTask", ($mdDialog) ->
-  restrict: "E"
+directive("kbDevTask", ($mdDialog) ->
   replace: true
   template: '
     <md-card id="{{task.id}}"
@@ -212,9 +240,10 @@ directives.directive("kbDevTask", ($mdDialog) ->
         {{task.blocked}}
       </div>
     </md-card>'
+  scope: { task: '=' }
   link: (scope, el) ->
     el.bind("dragstart", (ev) ->
-      ev.dataTransfer.setData("text/" + scope.project.id, ev.target.id)
+      ev.dataTransfer.setData("text/task", ev.target.id)
       )
 
     scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
@@ -224,7 +253,7 @@ directives.filter('breakify', ->
   (text) -> text.replace("\n\n", "<br><br>")
   )
 
-directives.directive('kbReturn', () ->
+directive('kbReturn', () ->
   restrict: 'A'
   scope: { result: '=kbReturn', keydown: '=' }
   link: (scope) ->
