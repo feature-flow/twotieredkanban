@@ -32,7 +32,10 @@ directive(
             scope.action_label = "Add"
             scope.submit = () ->
               Server.new_project(
-                scope.project_name, scope.project_description or "")
+                scope.project_name
+                scope.project_description or ""
+                Board.order(undefined, true)
+                )
               scope.hide()
           templateUrl: "kbEditProject.html"
           targetEvent: event
@@ -47,7 +50,8 @@ directive("kbProjectColumn", () ->
     <td class="kb_project_column"">
       <div class="kb-column">
         <div ng-repeat="project in state.projects">
-          <kb-project-divider state="state"></kb-project-divider>
+          <kb-project-divider state="state" before="project">
+          </kb-project-divider>
           <kb-project state="state" project="project"></kb-project>
         </div>
         <kb-project-divider state="state" class="kb-task-tail">
@@ -58,17 +62,14 @@ directive("kbProjectColumn", () ->
   link: (scope, el) ->
   )
 
-highlight_drag = (el) ->
-  el.on('dragenter', (ev) -> el.addClass('dragover'))
-  el.on('dragleave', (ev) -> el.removeClass('dragover'))
-
 directive('kbProjectDivider', (Board, Server) ->
   replace: true
   template: '<div class="kb-task-divider"></div>'
-  scope: { state: '=' }
+  scope: { state: '=', before: '=?' }
   link: (scope, el) ->
 
-    highlight_drag(el)
+    el.on('dragenter', (ev) -> el.addClass('dragover'))
+    el.on('dragleave', (ev) -> el.removeClass('dragover'))
 
     el.bind("dragover", (ev) ->
       ev.preventDefault()
@@ -80,8 +81,8 @@ directive('kbProjectDivider', (Board, Server) ->
       el.removeClass('dragover')
       id = ev.dataTransfer.getData('text/task')
       project = Board.tasks[id]
-      if project.state != scope.state.id
-        Server.move_task(project, undefined, scope.state)
+      Server.move_task(
+        project, undefined, scope.state, Board.order(scope.before))
       )
   )
 
@@ -157,8 +158,12 @@ directive("kbProject", ($mdDialog, Board) ->
           $scope.hide = -> $mdDialog.hide()
           $scope.cancel = -> $mdDialog.cancel()
           $scope.submit = () ->
-            Server.new_task(project, $scope.task_name,
-                            $scope.task_description or "")
+            Server.new_task(
+              project
+              $scope.task_name
+              $scope.task_description or ""
+              Board.order()
+              )
             $scope.hide()
         locals:
           project: scope.project
@@ -176,7 +181,8 @@ directive("kbTaskColumn", () ->
         >
       <div class="kb-column">
         <div ng-repeat="task in tasks">
-          <kb-task-divider state="state" project="project"></kb-task-divider>
+          <kb-task-divider state="state" project="project" before="task">
+          </kb-task-divider>
           <kb-dev-task task="task"></kb-dev-task>
         </div>
         <kb-task-divider state="state" project="project" class="kb-task-tail">
@@ -190,12 +196,16 @@ directive("kbTaskColumn", () ->
 directive('kbTaskDivider', (Server, Board) ->
   replace: true
   template: '<div class="kb-task-divider"></div>'
-  scope: { state: '=', project: '=' }
+  scope: { state: '=', project: '=', before: '=?' }
   link: (scope, el) ->
     scope.tasks = scope.project.subtasks(scope.state.id)
-    highlight_drag(el)
 
     droppable = (ev) -> 'text/project' not in ev.dataTransfer.types
+    el.on('dragenter', (ev) ->
+      if droppable(ev)
+       el.addClass('dragover'))
+    el.on('dragleave', (ev) -> el.removeClass('dragover'))
+
     el.bind("dragover", (ev) ->
       if droppable(ev)
         ev.preventDefault()
@@ -207,10 +217,12 @@ directive('kbTaskDivider', (Server, Board) ->
     el.bind("drop", (ev) ->
       if droppable(ev)
         ev.preventDefault()
+        el.removeClass('dragover')
         id = ev.dataTransfer.getData('text/task')
         task = Board.tasks[id]
         if task.state != scope.state or task.parent != scope.project
-          Server.move_task(task, scope.project, scope.state)
+          Server.move_task(
+            task, scope.project, scope.state, Board.order(scope.before))
       )
   )
 

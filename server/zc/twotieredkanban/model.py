@@ -48,10 +48,10 @@ class Kanban(persistent.Persistent):
         else:
             return None
 
-    def new_release(self, name, description=''):
-        self.tasks.add(Task(name, description=description))
+    def new_release(self, name, order, description=''):
+        self.tasks.add(Task(name, description=description, order=order))
 
-    def new_task(self, release_id, name,
+    def new_task(self, release_id, name, order,
                  description='', size=1, blocked=None,
                  ):
         self.tasks.add(Task(name,
@@ -59,21 +59,24 @@ class Kanban(persistent.Persistent):
                             description=description,
                             size=size,
                             blocked=blocked,
+                            order=order,
                             ),
                        )
 
-    def update_task(self, task_id, name,
-                    description='', size=1, blocked=None, assigned=None):
+    def update_task(self, task_id, name=None, description=None, order=None,
+                    size=None, blocked=None, assigned=None):
         task = self.tasks[task_id]
-        task.name = name
-        task.description = description
-        if task.parent:
-            task.assigned = assigned
-            task.blocked = blocked
-            task.size = size
-        self.tasks.changed(task)
+        if any((
+            update_attr(task, 'name', name),
+            update_attr(task, 'description', description),
+            update_attr(task, 'order', order),
+            update_attr(task, 'size', size),
+            update_attr(task, 'blocked', blocked),
+            update_attr(task, 'assigned', assigned),
+            )):
+            self.tasks.changed(task)
 
-    def transition(self, task_id, parent_id, state):
+    def transition(self, task_id, parent_id, state, order):
         task = self.tasks[task_id]
         parent = self.tasks[parent_id] if parent_id is not None else None
         if parent is not task.parent:
@@ -96,6 +99,7 @@ class Kanban(persistent.Persistent):
             else:
                 task.complete = None
         task.state = state
+        task.order = order
         self.tasks.changed(task)
 
     def update(self, users, admins):
@@ -116,6 +120,11 @@ class Kanban(persistent.Persistent):
             admins = list(self.admins),
             users = list(self.users),
             )
+
+def update_attr(ob, name, v):
+    if v is not None and v != getattr(ob, name):
+        setattr(ob, name, v)
+        return True
 
 class TaskTypeError(TypeError):
     """Tried to perform not applicable to task type (release vs task)
@@ -147,27 +156,28 @@ class Task(persistent.Persistent):
     archive = ()
     complete = None
 
-    def __init__(self, name, description='', size=1, blocked=None, parent=None):
+    def __init__(self, name, order, description='',
+                 size=1, blocked=None, parent=None):
         self.id = uuid.uuid1().hex
         self.created = time.time()
         self.name = name
         self.description = description
+        self.order = order
         self.size = size
         self.blocked = blocked
         self.parent = parent
 
     def json_reduce(self):
-        result = dict(id = self.id,
-                      name = self.name,
-                      description = self.description,
-                      state = self.state.id if self.state else None,
-                      )
-        if self.parent:
-            result.update(parent = self.parent.id,
-                          blocked = self.blocked,
-                          created = self.created,
-                          assigned = self.assigned,
-                          size = self.size,
-                          complete = self.complete,
-                          )
-        return result
+        return dict(id = self.id,
+                    name = self.name,
+                    description = self.description,
+                    order = self.order,
+                    state = self.state.id if self.state else None,
+                    parent =
+                    self.parent.id if self.parent is not None else None,
+                    blocked = self.blocked,
+                    created = self.created,
+                    assigned = self.assigned,
+                    size = self.size,
+                    complete = self.complete,
+                    )

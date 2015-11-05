@@ -117,8 +117,8 @@ class API(Persona):
         return self.response()
 
     @post("/releases")
-    def add_release(self, name, description):
-        self.kanban.new_release(name, description)
+    def add_release(self, name, description, order):
+        self.kanban.new_release(name, description=description, order=order)
         return self.response()
 
     @put("/releases/:release_id")
@@ -127,21 +127,24 @@ class API(Persona):
         return self.response()
 
     @put("/move/:task_id")
-    def move_release(self, task_id, parent_id, state):
-        self.kanban.transition(task_id, parent_id, state)
+    def move(self, task_id, parent_id, state, order):
+        self.kanban.transition(task_id, parent_id, state, order)
         return self.response()
 
     @post("/releases/:release_id")
-    def add_task(self, release_id, name, description='', size=1, blocked=None):
-        self.kanban.new_task(release_id, name, description, size, blocked)
+    def add_task(self, release_id, name, order,
+                 description='', size=1, blocked=''):
+        self.kanban.new_task(release_id, name, description=description,
+                             size=size, blocked=blocked, order=order)
         return self.response()
 
     @put("/tasks/:task_id")
-    def update_task(self, task_id,
-                    name, description='', size=1, blocked=None, assigned=None,
+    def update_task(self, task_id, name=None,
+                    description=None, size=None, blocked=None, assigned=None,
                     ):
         self.kanban.update_task(
-            task_id, name, description, size, blocked, assigned)
+            task_id, name=name, description=description,
+            size=size, blocked=blocked, assigned=assigned)
         return self.response()
 
     @delete("/tasks/:task_id")

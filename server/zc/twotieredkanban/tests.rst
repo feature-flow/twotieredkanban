@@ -297,15 +297,22 @@ Creating releases
 =================
 
     >>> data = updates(post(user, '/releases',
-    ...             dict(name='kanban', description='Build the kanban')))
+    ...        dict(name='kanban', description='Build the kanban', order=0.0)))
     {
       "generation": 15,
       "tasks": {
         "adds": [
           {
+            "assigned": null,
+            "blocked": null,
+            "complete": null,
+            "created": 1406405514,
             "description": "Build the kanban",
             "id": "00000000000000000000000000000012",
             "name": "kanban",
+            "order": 0.0,
+            "parent": null,
+            "size": 1,
             "state": null
           }
         ]
@@ -317,19 +324,20 @@ Creating tasks
 
     >>> release_id = data['tasks']['adds'][0]['id']
     >>> data = updates(post(user, '/releases/' + release_id,
-    ...              dict(name='backend', description='Create backend')))
+    ...         dict(name='backend', description='Create backend', order=1.0)))
     {
       "generation": 16,
       "tasks": {
         "adds": [
           {
             "assigned": null,
-            "blocked": null,
+            "blocked": "",
             "complete": null,
             "created": 1406405514,
             "description": "Create backend",
             "id": "00000000000000000000000000000013",
             "name": "backend",
+            "order": 1.0,
             "parent": "00000000000000000000000000000012",
             "size": 1,
             "state": null
@@ -338,6 +346,7 @@ Creating tasks
       }
     }
     >>> task_id = data['tasks']['adds'][0]['id']
+    >>> parent_id = data['tasks']['adds'][0]['parent']
 
 
 Updating releases and tasks
@@ -350,9 +359,16 @@ Updating releases and tasks
       "tasks": {
         "adds": [
           {
+            "assigned": null,
+            "blocked": null,
+            "complete": null,
+            "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000012",
             "name": "kanban development",
+            "order": 0.0,
+            "parent": null,
+            "size": 1,
             "state": null
           }
         ]
@@ -368,12 +384,13 @@ Updating releases and tasks
         "adds": [
           {
             "assigned": "user2@example.com",
-            "blocked": null,
+            "blocked": "",
             "complete": null,
             "created": 1406405514,
-            "description": "",
+            "description": "Create backend",
             "id": "00000000000000000000000000000013",
             "name": "backend",
+            "order": 1.0,
             "parent": "00000000000000000000000000000012",
             "size": 1,
             "state": null
@@ -391,19 +408,20 @@ them (change state), and we supply a specialize interface to
 support this.
 
     >>> data = updates(put(user, '/move/' + task_id,
-    ...              dict(state=states['Done'])))
+    ...          dict(state=states['Done'], order=3.0, parent_id=parent_id)))
     {
       "generation": 19,
       "tasks": {
         "adds": [
           {
             "assigned": "user2@example.com",
-            "blocked": null,
+            "blocked": "",
             "complete": 1406405514,
             "created": 1406405514,
-            "description": "",
+            "description": "Create backend",
             "id": "00000000000000000000000000000013",
             "name": "backend",
+            "order": 3.0,
             "parent": "00000000000000000000000000000012",
             "size": 1,
             "state": "00000000000000000000000000000008"
@@ -418,15 +436,22 @@ Note that because the task reached the Done state, it was markec
 complete with the current time.
 
     >>> data = updates(put(user, '/move/' + release_id,
-    ...            dict(state=states['Deploying'])))
+    ...            dict(state=states['Deploying'], parent_id=None, order=4.0)))
     {
       "generation": 20,
       "tasks": {
         "adds": [
           {
+            "assigned": null,
+            "blocked": null,
+            "complete": null,
+            "created": 1406405514,
             "description": "",
             "id": "00000000000000000000000000000012",
             "name": "kanban development",
+            "order": 4.0,
+            "parent": null,
+            "size": 1,
             "state": "00000000000000000000000000000010"
           }
         ]

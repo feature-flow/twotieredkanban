@@ -75,15 +75,16 @@ md-card.kb-dev-task.kb_blocked {
     color: #3f51b5;
 }
 
-table tr .dragover {
-    border: 4px solid green;
-}
-
 .kb-task-divider {
     height: .5ex;
 }
 .kb-task-tail {
     flex-grow: 1;
+}
+.kb-task-divider.dragover {
+    border: 5px ridge green;
+    height: 3ex;
+    background-color: #ccff99;
 }
 
 .kb-column {

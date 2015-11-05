@@ -2,6 +2,9 @@ services = angular.module("kb.board", [])
 
 ar_remove = (list, element) -> list.splice(list.indexOf(element), 1)
 
+cmp_order = (a, b) ->
+   if a.order < b.order then -1 else if a.order > b.order then 1 else 0
+
 class TaskContainer
   constructor: (@total_size = 0, @total_completed = 0, @count=0) ->
     @subtasks_by_state = {} # {state_id -> [task]
@@ -12,8 +15,10 @@ class TaskContainer
     @subtasks_by_state[state]
 
   add_subtask: (task) ->
-    @subtasks(task.state).push(task)
-    @subtasks().push(task)
+    subtasks = @subtasks(task.state)
+    subtasks.push(task)
+    subtasks = @subtasks()
+    subtasks.push(task)
     @update_stats()
 
   remove_subtask: (task) ->
@@ -27,10 +32,13 @@ class TaskContainer
       @count += 1
       @total_size += task.size
       if task.complete then @total_completed += 1
-      
+
+  sort: (state) ->
+    @subtasks(state).sort(cmp_order)
+    @subtasks().sort(cmp_order)
 
 class Task extends TaskContainer
-  constructor: (@id, @name, @description, @state, @blocked, @created,
+  constructor: (@id, @name, @description, @state, @order, @blocked, @created,
                 @assigned, @size=0, @complete=false, @parent=null) ->
     super()
 
@@ -44,6 +52,7 @@ class Task extends TaskContainer
     @complete = task.complete
     @parent = task.parent
     @state = task.state
+    @order = task.order
 
 class Board extends TaskContainer
 
@@ -55,22 +64,28 @@ class Board extends TaskContainer
     @tasks = {} # {id -> task} for all tasks
     @states = [] # [top-level-state]
     @states_by_id = {} # {id -> top-level-state
+    @all_tasks = []
 
   add_task: (task) ->
     old = @tasks[task.id]
-    add = true
+    add = sort = true
     if old?
       if task.parent != old.parent or task.state != old.state
         (if old.parent? then old.parent else this).remove_subtask(old)
       else
         add = false
+        sort = task.order != old.order
       old.update(task)
       task = old
     else
       @tasks[task.id] = task
+      @all_tasks.push(task)
 
+    parent = if task.parent? then task.parent else this
     if add
-      (if task.parent? then task.parent else this).add_subtask(task)
+      parent.add_subtask(task)
+    if sort
+      parent.sort(task.state)
 
   _resolve: ->
 
@@ -113,7 +128,6 @@ class Board extends TaskContainer
 
     if updates.tasks?
       # TODO: only handling new and updates
-
       # projects
       for task in updates.tasks.adds
         if not task.parent?
@@ -122,6 +136,7 @@ class Board extends TaskContainer
               task.name
               task.description
               if task.state? then task.state else @states[0].id
+              task.order
               )
           @add_task(project)
 
@@ -135,6 +150,7 @@ class Board extends TaskContainer
               task.name
               task.description
               if task.state? then task.state else @default_substate
+              task.order
               task.blocked
               task.created
               task.assigned
@@ -143,7 +159,27 @@ class Board extends TaskContainer
               project
               ))
 
+      @all_tasks.sort(cmp_order)
+
     @generation = updates.generation
+
+  order: (before, front) ->
+    r = Math.random()
+    if before?
+      i = @all_tasks.indexOf(before)
+      if i == 0
+        before.order - .5 - r
+      else
+        d = before.order - @all_tasks[i-1].order
+        before.order - (r * .5 + .25) * d
+    else
+      if @all_tasks.length > 0
+        if front
+          @all_tasks[0].order - .5 - r
+        else
+          @all_tasks[-1..][0].order + .5 + r
+      else
+        0
 
 services.factory(
   "Board"
@@ -230,34 +266,36 @@ services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
     status: ->
       poller.status
     is_admin: -> INITIAL_EMAIL in Board.admins
-    new_project: (name, description) ->
+    new_project: (name, description, order) ->
       $http.post("/releases", {
         name: name
         description: description
+        order: order
         })
     update_project: (project, name, description) ->
       $http.put("/releases/" + project.id, {
         name: name
         description: description
         })
-
-    new_task: (project, name, description) ->
+    new_task: (project, name, description, order) ->
       $http.post("/releases/" + project.id, {
         name: name
         description: description
+        order: order
         })
-    update_task: (task, name, description, size, blocked) ->
+    update_task: (task, name, description, order, size, blocked) ->
       $http.put("/tasks/" + task.id, {
         name: name
         description: description
         size: size
         blocked: blocked
         })
-    move_task: (task, parent, state) ->
+    move_task: (task, parent, state, order) ->
       $http.put("/move/#{ task.id }"
                 {
                   state: state.id
                   parent_id: if parent? then parent.id else null
+                  order: order
                 })
     }
   )
