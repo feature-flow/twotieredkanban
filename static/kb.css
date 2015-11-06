@@ -77,13 +77,13 @@ md-card.kb-dev-task.kb_blocked {
 
 .kb-task-divider {
     height: .5ex;
+    transition: height .3s;
 }
 .kb-task-tail {
     flex-grow: 1;
 }
 .kb-task-divider.dragover {
-    border: 5px ridge green;
-    height: 3ex;
+    height: 4ex;
     background-color: #ccff99;
 }
 
@@ -92,3 +92,72 @@ md-card.kb-dev-task.kb_blocked {
     display: flex;
     flex-direction: column;
 }
+
+/* ****************************************************************************
+  Transitions for moving cards within columns
+ */
+
+
+/*
+  We're using CSS transitions for when
+  the enter and move events are triggered
+  for the element that has the .kb-column-item
+  class
+*/
+.kb-column-item.ng-enter, .kb-column-item.ng-move {
+  -webkit-transition:01.1s linear all;
+  -moz-transition:01.1s linear all;
+  -o-transition:01.1s linear all;
+  transition:01.1s linear all;
+  opacity:0;
+}
+
+/*
+ The ng-enter-active and ng-move-active
+ are where the transition destination properties
+ are set so that the animation knows what to
+ animate.
+*/
+.kb-column-item.ng-enter.ng-enter-active,
+.kb-column-item.ng-move.ng-move-active {
+  opacity:1;
+}
+
+/*
+  We're using CSS keyframe animations for when
+  the leave event is triggered for the element
+  that has the .kb-column-item class
+*/
+.kb-column-item.ng-leave {
+  -webkit-animation:01.1s my_animation;
+  -moz-animation:01.1s my_animation;
+  -o-animation:01.1s my_animation;
+  animation:01.1s my_animation;
+}
+
+@keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+/*
+  Unfortunately each browser vendor requires
+  its own definition of keyframe animation code...
+*/
+@-webkit-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@-moz-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@-o-keyframes my_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+/*
+ *************************************************************************** */

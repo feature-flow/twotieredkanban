@@ -1,6 +1,7 @@
 directives = angular.module(
   "kb.directives",
-  ['kb.board', 'kb.login', 'kb.users', 'ngMdIcons', "ngMaterial", "ngSanitize"])
+  ['kb.board', 'kb.login', 'kb.users', 'ngMdIcons', "ngMaterial", "ngSanitize",
+   'ngAnimate'])
 
 directive = (name, func) -> directives.directive(name, func)
 
@@ -49,7 +50,7 @@ directive("kbProjectColumn", () ->
   template: '
     <td class="kb_project_column"">
       <div class="kb-column">
-        <div ng-repeat="project in state.projects">
+        <div ng-repeat="project in state.projects" class="kb-column-item">
           <kb-project-divider state="state" before="project">
           </kb-project-divider>
           <kb-project state="state" project="project"></kb-project>
@@ -180,7 +181,7 @@ directive("kbTaskColumn", () ->
         id="{{project.id}}_{{state.name}}"
         >
       <div class="kb-column">
-        <div ng-repeat="task in tasks">
+        <div ng-repeat="task in tasks" class="kb-column-item">
           <kb-task-divider state="state" project="project" before="task">
           </kb-task-divider>
           <kb-dev-task task="task"></kb-dev-task>
