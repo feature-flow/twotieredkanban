@@ -46,13 +46,6 @@ md-card.kb-dev-task.kb_blocked {
     font-weight: bold;
 } 
 
-.kb_project_column {
-    height: 3ex;
-}
-.kb_task_column {
-    height: 1ex;
-}
-
 .centered-items {
     align-items: center;
 }
@@ -81,6 +74,7 @@ md-card.kb-dev-task.kb_blocked {
 }
 .kb-task-tail {
     flex-grow: 1;
+    height: 2ex;
 }
 .kb-task-divider.dragover {
     height: 4ex;
