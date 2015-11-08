@@ -46,3 +46,10 @@ Installation
 
     bin/server start
 
+- Run server tests:
+
+    bin/test
+
+- Run the JS unit tests with Karma:
+
+    karma start test.js
