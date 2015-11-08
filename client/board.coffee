@@ -31,7 +31,7 @@ class TaskContainer
     for task in @subtasks()
       @count += 1
       @total_size += task.size
-      if task.complete then @total_completed += 1
+      if task.complete then @total_completed += task.size
 
   sort: (state) ->
     @subtasks(state).sort(cmp_order)
@@ -75,6 +75,7 @@ class Board extends TaskContainer
       else
         add = false
         sort = task.order != old.order
+          
       old.update(task)
       task = old
     else
@@ -84,6 +85,8 @@ class Board extends TaskContainer
     parent = if task.parent? then task.parent else this
     if add
       parent.add_subtask(task)
+    else
+      parent.update_stats()
     if sort
       parent.sort(task.state)
 
