@@ -3,14 +3,8 @@ name, version = 'zc.twotieredkanban', '0'
 install_requires = [
     'bobo',
     'gevent',
-    'gevent-websocket',
     'setuptools',
     'zc.generationalset',
-    'zc.recipe.deployment',
-    'zc.recipe.rhrc',
-    'zc.zdaemonrecipe',
-    'zc.zk',
-    'zdaemon',
     'zc.zodbwsgi',
     'zc.persona',
     'zope.exceptions',                  # XXX required by zodbwsgi
