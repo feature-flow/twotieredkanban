@@ -1,6 +1,6 @@
 describe("Kanban Board", ->
 
-  beforeEach(module("kb.board"))
+  beforeEach(module("kb.initial", "kb.board"))
 
   board = null
   beforeEach(inject((Board) -> board = Board))
@@ -176,7 +176,7 @@ describe("Kanban Board", ->
       }
     board.apply_updates(data)
     expect(board.states[0].projects.length).toBe(1)
-    expect(project.size).toBe(1)
+    expect(project.total_size).toBe(1)
     task = board.tasks[data.tasks.adds[0].id]
     expect(task.id).toBe(data.tasks.adds[0].id)
     expect(task.blocked).toBe(null)
@@ -185,11 +185,11 @@ describe("Kanban Board", ->
     expect(task.size).toBe(1)
     expect(task.state).toBe(board.default_substate)
     expect(task.parent).toBe(project)
-    expect(project.tasks[null]).toEqual([task])
-    expect(project.tasks[board.default_substate]).toEqual([task])
+    expect(project.subtasks()).toEqual([task])
+    expect(project.subtasks(board.default_substate)).toEqual([task])
     expect(board.generation).toBe(data.generation)
-    expect(project.size).toBe(1)
-    expect(project.completed).toBe(0)
+    expect(project.total_size).toBe(1)
+    expect(project.total_completed).toBe(0)
 
     # Update a release
     data = {
@@ -231,10 +231,10 @@ describe("Kanban Board", ->
     board.apply_updates(data)
     expect(task.assigned).toBe(data.tasks.adds[0].assigned)
     expect(task.size).toBe(data.tasks.adds[0].size)
-    expect(project.size).toBe(2)
+    expect(project.total_size).toBe(2)
     old_state = task.state
     expect(old_state).toBe(board.default_substate)
-    expect(project.tasks[task.state].length).toBe(1)
+    expect(project.subtasks(task.state).length).toBe(1)
 
     # Move a task
     data = {
@@ -258,11 +258,11 @@ describe("Kanban Board", ->
     }
     board.apply_updates(data)
     expect(task.state).toBe(data.tasks.adds[0].state)
-    expect(project.tasks[task.state].length).toBe(1)
-    expect(project.tasks[old_state].length).toBe(0)
+    expect(project.subtasks(task.state).length).toBe(1)
+    expect(project.subtasks(old_state).length).toBe(0)
     expect(board.states[2].substates[4].id).toBe(task.state)
-    expect(project.size).toBe(2)
-    expect(project.completed).toBe(2)
+    expect(project.total_size).toBe(2)
+    expect(project.total_completed).toBe(2)
 
     # Move a project
     data = {
@@ -282,6 +282,64 @@ describe("Kanban Board", ->
     expect(project.state).toBe(data.tasks.adds[0].state)
     expect(board.states[0].projects.length).toBe(0)
     expect(board.states[4].projects.length).toBe(1)
+
+    # Change parentage
+    data = {
+        "generation": 21,
+        "tasks": {
+          "adds": [
+            {
+              "description": "",
+              "id": "00000000000000000000000000000014",
+              "name": "Cleanup",
+              "state": "00000000000000000000000000000010"
+            }
+            {
+              "assigned": "user2@example.com",
+              "blocked": null,
+              "complete": 1406405514,
+              "created": 1406405514,
+              "description": "",
+              "id": "00000000000000000000000000000013",
+              "name": "backend",
+              "parent": "00000000000000000000000000000014",
+              "size": 2,
+              "state": "00000000000000000000000000000008"
+            }
+          ]
+        }
+      }
+    board.apply_updates(data)
+    expect(board.subtasks("00000000000000000000000000000010").length).toBe(2)
+    expect(project.subtasks(task.state).length).toBe(0)
+    expect(project.total_size).toBe(0)
+    expect(project.total_completed).toBe(0)
+    project2 = board.tasks["00000000000000000000000000000014"]
+    expect(project2.subtasks(task.state).length).toBe(1)
+    expect(project2.total_size).toBe(2)
+    expect(project2.total_completed).toBe(2)
+    project2 = board.tasks["00000000000000000000000000000014"]
+
+    data = {
+        "generation": 21,
+        "tasks": {
+          "adds": [
+            {
+              id: "00000000000000000000000000000012"
+              state: "00000000000000000000000000000004"
+              size: 1
+              parent: "00000000000000000000000000000014"
+            }
+          ]
+        }
+      }
+    board.apply_updates(data)
+    expect(board.subtasks("00000000000000000000000000000010").length).toBe(1)
+    expect(project2.subtasks(task.state).length).toBe(1)
+    expect(project2.subtasks(project.state).length).toBe(1)
+    expect(project2.total_size).toBe(3)
+    expect(project2.total_completed).toBe(2)
+    expect(project2.count).toBe(2)
   )
 )
 
