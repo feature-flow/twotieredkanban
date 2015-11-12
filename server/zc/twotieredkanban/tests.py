@@ -114,7 +114,7 @@ class KanbanTests(setupstack.TestCase):
             r2 = list(kanban.tasks)[-1]
             kanban.new_task(r1.id, 't3', 2.0)
             t3 = list(kanban.tasks)[-1]
-            states = dict((s.label, unicode(s.id)) for s in kanban.states)
+            states = dict((s.label, s.id) for s in kanban.states)
 
         admin = self.test_app('admin@example.com')
         self.get(admin, '/poll') # set generation
@@ -133,10 +133,10 @@ class KanbanTests(setupstack.TestCase):
                           order=4.0, parent_id=r2.id)).json['updates'],
             {u'generation': Var(), u'tasks': {u'adds': [
                 {u'state': states['Ready'], u'order': 4.0,
-                 u'parent': unicode(r2.id),
+                 u'parent': r2.id,
                  u'assigned': None, u'blocked': None, u'created': Var(),
                  u'complete': None, u'size': 1,
-                 u'id': unicode(t3.id), u'name': u't3', u'description': u''},
+                 u'id': t3.id, u'name': u't3', u'description': u''},
                 ]}},
             )
         self.assertEqual(
@@ -145,10 +145,10 @@ class KanbanTests(setupstack.TestCase):
                           order=5.0, parent_id=r2.id)).json['updates'],
             {u'generation': Var(), u'tasks': {u'adds': [
                 {u'state': states['Ready'], u'order': 5.0,
-                 u'parent': unicode(r2.id),
+                 u'parent': r2.id,
                  u'assigned': None, u'blocked': None, u'created': Var(),
                  u'complete': None, u'size': 1,
-                 u'id': unicode(r1.id), u'name': u'r1', u'description': u''},
+                 u'id': r1.id, u'name': u'r1', u'description': u''},
                 ]}},
             )
 

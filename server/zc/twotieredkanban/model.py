@@ -26,7 +26,7 @@ class Kanban(persistent.Persistent):
             state_data = json.loads(state_data)
 
         for i, state in enumerate(state_data):
-            if isinstance(state, basestring):
+            if isinstance(state, str):
                 state = dict(label=state)
             substates = state.pop("substates", ())
             state = State(i*(1<<20), **state)

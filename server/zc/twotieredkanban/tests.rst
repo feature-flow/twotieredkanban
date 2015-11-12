@@ -25,9 +25,9 @@ Requests that retrieve data are authenticated:
     >>> def updates(data):
     ...     data = data.json
     ...     if len(data) != 1:
-    ...         print "extra data"
+    ...         print("extra data")
     ...     data = data["updates"]
-    ...     print json.dumps(data, sort_keys=True, indent=2)
+    ...     print(json.dumps(data, sort_keys=True, indent=2))
     ...     return data
 
     >>> _ = updates(admin.get('/poll'))

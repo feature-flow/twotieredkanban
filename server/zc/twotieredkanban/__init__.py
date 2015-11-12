@@ -59,7 +59,7 @@ class API(Persona):
         updates = self.kanban.updates(int(generation))
         if updates:
             data['updates'] = updates
-        response.body = json.dumps(data, cls=Encoder)
+        response.text = json.dumps(data, cls=Encoder)
         response.cache_control = 'no-cache'
         response.pragma = 'no-cache'
         return response
@@ -106,7 +106,7 @@ class API(Persona):
             pass
 
         response = webob.Response(content_type="application/json")
-        response.body = '{}'
+        response.text = '{}'
         response.cache_control = 'no-cache'
         response.pragma = 'no-cache'
         return response

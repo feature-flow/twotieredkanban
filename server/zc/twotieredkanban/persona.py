@@ -40,7 +40,7 @@ class Persona(object):
         # Did the verifier respond?
         if resp.ok:
             # Parse the response
-            verification_data = json.loads(resp.content)
+            verification_data = json.loads(resp.content.decode('utf-8'))
 
             # Check if the assertion was valid
             if verification_data['status'] == 'okay':
@@ -65,7 +65,7 @@ class Persona(object):
         return response
 
     def email_hash(self, email):
-        return hashlib.md5(email.strip().lower()).hexdigest()
+        return hashlib.md5(email.strip().lower().encode('utf-8')).hexdigest()
 
 def initialize_database(database):
     with database.transaction() as conn:
