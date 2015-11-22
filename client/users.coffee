@@ -1,7 +1,7 @@
 m = angular.module('kb.users', ['kb.board', 'kb.directives'])
 
-m.factory('kbUsers', (Board, $http, kbDialog) ->
-  manage: (event) ->
+m.config((kbAdminFunctionsProvider) ->
+  kbAdminFunctionsProvider.add("Manage users", (Board, $http, kbDialog) ->
     kbDialog.show(
       scope:
         title: 'Users'
@@ -16,6 +16,7 @@ m.factory('kbUsers', (Board, $http, kbDialog) ->
         $scope.submit = () ->
            $http.put('/', $scope.users).then(() -> $scope.hide())
       )
+    )
   )
 
 m.directive('kbUsers', (Board, $mdDialog) ->

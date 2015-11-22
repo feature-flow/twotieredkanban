@@ -4,6 +4,8 @@ app = angular.module(
     'kb.login'
     'ui.router'
     'kb.board'
+    'kb.users'
+    'kb.jira'
     ])
 
 app.config(($stateProvider, $urlRouterProvider) ->

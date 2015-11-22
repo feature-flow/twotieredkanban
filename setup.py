@@ -1,8 +1,15 @@
 name, version = 'zc.twotieredkanban', '0'
 
 install_requires = [
+    'oauthlib',
     'bobo',
+    'cryptography',
     'gevent',
+    'requests',
+    'requests-oauthlib',
+    'jira',
+    'pycrypto',
+    'PyJWT',
     'setuptools',
     'zc.generationalset',
     'zc.zodbwsgi',
