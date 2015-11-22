@@ -1,13 +1,25 @@
-directives = angular.module(
+m = angular.module(
   "kb.directives",
-  ['kb.board', 'kb.login', 'kb.users', 'ngMdIcons', "ngMaterial", "ngSanitize",
+  ['kb.board', 'kb.login', 'ngMdIcons', "ngMaterial", "ngSanitize",
    'ngAnimate'])
 
-directive = (name, func) -> directives.directive(name, func)
+directive = (name, func) -> m.directive(name, func)
+
+m.provider('kbAdminFunctions', () ->
+  functions = {} # {label -> func}
+  labels = []
+  this.add = (label, func) ->
+    labels.push(label)
+    functions[label] = func
+  this.$get = ($injector) ->
+    labels: labels
+    use: (label) -> $injector.invoke(functions[label])
+  this
+  )
 
 directive(
   'kbBoard',
-  (Board, $mdDialog, Persona, Server, kbUser, kbUsers) ->
+  (Board, $mdDialog, Persona, Server, kbUser, kbAdminFunctions) ->
     restrict: "E"
     replace: true
     templateUrl: "kbBoard.html"
@@ -42,7 +54,8 @@ directive(
           targetEvent: event
           )
 
-      scope.manage_users = kbUsers.manage
+      scope.admin_menu_items = kbAdminFunctions.labels
+      scope.admin_use = kbAdminFunctions.use
     )
 
 directive("kbProjectColumn", () ->
@@ -262,7 +275,7 @@ directive("kbDevTask", ($mdDialog) ->
     scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
   )
 
-directives.filter('breakify', ->
+m.filter('breakify', ->
   (text) -> text.replace("\n\n", "<br><br>")
   )
 
@@ -278,7 +291,7 @@ directive('kbReturn', () ->
         scope.result(false)
   )
 
-directives.factory('kbDialog', ($mdDialog, $injector) ->
+m.factory('kbDialog', ($mdDialog, $injector) ->
   show: (props) ->
     $mdDialog.show(
       controller: ($scope, $mdDialog) ->
@@ -288,15 +301,16 @@ directives.factory('kbDialog', ($mdDialog, $injector) ->
         $scope.hide = $mdDialog.hide
         if props.controller?
           props.controller($scope)
-      targetEvent: event
+      targetEvent: props.targetEvent
+      parent: props.parent
       template: """
         <md-dialog aria-label="{{ title }}">
           <md-dialog-content>#{ props.template }</md-dialog-content>
           <div class="md-actions" layout="row" layout-align="end center">
             <md-button ng-click="cancel()">
-              Cancel
+              {{ cancel_action || 'Cancel' }}
             </md-button>
-            <md-button ng-click="submit()" ng-disabled="disabled">
+            <md-button ng-click="hide()">
               {{ action }}
             </md-button>
           </div>
