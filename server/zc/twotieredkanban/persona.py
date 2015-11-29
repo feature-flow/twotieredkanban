@@ -48,6 +48,7 @@ class Persona:
 def config(options):
     from .apibase import Base
     Base.persona = bobo.subroute('/kb-persona')(lambda self, r: Persona(self))
+    bobo.scan_class(Base)
 
     global audience
     audience = options['audience']
