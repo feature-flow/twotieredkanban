@@ -2,24 +2,43 @@
 Basic two-tier kanban tests
 ===========================
 
-When using two-tiered kanban, there is some basic setup you need to do first.
-
-You need to create a database root object named 'kanban'
-
-    >>> import zc.twotieredkanban.model
-    >>> with conn.transaction_manager:
-    ...     conn.root.kanban = zc.twotieredkanban.model.Kanban(
-    ...         'admin@example.com')
-
-When we create a kanban object, we need to pass in an initial admin
-email.  Emails are used to *authorize* access. Persona,
+Emails are used to *authorize* access. Persona,
 https://login.persona.org/about, is used to *authenticate* emails.
 
 Requests that retrieve data are authenticated:
 
-    >>> _ = test_app().get('/poll', status=401)
-
+    >>> _ = test_app().get('/kb-boards', status=401)
     >>> admin = test_app('admin@example.com')
+
+Initially, there aren't any boards. So we'll create one:
+
+    >>> admin.get('/kb-boards').json
+    {'boards': []}
+    >>> admin.post_json('/kb-admin/boards', dict(name='test'))
+    <200 OK text/html body=b'OK'>
+    >>> admin.get('/kb-boards').json
+    {'boards': ['test']}
+
+Ordinary users can get and update board data. Let's create one.
+
+    >>> pprint(admin.get('/kb-admin/users').json)
+    {'admins': ['admin@example.com'], 'users': ['admin@example.com']}
+
+    >>> admin.put_json(
+    ...     '/kb-admin/users',
+    ...     {'admins': ['admin@example.com'],
+    ...      'users': ['admin@example.com', 'user@example.com']})
+    <200 OK text/html body=b'OK'>
+
+    >>> user = test_app('user@example.com')
+
+Users can't manage users:
+
+    >>> user.get('/kb-admin/users', status=403)
+    <403 Forbidden ...>
+
+When accessing boards, we get data via generational updates. We'll use
+a helper function to automate looking at these.
 
     >>> import json
     >>> def updates(data):
@@ -30,128 +49,11 @@ Requests that retrieve data are authenticated:
     ...     print(json.dumps(data, sort_keys=True, indent=2))
     ...     return data
 
-    >>> _ = updates(admin.get('/poll'))
+Now, we'll access the test board we created:
+
+    >>> data = updates(get(user, '/board/test/poll'))
     {
-      "generation": 13,
-      "kanban": {
-        "admins": [
-          "admin@example.com"
-        ],
-        "users": [
-          "admin@example.com"
-        ]
-      },
-      "states": {
-        "adds": [
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000001",
-            "label": "Backlog",
-            "order": 0,
-            "parent": null,
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000002",
-            "label": "Ready",
-            "order": 1048576,
-            "parent": null,
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000003",
-            "label": "Development",
-            "order": 2097152,
-            "parent": null,
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000004",
-            "label": "Ready",
-            "order": 2097152,
-            "parent": "00000000000000000000000000000003",
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000005",
-            "label": "Doing",
-            "order": 2097152,
-            "parent": "00000000000000000000000000000003",
-            "working": true
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000006",
-            "label": "Needs review",
-            "order": 2097152,
-            "parent": "00000000000000000000000000000003",
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000007",
-            "label": "Review",
-            "order": 2097152,
-            "parent": "00000000000000000000000000000003",
-            "working": true
-          },
-          {
-            "complete": true,
-            "id": "00000000000000000000000000000008",
-            "label": "Done",
-            "order": 2097152,
-            "parent": "00000000000000000000000000000003",
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000009",
-            "label": "Acceptance",
-            "order": 3145728,
-            "parent": null,
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000010",
-            "label": "Deploying",
-            "order": 4194304,
-            "parent": null,
-            "working": false
-          },
-          {
-            "complete": false,
-            "id": "00000000000000000000000000000011",
-            "label": "Deployed",
-            "order": 5242880,
-            "parent": null,
-            "working": false
-          }
-        ]
-      }
-    }
-
-
-This time, we're going to invoke the request a little differently
-using a test helper that keeps track of generations the way an app
-would, by sending an X-Generation header with the last generation it
-got.
-
-    >>> data = updates(get(admin, '/poll'))
-    {
-      "generation": 13,
-      "kanban": {
-        "admins": [
-          "admin@example.com"
-        ],
-        "users": [
-          "admin@example.com"
-        ]
-      },
+      "generation": 12,
       "states": {
         "adds": [
           {
@@ -252,54 +154,19 @@ got.
 
 If we call it again, there won't be any updates:
 
-    >>> pprint(get(admin, '/poll').json)
+    >>> pprint(get(user, '/board/test/poll').json)
     {}
 
 The initial outout above send the state model to the client. The state
 model can be changed over time and clients will receive updates.
 
-Updating users
-==============
-
-To update users, simply replace the users and admin lists by putting
-to ``/``:
-
-    >>> _ = updates(put(admin, '/', dict(
-    ...     users=['admin@example.com', 'helper@foo.com',
-    ...            'user1@foo.com', 'user2@example.com'],
-    ...     admins=['admin@example.com', 'helper@foo.com'])))
-    {
-      "generation": 14,
-      "kanban": {
-        "admins": [
-          "admin@example.com",
-          "helper@foo.com"
-        ],
-        "users": [
-          "admin@example.com",
-          "helper@foo.com",
-          "user1@foo.com",
-          "user2@example.com"
-        ]
-      }
-    }
-
-Ordinary users can't manage users:
-
-    >>> user = test_app('user1@foo.com')
-    >>> _ = get(user, '/poll')
-    >>> put(user, '/', dict(users=[], admins=['user1@foo.com']), status=403)
-    <403 Forbidden ...>
-
-But ordinary users can do everythig else.
-
 Creating releases
 =================
 
-    >>> data = updates(post(user, '/releases',
+    >>> data = updates(post(user, '/board/test/releases',
     ...        dict(name='kanban', description='Build the kanban', order=0.0)))
     {
-      "generation": 15,
+      "generation": 13,
       "tasks": {
         "adds": [
           {
@@ -323,10 +190,10 @@ Creating tasks
 ==============
 
     >>> release_id = data['tasks']['adds'][0]['id']
-    >>> data = updates(post(user, '/releases/' + release_id,
+    >>> data = updates(post(user, '/board/test/releases/' + release_id,
     ...         dict(name='backend', description='Create backend', order=1.0)))
     {
-      "generation": 16,
+      "generation": 14,
       "tasks": {
         "adds": [
           {
@@ -352,10 +219,10 @@ Creating tasks
 Updating releases and tasks
 ===========================
 
-    >>> _ = updates(put(user, '/releases/' + release_id,
+    >>> _ = updates(put(user, '/board/test/releases/' + release_id,
     ...           dict(name='kanban development')))
     {
-      "generation": 17,
+      "generation": 15,
       "tasks": {
         "adds": [
           {
@@ -375,11 +242,11 @@ Updating releases and tasks
       }
     }
 
-    >>> _ = updates(put(user, '/tasks/' + task_id,
+    >>> _ = updates(put(user, '/board/test/tasks/' + task_id,
     ...            dict(assigned='user2@example.com',
     ...                 name='backend')))
     {
-      "generation": 18,
+      "generation": 16,
       "tasks": {
         "adds": [
           {
@@ -407,10 +274,10 @@ In the kanban, a user can select tasks or releases and move
 them (change state), and we supply a specialize interface to
 support this.
 
-    >>> data = updates(put(user, '/move/' + task_id,
+    >>> data = updates(put(user, '/board/test/move/' + task_id,
     ...          dict(state=states['Done'], order=3.0, parent_id=parent_id)))
     {
-      "generation": 19,
+      "generation": 17,
       "tasks": {
         "adds": [
           {
@@ -435,10 +302,10 @@ support this.
 Note that because the task reached the Done state, it was markec
 complete with the current time.
 
-    >>> data = updates(put(user, '/move/' + release_id,
+    >>> data = updates(put(user, '/board/test/move/' + release_id,
     ...            dict(state=states['Deploying'], parent_id=None, order=4.0)))
     {
-      "generation": 20,
+      "generation": 18,
       "tasks": {
         "adds": [
           {
@@ -466,13 +333,13 @@ Deleting tasks and releases
 We can delete tasks and releases. When we do, they are archived.
 
     >>> conn.sync()
-    >>> kanban = conn.root.kanban
+    >>> kanban = conn.root.sites[''].boards['test']
     >>> release = kanban.tasks[release_id]
     >>> task = kanban.tasks[task_id]
 
-    >>> _ = updates(delete(user, '/tasks/' + task_id))
+    >>> _ = updates(delete(user, '/board/test/tasks/' + task_id))
     {
-      "generation": 21,
+      "generation": 19,
       "tasks": {
         "removals": [
           "00000000000000000000000000000013"
@@ -485,9 +352,9 @@ We can delete tasks and releases. When we do, they are archived.
     >>> list(release.archive) == [task]
     True
 
-    >>> _ = updates(delete(user, '/tasks/' + release_id))
+    >>> _ = updates(delete(user, '/board/test/tasks/' + release_id))
     {
-      "generation": 22,
+      "generation": 20,
       "tasks": {
         "removals": [
           "00000000000000000000000000000012"

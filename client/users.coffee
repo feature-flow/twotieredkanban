@@ -1,4 +1,4 @@
-m = angular.module('kb.users', ['kb.board', 'kb.directives'])
+m = angular.module('kb.users', ['kb.board', 'kb.util'])
 
 m.config((kbAdminFunctionsProvider) ->
   kbAdminFunctionsProvider.add("Manage users", (Board, $http, kbDialog) ->

@@ -17,21 +17,22 @@
     <script src="/static/angular-ui-router/release/angular-ui-router.js"
             ></script>
 
-    <script type="text/javascript">
-      angular.module("kb.initial", [])
-        .constant("INITIAL_EMAIL", %s)
-        .constant("INITIAL_EMAIL_HASH", %s)
-    </script>
-
     <script src="https://login.persona.org/include.js"></script>
     <script src="/static/persona.js"></script>
 
+    <script type="text/javascript">
+      angular.module("kb.initial", ['kb.login'])
+      .config(function (kbUserProvider) {
+         kbUserProvider.set(%s);
+      })
+    </script>
     <script src="/static/board.js"></script>
-    <script src="/static/directives.js"></script>
+    <script src="/static/util.js"></script>
     <script src="/static/login.js"></script>
     <script src="/static/users.js"></script>
     <script src="/static/jira.js"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/boardui.js"></script>
   </head>
   <body ng-app="kb">
 
@@ -163,7 +164,7 @@
               <md-button ng-click="cancel()" type="button">
                 Cancel
               </md-button>
-              <md-button ng-click="submit()">
+              <md-button ng-click="submit()" type="submit">
                 {{action_label}}
               </md-button>
             </div>
@@ -185,7 +186,7 @@
               <textarea ng-model="task_description"></textarea>
             </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
-              <md-button ng-click="cancel()">
+              <md-button ng-click="cancel()" type="button">
                 Cancel
               </md-button>
               <md-button ng-click="submit()">
@@ -218,7 +219,7 @@
               <textarea ng-model="task_blocked"></textarea>
             </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
-              <md-button ng-click="cancel()">
+              <md-button ng-click="cancel()" type="button">
                 Cancel
               </md-button>
               <md-button ng-click="submit()">

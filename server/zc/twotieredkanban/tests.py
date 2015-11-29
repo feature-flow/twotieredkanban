@@ -13,7 +13,7 @@ import unittest
 import uuid
 import webtest
 import zc.twotieredkanban
-import zc.twotieredkanban.persona
+import zc.twotieredkanban.apibase
 
 demo_db = '''
 <zodb>
@@ -30,8 +30,7 @@ class KanbanTests(setupstack.TestCase):
         self.globs = {}
         app = bobo.Application(
             bobo_resources="""
-                       zc.twotieredkanban
-                       boboserver:static('/dojo', '${:dojo}')
+                       zc.twotieredkanban.apibase
                        """,
             bobo_handle_exceptions = False,
             )
@@ -42,7 +41,8 @@ class KanbanTests(setupstack.TestCase):
             max_connections = '4',
             thread_transaction_manager = 'False',
             initializer =
-            "zc.twotieredkanban:initialize_database('admin@example.com.com')"
+            "zc.twotieredkanban.apibase:"
+            "initialize_database('admin@example.com')"
             )
         self.db = self.app.database
         self.conn = self.db.open()
@@ -54,7 +54,7 @@ class KanbanTests(setupstack.TestCase):
         extra_environ = {}
         tapp = webtest.TestApp(self.app, extra_environ=extra_environ)
         if email:
-            zc.twotieredkanban.persona.set_cookie(tapp, self.conn.root, email)
+            zc.twotieredkanban.apibase.set_cookie(tapp, self.conn.root, email)
         return tapp
 
     def update_app(self, app, resp):
@@ -106,8 +106,8 @@ class KanbanTests(setupstack.TestCase):
 
     def test_that_tasks_can_change_parentage(self):
         with self.conn.transaction_manager:
-            self.conn.root.kanban = kanban = zc.twotieredkanban.model.Kanban(
-                'admin@example.com')
+            kanban = zc.twotieredkanban.model.Kanban()
+            self.conn.root.sites[''].boards['test'] = kanban
             kanban.new_release('r1', 0.0)
             r1 = list(kanban.tasks)[-1]
             kanban.new_release('r2', 1.0)
@@ -117,18 +117,18 @@ class KanbanTests(setupstack.TestCase):
             states = dict((s.label, s.id) for s in kanban.states)
 
         admin = self.test_app('admin@example.com')
-        self.get(admin, '/poll') # set generation
+        self.get(admin, '/board/test/poll') # set generation
 
         with self.assertRaisesRegexp(
             TaskValueError,
             "Can't make non-empty project into a task"
             ):
-            self.put(admin, '/move/' + r1.id,
+            self.put(admin, '/board/test/move/' + r1.id,
                  dict(state=states['Backlog'],
                       order=0.0, parent_id=r2.id)).json['updates'],
 
         self.assertEqual(
-            self.put(admin, '/move/' + t3.id,
+            self.put(admin, '/board/test/move/' + t3.id,
                      dict(state=states['Ready'],
                           order=4.0, parent_id=r2.id)).json['updates'],
             {u'generation': Var(), u'tasks': {u'adds': [
@@ -140,7 +140,7 @@ class KanbanTests(setupstack.TestCase):
                 ]}},
             )
         self.assertEqual(
-            self.put(admin, '/move/' + r1.id,
+            self.put(admin, '/board/test/move/' + r1.id,
                      dict(state=states['Ready'],
                           order=5.0, parent_id=r2.id)).json['updates'],
             {u'generation': Var(), u'tasks': {u'adds': [

@@ -1,4 +1,4 @@
-module = angular.module("kb.login", ["kb.initial", "persona", "ui.router"])
+module = angular.module("kb.login", ["persona", "ui.router"])
 
 module.config(($stateProvider) ->
   $stateProvider.state("login", {
@@ -26,27 +26,36 @@ module.config(($httpProvider) ->
     $httpProvider.interceptors.push('kbAuthInterceptor')
     )
 
-module.factory("kbUser", -> { email: '' })
+module.provider('kbUser', () ->
+  user_data = {}
+  {
+    set: (data) ->
+       user_data = data
+    $get: () ->
+       user_data
+  }
+)
 
-module.run(($http, $state, $rootScope,
-           Persona, kbUser, INITIAL_EMAIL, INITIAL_EMAIL_HASH) ->
-  kbUser.email = INITIAL_EMAIL
-  kbUser.email_hash = INITIAL_EMAIL_HASH
+module.run(($http, $state, $rootScope, Persona, kbUser) ->
   $rootScope.$on("unauthenticated", -> $state.go("login"))
   Persona.watch(
     loggedInUser: kbUser.email
     onlogin: (assertion) ->
-      $http.post('/login', {assertion: assertion}).then(
-        (data) ->
-          kbUser.email = data.data.email
-          kbUser.email_hash = data.data.email_hash
-          $state.go("board")
+      $http.post('/kb-persona/login', {assertion: assertion}).then(
+        (resp) ->
+          kbUser.email = resp.data.email
+          kbUser.email_hash = resp.data.email_hash
+          kbUser.is_admin = resp.data.is_admin
+          if $state.current.name == 'login'
+            $state.go("boards")
         (reason) ->
+          if typeof reason == 'object'
+            reason = reason.error
           alert(reason)
           $state.go("login")
         )
     onlogout: ->
-      $http.post('/logout').then(
+      $http.post('/kb-logout').then(
         (data) ->
           $state.go("login")
         (reason) ->

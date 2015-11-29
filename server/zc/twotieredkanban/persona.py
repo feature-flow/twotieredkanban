@@ -1,81 +1,53 @@
 import bobo
 import hashlib
-import itsdangerous
 import json
+import jwt
 import requests
 import webob
 
-TOKEN = 'auth_token'
-
-def config(data):
-    global audience
-    audience = data['audience']
+from .apibase import set_cookie, email_hash
 
 @bobo.scan_class
-class Persona(object):
+class Persona:
 
-    email = ''
+  def __init__(self, base):
+      self.site = base.site
+      self.root = base.root
 
-    def __init__(self, request):
-        self.request = request
-        self.connection = connection = request.environ['zodb.connection']
-        self.root = root = connection.root
+  @bobo.post('/login')
+  def persona_login(self, assertion):
+      # Send the assertion to Mozilla's verifier service.
+      data = {'assertion': assertion, 'audience': audience}
+      resp = requests.post(
+          'https://verifier.login.persona.org/verify', data=data, verify=True)
 
-        token = request.cookies.get(TOKEN)
-        if token:
-            try:
-                self.email = root.serializer.loads(token)
-            except itsdangerous.BadTimeSignature:
-                pass # just don't log them in
-        self.kanban = root.kanban
+      # Did the verifier respond?
+      if resp.ok:
+          # Parse the response
+          verification_data = json.loads(resp.content.decode('utf-8'))
 
+          # Check if the assertion was valid
+          if verification_data['status'] == 'okay':
+              email = verification_data['email']
+              response = webob.Response(
+                  json.dumps(dict(
+                      email = email,
+                      email_hash = email_hash(email),
+                      is_admin = email in self.site.admins,
+                      )),
+                  content_type="application/json",
+                  )
+              set_cookie(response, self.root, email)
+              return response
+          else:
+              raise bobo.BoboException('403', verification_data['reason'])
+      else:
+          # Oops, something failed. Abort.
+          raise ValueError("wtf")
 
-    @bobo.post('/login')
-    def login(self, assertion):
-        # Send the assertion to Mozilla's verifier service.
-        data = {'assertion': assertion, 'audience': audience}
-        resp = requests.post(
-            'https://verifier.login.persona.org/verify', data=data, verify=True)
+def config(options):
+    from .apibase import Base
+    Base.persona = bobo.subroute('/kb-persona')(lambda self, r: Persona(self))
 
-        # Did the verifier respond?
-        if resp.ok:
-            # Parse the response
-            verification_data = json.loads(resp.content.decode('utf-8'))
-
-            # Check if the assertion was valid
-            if verification_data['status'] == 'okay':
-                email = verification_data['email']
-                verification_data['email_hash'] = self.email_hash(email)
-                response = webob.Response(
-                    json.dumps(verification_data),
-                    content_type="application/json",
-                    )
-                set_cookie(response, self.root, email)
-                return response
-            else:
-                raise bobo.BoboException('403', verification_data['reason'])
-        else:
-            # Oops, something failed. Abort.
-            raise ValueError("wtf")
-
-    @bobo.post('/logout')
-    def logout(self):
-        response = webob.Response('bye')
-        response.set_cookie(TOKEN, '')
-        return response
-
-    def email_hash(self, email):
-        return hashlib.md5(email.strip().lower().encode('utf-8')).hexdigest()
-
-def initialize_database(database):
-    with database.transaction() as conn:
-        if not hasattr(conn.root, 'serializer'):
-            import random
-            pop = range(32,127)
-            secret = ''.join(
-                map(chr, [random.choice(pop) for i in range(99)]))
-            serializer = itsdangerous.URLSafeTimedSerializer(secret)
-            conn.root.serializer = serializer
-
-def set_cookie(jar, root, email):
-    jar.set_cookie(TOKEN, root.serializer.dumps(email))
+    global audience
+    audience = options['audience']

@@ -11,11 +11,11 @@ class Kanban(persistent.Persistent):
 
     id = 'kanban'
 
-    def __init__(self, admin, state_data='model.json'):
+    def __init__(self, name, title='', description='', state_data='model.json'):
         self.changes = changes = zc.generationalset.GSet()
         self.states = zc.generationalset.GSet("states", changes)
         self.tasks = zc.generationalset.GSet("tasks", changes)
-        self.update([admin], [admin])
+        self.update(name, title, description)
         self.archive = BTrees.OOBTree.OOBTree() # {release_id -> subset }
 
         if isinstance(state_data, str):
@@ -34,6 +34,19 @@ class Kanban(persistent.Persistent):
             for sub in substates:
                 sub['parent'] = state.id
                 self.states.add(State(i*(1<<20), **sub))
+
+    def update(self, name, title, description):
+        self.name = name
+        self.title = title
+        self.description = description
+        self.changes.add(self)
+
+    def json_reduce(self):
+        return dict(
+            name=self.name,
+            title=self.title,
+            description=self.description,
+            )
 
     def updates(self, generation):
         updates = self.changes.generational_updates(generation)
@@ -102,11 +115,6 @@ class Kanban(persistent.Persistent):
         task.order = order
         self.tasks.changed(task)
 
-    def update(self, users, admins):
-        self.users = users
-        self.admins = admins
-        self.changes.add(self)
-
     def archive_task(self, task_id):
         task = self.tasks[task_id]
         self.tasks.remove(task)
@@ -114,12 +122,6 @@ class Kanban(persistent.Persistent):
             task.parent.archive += (task,)
         else:
             self.archive[task.id] = task
-
-    def json_reduce(self):
-        return dict(
-            admins = list(self.admins),
-            users = list(self.users),
-            )
 
 def update_attr(ob, name, v):
     if v is not None and v != getattr(ob, name):

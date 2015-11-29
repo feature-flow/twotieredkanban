@@ -6,7 +6,7 @@ import requests_oauthlib
 import six.moves.urllib.parse
 
 from jira import JIRA
-from . import post, API
+from .apiutil import post
 
 class Jira(persistent.Persistent):
 
@@ -85,5 +85,6 @@ class Routes:
         return {}
 
 def config(options):
-    API.jira = bobo.subroute('/jira')(lambda self, request: Routes(self))
-    bobo.scan_class(API)
+    from .apiadmin import Admin
+    Admin.jira = bobo.subroute('/jira')(lambda self, request: Routes(self))
+    bobo.scan_class(Admin)

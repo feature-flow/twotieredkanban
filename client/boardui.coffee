@@ -1,21 +1,72 @@
 m = angular.module(
-  "kb.directives",
-  ['kb.board', 'kb.login', 'ngMdIcons', "ngMaterial", "ngSanitize",
+  "kb.boardui",
+  ['kb.board', 'kb.login', 'kb.util', 'ngMdIcons', "ngMaterial", "ngSanitize",
    'ngAnimate'])
 
 directive = (name, func) -> m.directive(name, func)
 
-m.provider('kbAdminFunctions', () ->
-  functions = {} # {label -> func}
-  labels = []
-  this.add = (label, func) ->
-    labels.push(label)
-    functions[label] = func
-  this.$get = ($injector) ->
-    labels: labels
-    use: (label) -> $injector.invoke(functions[label])
-  this
+m.config(($stateProvider) ->
+  $stateProvider.state("boards",
+    url: "/"
+    template: "<kb-boards></kb-boards>"
   )
+
+  $stateProvider.state("board",
+    url: "/board/:name"
+    template: '''<kb-board name="name"></kb-board>'''
+    controller: ($scope, $stateParams) ->
+      $scope.name = $stateParams.name
+  )
+)
+
+directive('kbBoards', ($http, kbDialog, kbUser) ->
+  template: '''
+    <div class="kb-boards">
+      Select a board:
+      <div ng-repeat="board in boards | orderBy:name">
+        <a ui-sref="board({ name: board.name })">
+          {{ board.name}} - {{ board.title}}</a>
+      </div>
+      <div><button ng-if="is_admin" ng-click="add($event)">
+        <ng-md-icon icon="add">
+      </button><div>
+    </div>
+    ''',
+  link: (scope) ->
+    scope.boards = []
+    scope.is_admin = kbUser.is_admin
+    $http.get('/kb-boards').then((resp) ->
+      scope.boards = resp.data.boards
+    )
+    scope.add = (event) ->
+      data = { description: '' }
+      kbDialog.show(
+        template: '''
+          <md-input-container>
+            <label>Name</label>
+            <input type="text" ng-model="data.name" required>
+          </md-input-container>
+          <md-input-container>
+            <label>Title</label>
+            <input type="text" ng-model="data.title" required>
+          </md-input-container>
+          <md-input-container>
+            <label>Description</label>
+            <textarea ng-model="data.description"></textarea>
+          </md-input-container>
+          '''
+        targetEvent: event
+        scope:
+          title: "Add board"
+          action: "Add"
+          data: data
+      ).then(() ->
+        if data.name
+          $http.post('/kb-admin/boards', data).then((resp) ->
+            scope.boards = resp.data.boards
+          )
+      )
+)
 
 directive(
   'kbBoard',
@@ -23,14 +74,14 @@ directive(
     restrict: "E"
     replace: true
     templateUrl: "kbBoard.html"
-    scope: {}
+    scope: { name: '&'}
     link: (scope) ->
-
+      Server.board(scope.name())
       scope.board = Board
       scope.states = Board.states
       scope.email = kbUser.email
       scope.email_hash = kbUser.email_hash
-      Board.ready.then( -> scope.is_admin = Server.is_admin())
+      scope.is_admin = kbUser.is_admin
 
       scope.logout = -> Persona.logout()
 
@@ -60,7 +111,7 @@ directive(
 
 directive("kbProjectColumn", () ->
   replace: true
-  template: '
+  template: '''
     <td class="kb_project_column"">
       <div class="kb-column">
         <div ng-repeat="project in state.projects" class="kb-column-item">
@@ -71,7 +122,7 @@ directive("kbProjectColumn", () ->
         <kb-project-divider state="state" class="kb-task-tail">
         </kb-project-divider>
       </div>
-    </td>'
+    </td>'''
   scope: { state: '=' }
   link: (scope, el) ->
   )
@@ -273,48 +324,4 @@ directive("kbDevTask", ($mdDialog) ->
       )
 
     scope.edit_task = (event) -> edit_task($mdDialog, scope.task, event)
-  )
-
-m.filter('breakify', ->
-  (text) -> text.replace("\n\n", "<br><br>")
-  )
-
-directive('kbReturn', () ->
-  restrict: 'A'
-  scope: { result: '=kbReturn', keydown: '=' }
-  link: (scope) ->
-    scope.keydown = (event) ->
-      key = event.which or event.keyCode
-      if key == 13
-        scope.result(true)
-      if key == 27
-        scope.result(false)
-  )
-
-m.factory('kbDialog', ($mdDialog, $injector) ->
-  show: (props) ->
-    $mdDialog.show(
-      controller: ($scope, $mdDialog) ->
-        for name, val of props.scope
-          $scope[name] = val
-        $scope.cancel = $mdDialog.cancel
-        $scope.hide = $mdDialog.hide
-        if props.controller?
-          props.controller($scope)
-      targetEvent: props.targetEvent
-      parent: props.parent
-      template: """
-        <md-dialog aria-label="{{ title }}">
-          <md-dialog-content>#{ props.template }</md-dialog-content>
-          <div class="md-actions" layout="row" layout-align="end center">
-            <md-button ng-click="cancel()">
-              {{ cancel_action || 'Cancel' }}
-            </md-button>
-            <md-button ng-click="hide()">
-              {{ action }}
-            </md-button>
-          </div>
-        </md-dialog>
-        """
-      )
   )

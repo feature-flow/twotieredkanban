@@ -56,10 +56,8 @@ class Task extends TaskContainer
 
 class Board extends TaskContainer
 
-  constructor:  () ->
+  constructor:  (@name) ->
     super()
-    @admins = []
-    @users = []
     @generation = 0
     @tasks = {} # {id -> task} for all tasks
     @states = [] # [top-level-state]
@@ -90,16 +88,7 @@ class Board extends TaskContainer
     if sort
       parent.sort(task.state)
 
-  _resolve: ->
-
   apply_updates: (updates) ->
-    @_resolve()
-    @_resolve = ->
-
-    if updates.kanban?
-        @admins[..] = updates.kanban["admins"]
-        @users[..]  = updates.kanban["users"]
-
     if updates.states?
       # XXX not checking changes in parentage.
       # We probably won't allow that.
@@ -184,13 +173,7 @@ class Board extends TaskContainer
       else
         0
 
-services.factory(
-  "Board"
-  ($q) ->
-    board = new Board()
-    board.ready = $q((resolve) -> board._resolve = resolve)
-    board
-  )
+services.factory("Board", () -> new Board())
 
 services.factory("kbInterceptor", (Board) ->
   header = "X-Generation"
@@ -212,7 +195,6 @@ services.config(($httpProvider) ->
     )
 
 services.run((Server, $rootScope) ->
-  Server.start_polling()
   document.addEventListener("visibilitychange", () ->
     if document.visibilityState == 'visible'
       $rootScope.$apply(Server.start_polling)
@@ -221,10 +203,10 @@ services.run((Server, $rootScope) ->
     )
   )
 
-services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
+services.factory("Server", ($http, $timeout, Board) ->
 
   class Poller
-    constructor: () ->
+    constructor: (@board_name) ->
       @active = true
       @status = 'starting'
 
@@ -242,9 +224,11 @@ services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
             )
         else
           @status = 'connecting'
-          @poll("/poll", retry)
+          @poll("/board/#{ @board_name }/poll", retry)
 
-    poll: (url='/longpoll', retry=.5) ->
+    poll: (url='', retry=.5) ->
+      if not url
+        url = "/board/#{ @board_name }/longpoll"
       $http.get(url).then(
         () =>
           if @active
@@ -257,44 +241,51 @@ services.factory("Server", ($http, $timeout, INITIAL_EMAIL, Board) ->
             @wait((Math.random() + .5) * retry, retry)
         )
 
-  poller = new Poller()
+  board_name = ''
+  poller = new Poller(board_name)
+  start_polling = ->
+      poller.cancel()
+      if board_name
+        poller = new Poller(board_name)
+        poller.poll("/board/#{ board_name }/poll")
 
   {
-    start_polling: ->
-      poller.cancel()
-      poller = new Poller()
-      poller.poll('/poll')
+    board: (new_name) ->
+      board_name = new_name
+      Board.constructor(board_name)
+      start_polling()
+      
+    start_polling: start_polling
     stop_polling: ->
       poller.cancel()
     status: ->
       poller.status
-    is_admin: -> INITIAL_EMAIL in Board.admins
     new_project: (name, description, order) ->
-      $http.post("/releases", {
+      $http.post("/board/#{ board_name }/releases", {
         name: name
         description: description
         order: order
         })
     update_project: (project, name, description) ->
-      $http.put("/releases/" + project.id, {
+      $http.put("/board/#{ board_name }/releases/" + project.id, {
         name: name
         description: description
         })
     new_task: (project, name, description, order) ->
-      $http.post("/releases/" + project.id, {
+      $http.post("/board/#{ board_name }/releases/" + project.id, {
         name: name
         description: description
         order: order
         })
     update_task: (task, name, description, order, size, blocked) ->
-      $http.put("/tasks/" + task.id, {
+      $http.put("/board/#{ board_name }/tasks/" + task.id, {
         name: name
         description: description
         size: size
         blocked: blocked
         })
     move_task: (task, parent, state, order) ->
-      $http.put("/move/#{ task.id }"
+      $http.put("/board/#{ board_name }/move/#{ task.id }"
                 {
                   state: state.id
                   parent_id: if parent? then parent.id else null

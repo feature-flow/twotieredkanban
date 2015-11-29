@@ -1,4 +1,4 @@
-m = angular.module('kb.jira', ['kb.directives'])
+m = angular.module('kb.jira', [])
 
 m.config(($stateProvider, kbAdminFunctionsProvider) ->
   $stateProvider.state("jira", {
