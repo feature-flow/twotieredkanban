@@ -27,9 +27,9 @@ class Routes:
     def __init__(self, api):
         self.api = api
         try:
-            self.jira = api.kanban.jira
+            self.jira = api.site.jira
         except AttributeError:
-            self.jira = api.kanban.jira = Jira()
+            self.jira = api.site.jira = Jira()
 
     def check(self, func):
         return self.api.check(func)

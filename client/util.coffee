@@ -38,6 +38,7 @@ m.factory('kbDialog', ($mdDialog, $injector) ->
       parent: props.parent
       template: """
         <md-dialog aria-label="{{ title }}">
+          <h4 ng-if="title">{{ title }}</h4>
           <md-dialog-content>#{ props.template }</md-dialog-content>
           <div class="md-actions" layout="row" layout-align="end center">
             <md-button ng-click="cancel()">
