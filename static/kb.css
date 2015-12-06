@@ -87,6 +87,11 @@ md-card.kb-dev-task.kb_blocked {
     flex-direction: column;
 }
 
+md-dialog, .kb-page, .backlog, .kb-board th {
+    padding: 1em;
+}
+
+
 /* ****************************************************************************
   Transitions for moving cards within columns
  */

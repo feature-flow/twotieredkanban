@@ -21,16 +21,18 @@ m.config(($stateProvider) ->
 
 directive('kbBoards', ($http, kbDialog, kbUser) ->
   template: '''
-    <div class="kb-boards">
-      Select a board:
-      <div ng-repeat="board in boards | orderBy:name">
+    <md-list class="kb-boards">
+      <md-subheader class="md-no-sticky">Select a board:</md-subheader>
+      <md-list-item ng-repeat="board in boards | orderBy:name">
         <a ui-sref="board({ name: board.name })">
           {{ board.name}} - {{ board.title}}</a>
-      </div>
-      <div><button ng-if="is_admin" ng-click="add($event)">
-        <ng-md-icon icon="add">
-      </button><div>
-    </div>
+      </md-list-item>
+      <md-subheader class="md-no-sticky">
+        <button ng-if="is_admin" ng-click="add($event)">
+          <ng-md-icon icon="add">
+        </button>
+      </md-subheader>
+    </md-list>
     ''',
   link: (scope) ->
     scope.boards = []

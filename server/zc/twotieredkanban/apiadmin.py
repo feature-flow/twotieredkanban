@@ -9,6 +9,7 @@ class Admin:
     def __init__(self, base):
         self.base = base
         self.site = base.site
+        self.request = base.request
 
     def check(self, func):
         base = self.base

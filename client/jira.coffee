@@ -10,17 +10,78 @@ m.config(($stateProvider, kbAdminFunctionsProvider) ->
     $state.go('jira')
     )
   )
- 
+
+base_url = '/kb-admin/jira/'
 
 m.directive('kbJira', ($http, kbDialog, $state, $sce) ->
   template: '''
-      <div class="kb-jira">
-        <ul>
-          <li><a href ng-click="connect()">Connect</a></li>
-        </ul>
-      </div>'''
+    <md-content class="kb-jira kb-page">
+
+      <div ng-hide=webhook>
+        <h5>Set up webhooks to get Jira updates</h5>
+        <p>You can have changes in Jira sent to your Kanban boards by
+          configuring the Kanban to provide a webhook to Jira to get
+          updates.
+        </p>
+        <md-button type=button ng-click="create_webhook($event)">
+          Setup Webhook
+        </md-button>
+      </div>
+
+      <div ng-show=webhook>
+        <h5>Jira webhook</h5>
+        <p>Your Jira webhook is:</p>
+        <pre>{{ webhook }}</pre>
+        <p>Configure Jira to use this webhook by selecting "System"
+          from the settings menu, then selecting "Webhooks", and then
+          adding or editing a webhook with the URL above.</p>
+        <p>Only issue updates are currently understood by the Kanban.</p>
+        <md-button type=button ng-click="remove_webhook($event)">
+          Remove
+        </md-button>
+        <md-button type=button ng-click="create_webhook($event)">
+          Re-create
+        </md-button>
+      </div>
+
+      <div ng-hide=connected>
+        <h5>Connect to Jira to poll for data and send changes</h5>
+        <p>If you connect to Jira, you can pull Jira data into the Kanban.
+          You can also update Jira with changes made in the Kanban.</p>
+        <md-button type=button ng-click="connect($event)">
+          Connect
+        </md-button>
+      </div>
+
+      <div ng-show=connected>
+        <h5>Poll Jira for changes</h5>
+        <p>You\'ve connected your Kabban to Jira. You can poll for updates.</p>
+        <md-button type=button ng-click="poll()">
+          Poll
+        </md-button>
+        <md-button type=button ng-click="disconnect()">
+          Disconnect
+        </md-button>
+      </div>
+
+    </md-content>'''
   scope: {}
   link: (scope) ->
+
+    $http.get(base_url).then((resp) ->
+      scope.connected = resp.data.connected
+      scope.webhook = resp.data.webhook
+    )
+
+    scope.create_webhook = () ->
+      $http.post(base_url + 'create-webhook', {}).then((resp) ->
+        scope.webhook = resp.data.webhook
+      )
+    scope.remove_webhook = () ->
+      $http.post(base_url + 'remove-webhook', {}).then(() ->
+        scope.webhook = null
+      )
+ 
     scope.connect = (event) ->
       step2 = {}
       kbDialog.show(
@@ -72,7 +133,7 @@ m.directive('kbJira', ($http, kbDialog, $state, $sce) ->
             action: 'Continue'
         )
       ).then(() ->
-        $http.post('/kb-admin/jira/step2', step2)
+        $http.post(base_url + 'step2', step2)
       ).then((resp) ->
         kbDialog.show(
           template: '''
@@ -91,6 +152,17 @@ m.directive('kbJira', ($http, kbDialog, $state, $sce) ->
             cancel_action: 'No'
         )
     ).then(() ->
-        $http.post('/kb-admin/jira/step3')
+        $http.post(base_url + 'step3')
+    ).then(() ->
+       scope.connected = true
     )
+
+    scope.disconnect = () ->
+      $http.post(base_url + 'disconnect', {}).then(() ->
+        scope.connected = false
+      )
+    scope.poll = () ->
+      $http.get(base_url + 'poll').then(() ->
+        scope.webhook = null
+      )
 )

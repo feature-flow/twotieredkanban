@@ -4,6 +4,7 @@ import json
 import jwt.exceptions
 import logging
 import os
+import webob
 
 from .apiutil import get
 from .apiadmin import Admin
