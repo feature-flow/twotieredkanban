@@ -6,11 +6,17 @@ module.config(($stateProvider) ->
     controller: ($scope, Persona) ->
       $scope.login = -> Persona.request()
     template: '
-      <md-content>
-        You need to login to use the two-tiered kanban board.<br>
-        <md-button ng-click="login()">
-          Login
-        </md-button>
+      <md-content class="kb-login">
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2>You need to login to use the two-tiered kanban board.</h2>
+          </div>
+        </md-toolbar>
+        <div class="kb-login-buttons">
+            <md-button ng-click="login()">
+            Login with Persona
+          </md-button>
+        </div>
       </md-content>
     '
     })
