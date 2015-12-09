@@ -1,14 +1,11 @@
 app = angular.module(
   'kb', [
+    'ui.router'
+    'kb.frame'
     'kb.boardui'
     'kb.login'
     'kb.initial'
-    'ui.router'
     'kb.board'
     'kb.users'
     'kb.jira'
     ])
-
-app.config(($stateProvider, $urlRouterProvider) ->
-  $urlRouterProvider.otherwise("/")
-  )

@@ -63,6 +63,7 @@ class Board extends TaskContainer
     @states = [] # [top-level-state]
     @states_by_id = {} # {id -> top-level-state
     @all_tasks = []
+    @title = @name
 
   add_task: (task) ->
     old = @tasks[task.id]
@@ -89,9 +90,11 @@ class Board extends TaskContainer
       parent.sort(task.state)
 
   apply_updates: (updates) ->
+    if updates.kanban?
+      if updates.kanban.title?
+        @title = updates.kanban.title
+
     if updates.states?
-      # XXX not checking changes in parentage.
-      # We probably won't allow that.
 
       # top-level states
       for state in updates.states.adds

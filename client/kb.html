@@ -32,71 +32,10 @@
     <script src="/static/users.js"></script>
     <script src="/static/jira.js"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/frame.js"></script>
     <script src="/static/boardui.js"></script>
   </head>
   <body ng-app="kb">
-
-    <script type="text/ng-template" id="kbBoard.html">
-      <md-content class="kb-board">
-
-        <md-toolbar>
-          <div class="md-toolbar-tools">
-            <h2>Two-tier kanban
-              <span ng-show="status() != 'connected'">
-                ({{ status() }}
-                <md-button class="md-raised kb-try-now" ng-click="try_now()">
-                  Try now
-                </md-button>)
-              </span>
-            </h2>
-            <span flex></span>
-
-            <md-menu md-position-mode="target-right target" >
-              <md-button aria-label="Open demo menu"
-                         ng-click="$mdOpenMenu($event)"
-                         >
-                <div layout="row" class="centered-items">
-                  <img
-                     ng-src="http://www.gravatar.com/avatar/{{email_hash}}?s=20"
-                     class="kb-avatar"
-                     width="20"
-                     height="20"
-                     />
-                  <span class="kb-avatar-email">{{email}}</span>
-                </div>
-              </md-button>
-              <md-menu-content width="4" >
-                <md-menu-item>
-                  <md-button ng-click="logout()">Logout</md-button>
-                </md-menu-item>
-                <md-menu-item ng-show="is_admin"
-                              ng-repeat="label in admin_menu_items">
-                  <md-button ng-click="admin_use(label)">
-                    {{ label }}
-                  </md-button>
-                </md-menu-item>
-              </md-menu-content>
-            </md-menu>
-          </div>
-        </md-toolbar>
-
-        <table>
-          <tr><th ng-repeat="state in states.slice(1)">{{state.label}}</th></tr>
-          <tr><td ng-repeat="state in states.slice(1)"
-                  kb-project-column state="state">
-          </td></tr>
-        </table>
-
-        <div class="backlog">
-          <h4>{{ states[0].label }}</h4>
-          <kb-project-column state="states[0]"></kb-project-column>
-          <md-button ng-click="new_project($event)">
-            Add project
-          </md-button>
-        </div>
-
-      </md-content>
-    </script>
 
     <script type="text/ng-template" id="kbProject.html">
       <md-card id="{{project.id}}" draggable="true" class="kb-project">

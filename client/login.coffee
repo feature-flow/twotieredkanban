@@ -47,7 +47,7 @@ module.run(($http, $state, $rootScope, Persona, kbUser) ->
           kbUser.email_hash = resp.data.email_hash
           kbUser.is_admin = resp.data.is_admin
           if $state.current.name == 'login'
-            $state.go("boards")
+            $state.go("authenticated.boards")
         (reason) ->
           if typeof reason == 'object'
             reason = reason.error

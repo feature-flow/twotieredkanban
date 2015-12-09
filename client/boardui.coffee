@@ -6,25 +6,30 @@ m = angular.module(
 directive = (name, func) -> m.directive(name, func)
 
 m.config(($stateProvider) ->
-  $stateProvider.state("boards",
-    url: "/"
-    template: "<kb-boards></kb-boards>"
+  $stateProvider.state("authenticated.boards",
+    url: "/boards"
+    template: "<kb-boards></kb-boards>",
+    title: "Available Kanban Boards"
   )
 
-  $stateProvider.state("board",
+  $stateProvider.state("authenticated.board",
     url: "/board/:name"
     template: '''<kb-board name="name"></kb-board>'''
-    controller: ($scope, $stateParams) ->
+    controller: ($scope, $stateParams, $state) ->
       $scope.name = $stateParams.name
   )
 )
+
+m.config(($stateProvider, $urlRouterProvider) ->
+  $urlRouterProvider.otherwise("/boards")
+  )
 
 directive('kbBoards', ($http, kbDialog, kbUser) ->
   template: '''
     <md-list class="kb-boards">
       <md-subheader class="md-no-sticky">Select a board:</md-subheader>
       <md-list-item ng-repeat="board in boards | orderBy:name">
-        <a ui-sref="board({ name: board.name })">
+        <a ui-sref="authenticated.board({ name: board.name })">
           {{ board.name}} - {{ board.title}}</a>
       </md-list-item>
       <md-subheader class="md-no-sticky">
@@ -72,23 +77,43 @@ directive('kbBoards', ($http, kbDialog, kbUser) ->
 
 directive(
   'kbBoard',
-  (Board, $mdDialog, Persona, Server, kbUser, kbAdminFunctions) ->
+  (Board, $mdDialog, Server, $state) ->
     restrict: "E"
     replace: true
-    templateUrl: "kbBoard.html"
+    template: '''
+      <div class="kb-board">
+        <table>
+          <tr><th ng-repeat="state in states.slice(1)">{{state.label}}</th></tr>
+          <tr><td ng-repeat="state in states.slice(1)"
+                  kb-project-column state="state">
+          </td></tr>
+        </table>
+
+        <div class="backlog">
+          <h4>{{ states[0].label }}</h4>
+          <kb-project-column state="states[0]"></kb-project-column>
+          <md-button ng-click="new_project($event)">
+            Add project
+          </md-button>
+        </div>
+      </div>
+      '''
     scope: { name: '&'}
     link: (scope) ->
       Server.board(scope.name())
       scope.board = Board
       scope.states = Board.states
-      scope.email = kbUser.email
-      scope.email_hash = kbUser.email_hash
-      scope.is_admin = kbUser.is_admin
-
-      scope.logout = -> Persona.logout()
 
       scope.status = Server.status
       scope.try_now = -> Server.start_polling()
+
+      $state.current.title = Board.title
+      scope.$watch(
+        () ->
+          Board.title
+        () ->
+          $state.current.title = Board.title
+        )
 
       scope.new_project = (event) ->
         $mdDialog.show(
@@ -106,9 +131,6 @@ directive(
           templateUrl: "kbEditProject.html"
           targetEvent: event
           )
-
-      scope.admin_menu_items = kbAdminFunctions.labels
-      scope.admin_use = kbAdminFunctions.use
     )
 
 directive("kbProjectColumn", () ->
