@@ -1,15 +1,29 @@
 m = angular.module("kb.util", ["ngMaterial"])
 
-m.provider('kbAdminFunctions', () ->
-  functions = {} # {label -> func}
-  labels = []
-  this.add = (label, func) ->
-    labels.push(label)
-    functions[label] = func
-  this.$get = ($injector) ->
-    labels: labels
-    use: (label) -> $injector.invoke(functions[label])
-  this
+class Menu
+  constructor: () ->
+    @labels = []
+    @functions = []
+
+  add: (label, func) =>
+    @labels.push(label)
+    @functions[label] = func
+
+  use: (label) => @injector.invoke(@functions[label])
+
+m.provider('kbMenu', () ->
+  menus = {}
+  {
+    add: (name, label, func) ->
+      if not menus[name]?
+        menus[name] = new Menu
+      menus[name].add(label, func)
+ 
+    $get: ($injector) ->
+      for _, menu of menus
+        menu.injector = $injector
+      menus
+  }
   )
 
 m.directive('kbReturn', () ->

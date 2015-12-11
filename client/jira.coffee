@@ -1,13 +1,13 @@
 m = angular.module('kb.jira', ['kb.frame'])
 
-m.config(($stateProvider, kbAdminFunctionsProvider) ->
+m.config(($stateProvider, kbMenuProvider) ->
   $stateProvider.state("authenticated.jira", {
     url: "/jira"
     template: "<kb-jira></kb-jira>"
     title: 'Jira integration'
     })
 
-  kbAdminFunctionsProvider.add("Jira integration", ($state) ->
+  kbMenuProvider.add("admin", "Jira integration", ($state) ->
     $state.go('authenticated.jira')
     )
   )

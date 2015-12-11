@@ -1,7 +1,7 @@
 m = angular.module('kb.users', ['kb.board', 'kb.util'])
 
-m.config((kbAdminFunctionsProvider) ->
-  kbAdminFunctionsProvider.add("Manage users", (Board, $http, kbDialog) ->
+m.config((kbMenuProvider) ->
+  kbMenuProvider.add("admin", "Manage users", (Board, $http, kbDialog) ->
     kbDialog.show(
       scope:
         title: 'Users'

@@ -7,7 +7,7 @@ m.config(($stateProvider) ->
     })
 )
 
-m.directive('kbFrame', ($state, kbAdminFunctions, kbUser, Persona, Server) ->
+m.directive('kbFrame', ($state, kbMenu, kbUser, Persona, Server) ->
   template: '''
       <md-content class="kb-board">
 
@@ -43,8 +43,8 @@ m.directive('kbFrame', ($state, kbAdminFunctions, kbUser, Persona, Server) ->
                   <md-button ng-click="boards()">Boards</md-button>
                 </md-menu-item>
                 <md-menu-item ng-show="is_admin"
-                              ng-repeat="label in admin_menu_items">
-                  <md-button ng-click="admin_use(label)">
+                              ng-repeat="label in admin_menu.labels">
+                  <md-button ng-click="admin_menu.use(label)">
                     {{ label }}
                   </md-button>
                 </md-menu-item>
@@ -64,8 +64,7 @@ m.directive('kbFrame', ($state, kbAdminFunctions, kbUser, Persona, Server) ->
     scope.email_hash = kbUser.email_hash
     scope.is_admin = kbUser.is_admin
 
-    scope.admin_menu_items = kbAdminFunctions.labels
-    scope.admin_use = kbAdminFunctions.use
+    scope.admin_menu = kbMenu.admin
 
     scope.logout = Persona.logout
 
