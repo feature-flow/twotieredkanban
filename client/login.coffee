@@ -1,10 +1,10 @@
-module = angular.module("kb.login", ["persona", "ui.router"])
+m = angular.module("kb.login", ["ui.router"])
 
-module.config(($stateProvider) ->
+m.config(($stateProvider) ->
   $stateProvider.state("login", {
     url: "/login"
-    controller: ($scope, Persona) ->
-      $scope.login = -> Persona.request()
+    controller: ($scope, kbMenu) ->
+      $scope.menu = kbMenu.login
     template: '
       <md-content class="kb-login">
         <md-toolbar>
@@ -12,9 +12,9 @@ module.config(($stateProvider) ->
             <h2>You need to login to use the two-tiered kanban board.</h2>
           </div>
         </md-toolbar>
-        <div class="kb-login-buttons">
-            <md-button ng-click="login()">
-            Login with Persona
+        <div class="kb-login-buttons" ng-repeat="label in menu.labels">
+          <md-button ng-click="menu.use(label)">
+            {{ label }}
           </md-button>
         </div>
       </md-content>
@@ -22,17 +22,18 @@ module.config(($stateProvider) ->
     })
   )
 
-module.factory("kbAuthInterceptor", ($rootScope) ->
+m.factory("kbAuthInterceptor", ($rootScope) ->
   response: (response) ->
     if response.status == 401
       $rootScope.$emit("unauthenticated")
     response
   )
-module.config(($httpProvider) ->  
+
+m.config(($httpProvider) ->  
     $httpProvider.interceptors.push('kbAuthInterceptor')
     )
 
-module.provider('kbUser', () ->
+m.provider('kbUser', () ->
   user_data = {}
   {
     set: (data) ->
@@ -42,31 +43,6 @@ module.provider('kbUser', () ->
   }
 )
 
-module.run(($http, $state, $rootScope, Persona, kbUser) ->
+m.run(($http, $state, $rootScope, Persona, kbUser) ->
   $rootScope.$on("unauthenticated", -> $state.go("login"))
-  Persona.watch(
-    loggedInUser: kbUser.email
-    onlogin: (assertion) ->
-      $http.post('/kb-persona/login', {assertion: assertion}).then(
-        (resp) ->
-          kbUser.email = resp.data.email
-          kbUser.email_hash = resp.data.email_hash
-          kbUser.is_admin = resp.data.is_admin
-          if $state.current.name == 'login'
-            $state.go("authenticated.boards")
-        (reason) ->
-          if typeof reason == 'object'
-            reason = reason.error
-          alert(reason)
-          $state.go("login")
-        )
-    onlogout: ->
-      $http.post('/kb-logout').then(
-        (data) ->
-          $state.go("login")
-        (reason) ->
-          alert(reason)
-          $state.go("login")
-        )
-    )
   )

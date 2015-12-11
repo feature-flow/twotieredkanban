@@ -8,4 +8,5 @@ app = angular.module(
     'kb.board'
     'kb.users'
     'kb.jira'
+    'kb.persona'
     ])
