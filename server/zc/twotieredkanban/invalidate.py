@@ -5,6 +5,7 @@ from gevent.event import Event
 import gevent.hub
 
 def patch_db(database):
+    return
     orig_invalidate = database.invalidate
     def patched_invalidate(tid, oids, *a, **kw):
         orig_invalidate(tid, oids, *a, **kw)

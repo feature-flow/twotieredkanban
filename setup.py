@@ -6,14 +6,10 @@ install_requires = [
     'cryptography',
     'gevent',
     'requests',
-    'requests-oauthlib',
-    'jira',
-    'pycrypto',
     'PyJWT',
     'setuptools',
     'zc.generationalset',
     'zc.zodbwsgi',
-    'zc.persona',
     'zope.exceptions',                  # XXX required by zodbwsgi
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
