@@ -43,7 +43,6 @@ class Base:
         if not self.email:
             self.error(401, "You must authenticate")
         if self.email not in self.site.users:
-            import pdb; pdb.set_trace()
             self.error(403,
                        dict(error="You're not authorized to use this Kanban.",
                             bad_user=True),
@@ -82,6 +81,19 @@ class Base:
         if b:
             return Board(self, b)
         raise bobo.NotFound
+
+    @bobo.post('/placeholder-login')
+    def login(self, email):
+        response = webob.Response(
+            json.dumps(dict(
+                email = email,
+                email_hash = email_hash(email),
+                is_admin = email in self.site.admins,
+                )),
+            content_type="application/json",
+            )
+        set_cookie(response, self.root, email)
+        return response
 
 def set_cookie(jar, root, email):
     jar.set_cookie(

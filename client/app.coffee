@@ -3,10 +3,9 @@ app = angular.module(
     'ui.router'
     'kb.frame'
     'kb.boardui'
-    'kb.login'
     'kb.initial'
     'kb.board'
     'kb.users'
-    'kb.jira'
-    'kb.persona'
+    'kb.util'
+    'kb.login'
     ])

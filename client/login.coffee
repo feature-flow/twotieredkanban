@@ -1,4 +1,4 @@
-m = angular.module("kb.login", ["ui.router"])
+m = angular.module("kb.login", ["ui.router", "kb.util"])
 
 m.config(($stateProvider) ->
   $stateProvider.state("login", {
@@ -29,9 +29,10 @@ m.factory("kbAuthInterceptor", ($rootScope) ->
     response
   )
 
-m.config(($httpProvider) ->  
-    $httpProvider.interceptors.push('kbAuthInterceptor')
-    )
+m.config(($httpProvider) ->
+  x = 1
+  $httpProvider.interceptors.push('kbAuthInterceptor')
+  )
 
 m.provider('kbUser', () ->
   user_data = {}
@@ -43,6 +44,45 @@ m.provider('kbUser', () ->
   }
 )
 
-m.run(($http, $state, $rootScope, Persona, kbUser) ->
-  $rootScope.$on("unauthenticated", -> $state.go("login"))
+m.config((kbMenuProvider) ->
+  kbMenuProvider.add(
+    'login'
+    'Login with Email'
+    ($http, kbDialog, kbUser, $state) ->
+      data = {}
+      kbDialog.show(
+        template: '''
+          <md-input-container>
+            <label>Email</label>
+            <input type="text" ng-model="data.email" required>
+          </md-input-container>
+          '''
+        scope:
+          title: "Enter your email address"
+          action: "Login"
+          data: data
+      ).then(() ->
+        if data.email
+          $http.post('/placeholder-login', data).then(
+            (resp) ->
+              kbUser.email = resp.data.email
+              kbUser.email_hash = resp.data.email_hash
+              kbUser.is_admin = resp.data.is_admin
+              if $state.current.name == 'login'
+                $state.go("authenticated.boards")
+            (reason) ->
+              if typeof reason == 'object'
+                reason = reason.error
+              alert(reason)
+              $state.go("login")
+            )
+          )
+      )
   )
+
+m.run(($http, $state, $rootScope, kbUser) ->
+  $rootScope.$on("unauthenticated", ->
+    x = 1  
+    $state.go("login"))
+  )
+

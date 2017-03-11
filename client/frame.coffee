@@ -7,7 +7,7 @@ m.config(($stateProvider) ->
     })
 )
 
-m.directive('kbFrame', ($state, kbMenu, kbUser, Persona, Server) ->
+m.directive('kbFrame', ($state, kbMenu, kbUser, Server) ->
   template: '''
       <md-content class="kb-board">
 
@@ -65,8 +65,6 @@ m.directive('kbFrame', ($state, kbMenu, kbUser, Persona, Server) ->
     scope.is_admin = kbUser.is_admin
 
     scope.admin_menu = kbMenu.admin
-
-    scope.logout = Persona.logout
 
     scope.boards = -> $state.go("authenticated.boards")
 )
