@@ -30,7 +30,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000001",
-              "label": "Backlog",
+              "title": "Backlog",
               "order": 0,
               "parent": null,
               "working": false
@@ -38,7 +38,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000002",
-              "label": "Ready",
+              "title": "Ready",
               "order": 1048576,
               "parent": null,
               "working": false
@@ -46,7 +46,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000003",
-              "label": "Development",
+              "title": "Development",
               "order": 2097152,
               "parent": null,
               "working": false
@@ -54,7 +54,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000004",
-              "label": "Ready",
+              "title": "Ready",
               "order": 2097152,
               "parent": "00000000000000000000000000000003",
               "working": false
@@ -62,7 +62,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000005",
-              "label": "Doing",
+              "title": "Doing",
               "order": 2097152,
               "parent": "00000000000000000000000000000003",
               "working": true
@@ -70,7 +70,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000006",
-              "label": "Needs review",
+              "title": "Needs review",
               "order": 2097152,
               "parent": "00000000000000000000000000000003",
               "working": false
@@ -78,7 +78,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000007",
-              "label": "Review",
+              "title": "Review",
               "order": 2097152,
               "parent": "00000000000000000000000000000003",
               "working": true
@@ -86,7 +86,7 @@ describe("Kanban Board", ->
             {
               "complete": true,
               "id": "00000000000000000000000000000008",
-              "label": "Done",
+              "title": "Done",
               "order": 2097152,
               "parent": "00000000000000000000000000000003",
               "working": false
@@ -94,7 +94,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000009",
-              "label": "Acceptance",
+              "title": "Acceptance",
               "order": 3145728,
               "parent": null,
               "working": false
@@ -102,7 +102,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000010",
-              "label": "Deploying",
+              "title": "Deploying",
               "order": 4194304,
               "parent": null,
               "working": false
@@ -110,7 +110,7 @@ describe("Kanban Board", ->
             {
               "complete": false,
               "id": "00000000000000000000000000000011",
-              "label": "Deployed",
+              "title": "Deployed",
               "order": 5242880,
               "parent": null,
               "working": false

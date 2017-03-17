@@ -1,12 +1,12 @@
 ["Backlog", "Ready",
  {
-     "label": "Development",
+     "title": "Development",
      "substates": [
-         {"label": "Ready"},
-         {"label": "Doing", "working": true},
-         {"label": "Needs review"},
-         {"label": "Review", "working": true},
-         {"label": "Done", "complete": true}
+         {"title": "Ready"},
+         {"title": "Doing", "working": true},
+         {"title": "Needs review"},
+         {"title": "Review", "working": true},
+         {"title": "Done", "complete": true}
      ]
  },
   "Acceptance", "Deploying", "Deployed"

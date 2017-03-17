@@ -114,7 +114,7 @@ class KanbanTests(setupstack.TestCase):
             r2 = list(kanban.tasks)[-1]
             kanban.new_task(r1.id, 't3', 2.0)
             t3 = list(kanban.tasks)[-1]
-            states = dict((s.label, s.id) for s in kanban.states)
+            states = dict((s.title, s.id) for s in kanban.states)
 
         admin = self.test_app('admin@example.com')
         self.get(admin, '/board/test/poll') # set generation

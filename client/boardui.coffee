@@ -83,14 +83,14 @@ directive(
     template: '''
       <div class="kb-board">
         <table>
-          <tr><th ng-repeat="state in states.slice(1)">{{state.label}}</th></tr>
+          <tr><th ng-repeat="state in states.slice(1)">{{state.title}}</th></tr>
           <tr><td ng-repeat="state in states.slice(1)"
                   kb-project-column state="state">
           </td></tr>
         </table>
 
         <div class="backlog">
-          <h4>{{ states[0].label }}</h4>
+          <h4>{{ states[0].title }}</h4>
           <kb-project-column state="states[0]"></kb-project-column>
           <md-button ng-click="new_project($event)">
             Add project

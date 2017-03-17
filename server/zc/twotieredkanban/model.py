@@ -27,7 +27,7 @@ class Kanban(persistent.Persistent):
 
         for i, state in enumerate(state_data):
             if isinstance(state, str):
-                state = dict(label=state)
+                state = dict(title=state)
             substates = state.pop("substates", ())
             state = State(i*(1<<20), **state)
             self.states.add(state)
@@ -138,11 +138,11 @@ class TaskValueError(TypeError):
 
 class State(persistent.Persistent):
 
-    def __init__(self, order, label,
+    def __init__(self, order, title,
                  working=False, complete=False, parent=None):
         self.id = uuid.uuid1().hex
         self.order = order
-        self.label = label
+        self.title = title
         self.working = working
         self.complete = complete
         self.parent = parent

@@ -43,7 +43,7 @@
                 [{{ project.total_completed }}/{{ project.total_size }}]
               </caption>
               <tr><th ng-repeat="state in state.substates"
-                      >{{state.label}}</th></tr>
+                      >{{state.title}}</th></tr>
               <tr>
                 <td ng-repeat="state in state.substates"
                     kb-task-column state="state" project="project">
