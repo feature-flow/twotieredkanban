@@ -58,7 +58,7 @@ m.factory('kbDialog', ($mdDialog, $injector) ->
             <md-button ng-click="cancel()">
               {{ cancel_action || 'Cancel' }}
             </md-button>
-            <md-button ng-click="hide()">
+            <md-button ng-click="hide(result)">
               {{ action }}
             </md-button>
           </div>
