@@ -30,7 +30,6 @@ m.factory("kbAuthInterceptor", ($rootScope) ->
   )
 
 m.config(($httpProvider) ->
-  x = 1
   $httpProvider.interceptors.push('kbAuthInterceptor')
   )
 
@@ -82,7 +81,5 @@ m.config((kbMenuProvider) ->
 
 m.run(($http, $state, $rootScope, kbUser) ->
   $rootScope.$on("unauthenticated", ->
-    x = 1  
     $state.go("login"))
   )
-
