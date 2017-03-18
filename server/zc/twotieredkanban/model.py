@@ -75,15 +75,16 @@ class Kanban(persistent.Persistent):
     def new_task(self, release_id, name, order,
                  description='', size=1, blocked=None, assigned=None,
                  ):
-        self.tasks.add(Task(name,
-                            parent=self.tasks[release_id],
-                            description=description,
-                            size=size,
-                            blocked=blocked,
-                            assigned=assigned,
-                            order=order,
-                            ),
-                       )
+        task = Task(name,
+                    parent=self.tasks[release_id],
+                    description=description,
+                    size=size,
+                    blocked=blocked,
+                    assigned=assigned,
+                    order=order,
+                    )
+        self.tasks.add(task)
+        return task
 
     def update_task(self, task_id, name=None, description=None, order=None,
                     size=None, blocked=None, assigned=None):

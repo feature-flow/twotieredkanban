@@ -11,6 +11,8 @@ install_requires = [
     'zc.generationalset',
     'zc.zodbwsgi',
     'zope.exceptions',                  # XXX required by zodbwsgi
+    'pq',
+    'psycopg2transaction',
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
 

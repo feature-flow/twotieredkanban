@@ -79,7 +79,7 @@ class Base:
     def board(self, request, board):
         b = self.site.boards.get(board)
         if b:
-            return Board(self, b)
+            return Board(self, b, self.connection)
         raise bobo.NotFound
 
     @bobo.post('/placeholder-login')

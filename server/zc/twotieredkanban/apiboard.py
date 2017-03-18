@@ -1,12 +1,13 @@
-from .apiutil import get, post, put, delete
-from .invalidate import wait
-
 import bobo
 import datetime
 import json
 import logging
 import time
 import webob
+
+from . import email
+from .apiutil import get, post, put, delete
+from .invalidate import wait
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +21,11 @@ class Encoder(json.JSONEncoder):
 @bobo.scan_class
 class Board:
 
-    def __init__(self, base, kanban):
+    def __init__(self, base, kanban, connection):
         self.request = base.request
         self.kanban = kanban
         self.check = base.check
+        self.connection = connection
 
     def _response(self, data=None):
         response = webob.Response(content_type="application/json")
@@ -74,15 +76,25 @@ class Board:
     @post("/releases/:release_id")
     def add_task(self, release_id, name, order,
                  description='', size=1, blocked='', assigned=None):
-        self.kanban.new_task(release_id, name, description=description,
-                             size=size, blocked=blocked, order=order,
-                             assigned=assigned)
+        task = self.kanban.new_task(
+            release_id, name, description=description,
+            size=size, blocked=blocked, assigned=assigned,
+            order=order,
+            )
+        if assigned:
+            email.sent(self.connection.transaction_manager.get(),
+                       assigned, task_id=task.id)
         return self.response()
 
     @put("/tasks/:task_id")
     def update_task(self, task_id, name=None,
                     description=None, size=None, blocked=None, assigned=None,
                     ):
+        if assigned:
+            task = self.kanban.tasks[task_id]
+            if assigned != task.assigned:
+                email.send(self.connection.transaction_manager.get(),
+                           assigned, task_id=task.id)
         self.kanban.update_task(
             task_id, name=name, description=description,
             size=size, blocked=blocked, assigned=assigned)
