@@ -1,7 +1,6 @@
 import bobo
 
 from .apiutil import get, post, put
-from . import model
 
 @bobo.scan_class
 class Admin:
@@ -32,7 +31,7 @@ class Admin:
     def post_board(self, name, title, description):
         if name in self.site.boards:
             self.base.error("A board with name %r already exists." % name)
-        self.site.boards[name] = model.Kanban(name, title, description)
+        self.site.add_board(name, title, description)
         return dict(
             boards= [board.json_reduce()
                      for board in self.site.boards.values()

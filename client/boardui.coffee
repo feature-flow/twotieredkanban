@@ -177,13 +177,15 @@ directive('kbProjectDivider', (Board, Server) ->
 
 edit_task = ($mdDialog, task, event) ->
   $mdDialog.show(
-    controller: ($scope, Server, $mdDialog, task) ->
+    controller: ($scope, Server, $mdDialog, Board) ->
       $scope.hide = -> $mdDialog.hide()
       $scope.cancel = -> $mdDialog.cancel()
       $scope.task_name = task.name
       $scope.task_description = task.description
       $scope.task_size = task.size
       $scope.task_blocked = task.blocked
+      $scope.assigned = task.assigned
+      $scope.users = [''].concat(Board.users) 
       $scope.submit = () ->
         Server.update_task(
           task
@@ -191,6 +193,7 @@ edit_task = ($mdDialog, task, event) ->
           $scope.task_description or ""
           $scope.task_size
           $scope.task_blocked or ""
+          $scope.assigned
           )
         $scope.hide()
 

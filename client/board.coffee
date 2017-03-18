@@ -64,6 +64,8 @@ class Board extends TaskContainer
     @states_by_id = {} # {id -> top-level-state
     @all_tasks = []
     @title = @name
+    @users = []
+    @admins = []
 
   add_task: (task) ->
     old = @tasks[task.id]
@@ -93,6 +95,10 @@ class Board extends TaskContainer
     if updates.kanban?
       if updates.kanban.title?
         @title = updates.kanban.title
+      if updates.kanban.users?
+        @users = updates.kanban.users
+      if updates.kanban.admins?
+        @admins = updates.kanban.admins
 
     if updates.states?
 
@@ -280,12 +286,13 @@ services.factory("Server", ($http, $timeout, Board) ->
         description: description
         order: order
         })
-    update_task: (task, name, description, order, size, blocked) ->
+    update_task: (task, name, description, size, blocked, assigned) ->
       $http.put("/board/#{ board_name }/tasks/" + task.id, {
         name: name
         description: description
         size: size
         blocked: blocked
+        assigned: assigned or null
         })
     move_task: (task, parent, state, order) ->
       $http.put("/board/#{ board_name }/move/#{ task.id }"

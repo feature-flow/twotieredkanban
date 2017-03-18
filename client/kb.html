@@ -153,6 +153,14 @@
               <label>Blocked? Reason</label>
               <textarea ng-model="task_blocked"></textarea>
             </md-input-container>
+            <md-input-container>
+              <label>Assignee</label>
+              <md-select ng-model="assigned">
+                <md-option ng-value="email"
+                           ng-repeat="email in users"
+                           >{{ email }}</md-option>
+              </md-select>
+            </md-input-container>
             <div class="md-actions" layout="row" layout-align="end center">
               <md-button ng-click="cancel()" type="button">
                 Cancel

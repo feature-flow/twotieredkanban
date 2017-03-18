@@ -3,19 +3,17 @@ m = angular.module('kb.users', ['kb.board', 'kb.util'])
 m.config((kbMenuProvider) ->
   kbMenuProvider.add("admin", "Manage users", (Board, $http, kbDialog) ->
     kbDialog.show(
+      template: '<kb-users ng-model="result" ng-change="changed()"></kb-users>'
       scope:
         title: 'Users'
         action: 'Update'
-        users:
+        result:
           admins: Board.admins
           users: Board.users
         disabled: true
-      template: '<kb-users ng-model="users" ng-change="changed()"></kb-users>'
-      controller: ($scope) ->
-        $scope.changed = () -> $scope.disabled = false
-        $scope.submit = () ->
-           $http.put('/', $scope.users).then(() -> $scope.hide())
-      )
+      ).then((result) ->
+        $http.put('/kb-admin/users', result).then(() -> $scope.hide())
+        )
     )
   )
 
@@ -26,7 +24,6 @@ m.directive('kbUsers', (Board, $mdDialog) ->
   scope: {}
   template: '''
     <div class="user-table">
-      <h4>Users</h4>
       <table>
         <tr ng-repeat="user in users">
           <td>{{ user.email }}</td>

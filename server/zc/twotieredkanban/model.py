@@ -10,6 +10,7 @@ import zc.generationalset
 class Kanban(persistent.Persistent):
 
     id = 'kanban'
+    users = admins = ()
 
     def __init__(self, name, title='', description='', state_data='model.json'):
         self.changes = changes = zc.generationalset.GSet()
@@ -41,11 +42,18 @@ class Kanban(persistent.Persistent):
         self.description = description
         self.changes.add(self)
 
+    def update_users(self, users, admins):
+        self.users = users
+        self.admins = admins
+        self.changes.add(self)
+
     def json_reduce(self):
         return dict(
             name=self.name,
             title=self.title,
             description=self.description,
+            users=self.users,
+            admins=self.admins,
             )
 
     def updates(self, generation):
