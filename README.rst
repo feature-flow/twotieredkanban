@@ -30,10 +30,39 @@ is used.
 You can drag releases and tags around to represent progress. You can
 also take tasks to work on and mark tasks as blocked.
 
-Changes
-=======
+Status and changes
+==================
 
-This version of the two-tiered Kanban board is still in initial
-development. It is derived from an `earlier two-tiered kanban project
+This version of the two-tiered Kanban board is still in **initial
+development**.
+
+There have been a number of obsticals and disruptions to development:
+
+- This has been a side project for some time. Quite a bit of
+  development was done on a commuter train.  There has been a lot of
+  exploratory development and refactoring leaving things a bit unstable.
+
+- The Persona service went away.  Persona was a 3rd-party
+  authentication service provided by Mozilla.  It was very easy to
+  use, especially because it didn't require applications using it to
+  have public addresses, so it could be easily used with development
+  servers.  The intent was always to provide support for other login
+  services, but for now there's just a placeholder non-authentication
+  facility.
+
+- I lost quite a bit of time exploring deep Jira integration, but
+  finally decided that the deep integration I was exploring wouldn't
+  work, because Jira schemas are too poorly defined.
+
+  Since then, I've come to the conclusion that Kanban tasks and issue
+  tracker issues should be distinct.  They really have different
+  concerns.  IMO, tasks (much like PRs) should be able to address
+  issues and update issue states, but that's about it.
+
+- ZODB 5 broke the monkey patch that allowed change notification the
+  application depended on.  This will be added as a formal ZODB API
+  soon, probably in Newt DB, which the kanban now uses, sooner.
+
+This project is derived from an `earlier two-tiered kanban project
 <https://bitbucket.org/zc/asanakanban>`_ that used Asana as a back
 end.
