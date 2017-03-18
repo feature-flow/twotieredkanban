@@ -3,7 +3,7 @@ name, version = 'zc.twotieredkanban', '0'
 install_requires = [
     'oauthlib',
     'bobo',
-    'cryptography',
+    # 'cryptography',
     'gevent',
     'requests',
     'PyJWT',
