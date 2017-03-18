@@ -280,11 +280,14 @@ services.factory("Server", ($http, $timeout, Board) ->
         name: name
         description: description
         })
-    new_task: (project, name, description, order) ->
+    new_task: (project, name, description, order, size, blocked, assigned) ->
       $http.post("/board/#{ board_name }/releases/" + project.id, {
         name: name
         description: description
         order: order
+        size: size
+        blocked: blocked
+        assigned: assigned or null
         })
     update_task: (task, name, description, size, blocked, assigned) ->
       $http.put("/board/#{ board_name }/tasks/" + task.id, {

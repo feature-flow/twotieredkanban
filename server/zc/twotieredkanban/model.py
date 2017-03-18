@@ -73,13 +73,14 @@ class Kanban(persistent.Persistent):
         self.tasks.add(Task(name, description=description, order=order))
 
     def new_task(self, release_id, name, order,
-                 description='', size=1, blocked=None,
+                 description='', size=1, blocked=None, assigned=None,
                  ):
         self.tasks.add(Task(name,
                             parent=self.tasks[release_id],
                             description=description,
                             size=size,
                             blocked=blocked,
+                            assigned=assigned,
                             order=order,
                             ),
                        )
@@ -167,7 +168,7 @@ class Task(persistent.Persistent):
     complete = None
 
     def __init__(self, name, order, description='',
-                 size=1, blocked=None, parent=None):
+                 size=1, blocked=None, assigned=None, parent=None):
         self.id = uuid.uuid1().hex
         self.created = time.time()
         self.name = name
@@ -175,6 +176,7 @@ class Task(persistent.Persistent):
         self.order = order
         self.size = size
         self.blocked = blocked
+        self.assigned = assigned
         self.parent = parent
 
     def json_reduce(self):

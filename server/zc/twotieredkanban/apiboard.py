@@ -73,9 +73,10 @@ class Board:
 
     @post("/releases/:release_id")
     def add_task(self, release_id, name, order,
-                 description='', size=1, blocked=''):
+                 description='', size=1, blocked='', assigned=None):
         self.kanban.new_task(release_id, name, description=description,
-                             size=size, blocked=blocked, order=order)
+                             size=size, blocked=blocked, order=order,
+                             assigned=assigned)
         return self.response()
 
     @put("/tasks/:task_id")

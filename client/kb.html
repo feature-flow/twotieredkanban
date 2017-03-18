@@ -134,7 +134,7 @@
     </script>
 
     <script type="text/ng-template" id="kbEditTask.html">
-      <md-dialog aria-label="New task">
+      <md-dialog aria-label="Task">
         <md-dialog-content>
           <form novalidate name="form_controller">
             <md-input-container>
@@ -166,7 +166,7 @@
                 Cancel
               </md-button>
               <md-button ng-click="submit()">
-                Apply
+                {{ label }}
               </md-button>
             </div>
           </form>

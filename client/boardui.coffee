@@ -175,7 +175,7 @@ directive('kbProjectDivider', (Board, Server) ->
       )
   )
 
-edit_task = ($mdDialog, task, event) ->
+edit_task = ($mdDialog, task, event, project) ->
   $mdDialog.show(
     controller: ($scope, Server, $mdDialog, Board) ->
       $scope.hide = -> $mdDialog.hide()
@@ -185,16 +185,32 @@ edit_task = ($mdDialog, task, event) ->
       $scope.task_size = task.size
       $scope.task_blocked = task.blocked
       $scope.assigned = task.assigned
-      $scope.users = [''].concat(Board.users) 
+      $scope.users = [''].concat(Board.users)
+      if task.id?
+        $scope.label = 'Apply'
+      else
+        $scope.label = 'Add'
+
       $scope.submit = () ->
-        Server.update_task(
-          task
-          $scope.task_name
-          $scope.task_description or ""
-          $scope.task_size
-          $scope.task_blocked or ""
-          $scope.assigned
-          )
+        if task.id?
+          Server.update_task(
+            task
+            $scope.task_name
+            $scope.task_description or ""
+            $scope.task_size
+            $scope.task_blocked or ""
+            $scope.assigned
+            )
+        else
+          Server.new_task(
+            project
+            $scope.task_name
+            $scope.task_description or ""
+            Board.order()
+            $scope.task_size
+            $scope.task_blocked or ""
+            $scope.assigned
+            )
         $scope.hide()
 
     locals:
@@ -244,24 +260,7 @@ directive("kbProject", ($mdDialog, Board) ->
         targetEvent: event
         )
 
-    scope.add_task = (event) ->
-      $mdDialog.show(
-        controller: ($scope, Server, $mdDialog, project) ->
-          $scope.hide = -> $mdDialog.hide()
-          $scope.cancel = -> $mdDialog.cancel()
-          $scope.submit = () ->
-            Server.new_task(
-              project
-              $scope.task_name
-              $scope.task_description or ""
-              Board.order()
-              )
-            $scope.hide()
-        locals:
-          project: scope.project
-        templateUrl: "kbNewTask.html"
-        targetEvent: event
-        )
+    scope.add_task = (event) -> edit_task($mdDialog, {}, event, scope.project)
   )
 
 directive("kbTaskColumn", () ->
