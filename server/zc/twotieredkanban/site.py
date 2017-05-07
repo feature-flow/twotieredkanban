@@ -16,4 +16,4 @@ class Site(persistent.Persistent):
 
     def add_board(self, name, title, description):
         self.boards[name] = model.Kanban(name, title, description)
-        self.boards[name].update_users(self.user, self.admins)
+        self.boards[name].update_users(self.users, self.admins)

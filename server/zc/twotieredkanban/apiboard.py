@@ -104,3 +104,17 @@ class Board:
     def delete_task(self, request, task_id):
         self.kanban.archive_task(task_id)
         return self.response()
+
+    @bobo.get("/search", content_type='application/json')
+    def search(self, text=None, parent_id=None):
+        where = "class_name='zc.twotieredkanban.model.Task'"
+        params = ()
+        if text is not None:
+            where += "and task_text(state) @@ to_tsquery(%s)"
+            params += (text, )
+        if parent_id is not None:
+            where += """and state @> '{"parent": {"id": [%s]}}'"""
+            params += parent_id
+
+        tasks = self.connection.where(where, params)
+        return dict(tasks=[task.json_reduce() for task in tasks])
