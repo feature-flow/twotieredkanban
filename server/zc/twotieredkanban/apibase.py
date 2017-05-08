@@ -51,11 +51,11 @@ class Base:
     @bobo.get("/")
     def index_html(self):
         with open(os.path.join(os.path.dirname(__file__), "kb.html")) as f:
-            return f.read() % (json.dumps(dict(
-                email = self.email,
-                email_hash = email_hash(self.email),
-                is_admin = self.email in self.site.admins,
-                )), )
+            return f.read()#  % (json.dumps(dict(
+                # email = self.email,
+                # email_hash = email_hash(self.email),
+                # is_admin = self.email in self.site.admins,
+                # )), )
 
     @bobo.subroute('/kb-admin')
     def admin_api(self, request):
