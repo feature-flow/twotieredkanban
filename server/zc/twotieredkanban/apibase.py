@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class Base:
 
     email = ''
+    email = 'jim@jimfulton.info' # TODO: AUTH
 
     def __init__(self, request):
         self.request = request
