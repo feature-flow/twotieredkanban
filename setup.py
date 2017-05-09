@@ -1,9 +1,8 @@
-name, version = 'zc.twotieredkanban', '0'
+name, version = 'twotieredkanban', '0'
 
 install_requires = [
     'oauthlib',
     'bobo',
-    # 'cryptography',
     'gevent',
     'requests',
     'PyJWT',
@@ -18,10 +17,10 @@ extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
 
 entry_points = """
 [zc.buildout]
-default = zc.twotieredkanban.kbrecipe:Recipe
+default = twotieredkanban.kbrecipe:Recipe
 
 [paste.server_runner]
-main = zc.twotieredkanban.server:runner
+main = twotieredkanban.server:runner
 """
 
 from setuptools import setup
@@ -36,8 +35,7 @@ setup(
     name = name, version = version,
     long_description = long_description,
     description = long_description.strip().split('\n')[1],
-    packages = [name.split('.')[0], name],
-    namespace_packages = [name.split('.')[0]],
+    packages = [name, name],
     package_dir = {'': 'server'},
     install_requires = install_requires,
     zip_safe = False,
