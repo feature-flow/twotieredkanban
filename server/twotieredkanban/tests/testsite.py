@@ -12,7 +12,7 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(self.site.admins, ['user@example.com'])
         self.assertEqual(self.site.users, ['user@example.com'])
         self.assertEqual(dict(self.site.boards), {})
-        self.assertEqual([self.site], self.site.updates(0)['adds'])
+        self.assertEqual(self.site, self.site.updates(0)['site'])
 
     def test_add_board(self):
         generation = self.site.generation
