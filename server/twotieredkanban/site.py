@@ -34,11 +34,15 @@ class Site(persistent.Persistent):
     def add_board(self, name, title, description):
         for board in self.boards.values():
             board.site_changed()
-        self.changes.add(self)
         self.boards[name] = Board(self, name, title, description)
+        self.changes.add(self)
 
     def updates(self, generation):
-        return self.changes.generational_updates(generation)
+        updates = self.changes.generational_updates(generation)
+        if len(updates) > 1:
+            [site] = updates['adds']
+            return dict(site=site, generation=updates['generation'])
+        return updates
 
     @property
     def generation(self):
