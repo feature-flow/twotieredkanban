@@ -2,7 +2,7 @@ import json
 import mock
 import unittest
 
-from ..apiboard import Encoder
+from ..apiutil import Encoder
 from .var import Var, Vars
 
 def reduce(data):
