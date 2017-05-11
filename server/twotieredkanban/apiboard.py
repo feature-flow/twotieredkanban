@@ -5,7 +5,6 @@ import logging
 import time
 import webob
 
-from . import email
 from .apiutil import Sync, get, post, put
 
 logger = logging.getLogger(__name__)
@@ -36,9 +35,6 @@ class Board(Sync):
             size=size, blocked=blocked, assigned=assigned,
             order=order,
             )
-        if assigned:
-            email.sent(self.connection.transaction_manager.get(),
-                       assigned, task_id=task.id)
         return self.response()
 
     @put("/tasks/:task_id")
