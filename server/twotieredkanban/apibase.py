@@ -32,7 +32,7 @@ class Base:
     def board(self, request, board):
         b = self.site.boards.get(board)
         if b:
-            return Board(self, b, self.connection)
+            return Board(self, b)
         raise bobo.NotFound
 
 def initialize(database):

@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 @bobo.scan_class
 class Board(Sync):
 
-    @post("/releases")
-    def add_release(self, name, description, order):
-        self.context.new_release(name, description=description, order=order)
+    @post("/projects")
+    def add_project(self, title, description, order):
+        self.context.new_release(title, description=description, order=order)
         return self.response()
 
-    @put("/releases/:release_id")
-    def update_release(self, release_id, name=None, description=''):
-        self.context.update_task(release_id, name, description)
+    @put("/projects/:id")
+    def update_release(self, id, title, description):
+        self.context.update_task(id, title=title, description=description)
         return self.response()
 
     @put("/move/:task_id")
