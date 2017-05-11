@@ -1,5 +1,3 @@
-import Server from './server';
-
 class TaskContainer {
 
   constructor() {
@@ -257,28 +255,6 @@ class Board extends TaskContainer {
   }
 }
 
-module.exports = class extends Server {
-  
-  constructor(view, name) {
-    super(new Board(), view, '/board/' + name + '/');
-  }
-  
-  add_board(name, title='', description='') {
-    this.post('/site/boards',
-              {name: name, title: title, description: description});
-  }
-
-  add_project(title, description) {
-    this.post('projects',
-              {title: title, description: description,
-               order: this.model.order()});
-  }
-
-  update_project(id, title, description) {
-    this.put('projects/' + id,
-              {title: title, description: description,
-               order: this.model.order()});
-  }
-
-  
+module.exports = {
+  Board: Board
 };

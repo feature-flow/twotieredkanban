@@ -28,7 +28,7 @@ module.exports = class extends React.Component {
             <ProjectColumn
               state={state}
               projects={board.subtasks(state.id)}
-              server={this.props.server}
+              api={this.props.api}
               />
           </td>
         );
@@ -36,7 +36,7 @@ module.exports = class extends React.Component {
     };
 
     const add_project = (data) => {
-      this.props.server.add_project(data.title, data.description || '');
+      this.props.api.add_project(data.title, data.description || '');
     };
 
     return (
@@ -51,7 +51,7 @@ module.exports = class extends React.Component {
           <ProjectColumn
              state={states[0]}
              projects={board.subtasks(states[0].id)}
-             server={this.props.server}
+             api={this.props.api}
              />
           <Button icon='add' floating
                   onMouseUp={() => this.refs.add.show()}

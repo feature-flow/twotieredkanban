@@ -1,6 +1,6 @@
 import React from 'react';
 
-import BoardServer from '../model/board';
+import BoardAPI from '../model/boardapi';
 
 import Frame from './frame';
 import Projects from './projects';
@@ -9,8 +9,8 @@ module.exports = class extends React.Component {
 
   constructor(props) {
     super(props);
-    this.server = new BoardServer(this, this.props.params.name);
-    this.state = {model: this.server.model};
+    this.api = new BoardAPI(this, this.props.params.name);
+    this.state = {model: this.api.model};
   }
 
   render() {
@@ -19,10 +19,10 @@ module.exports = class extends React.Component {
       <div>
         <Frame
            boards={board.site.boards}
-           add_board={(name) => this.server.add_board(name)}
+           add_board={(name) => this.api.add_board(name)}
            title={this.props.params.name}
            />
-        <Projects board={board} server={this.server} />
+        <Projects board={board} api={this.api} />
       </div>);
   }
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import SiteServer from '../model/site';
+import SiteAPI from '../model/siteapi';
 
 import Frame from './frame';
 
@@ -8,15 +8,15 @@ module.exports = class extends React.Component {
 
   constructor(props) {
     super(props);
-    this.server = new SiteServer(this);
-    this.state = {model: this.server.model};
+    this.api = new SiteAPI(this);
+    this.state = {model: this.api.model};
   }
 
   render() {
     return (
       <div>
         <Frame boards={this.state.model.boards}
-               add_board={(name) => this.server.add_board(name)}
+               add_board={(name) => this.api.add_board(name)}
                title="Boards"
                />
         <h2>Site</h2>

@@ -18,7 +18,7 @@ module.exports = class extends React.Component {
 
   render() {
     const edit_project = (data) => {
-      this.props.server.update_project(data.id, data.title, data.description);
+      this.props.api.update_project(data.id, data.title, data.description);
     };
 
     return (
