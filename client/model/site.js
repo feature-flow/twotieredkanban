@@ -7,11 +7,10 @@ class Site {
   }
 
   update(data) {
-    this.boards = data.boards;
+    this.boards = data.site.boards;
   }
     
 }
-
 
 module.exports = class extends Server {
   
@@ -23,4 +22,4 @@ module.exports = class extends Server {
     this.post('boards', {name: name, title: '', description: ''});
   }
 
-}
+};

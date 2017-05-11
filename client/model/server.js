@@ -19,28 +19,39 @@ module.exports = class {
     if (data.updates) {
       const updates = data.updates;
       if (updates.generation > this.generation) {
-        this.model.update(updates.site);
+        this.model.update(updates);
         this.config.headers['x-generation'] = updates.generation;
         this.generation = updates.generation;
-        this.view.setState(this.model);
+        this.view.setState({model: this.model});
       }
     }
   }
 
-  post(url, data) {
-    axios.post(this.base + url, data, this.config).catch((error) => {
-      console.log(error);
-    });
+  handle_error(err) {
+    if (err.request || err.response) {
+      console.log(err);
+    }
+    else {
+      throw err;
+    }
   }
 
   get(url, data) {
-    axios.get(this.base + url, this.config).catch((error) => {
-      console.log(error);
-    });
+    axios.get(this.base + url, this.config).catch((e) => this.handle_error(e));
   }
 
   poll() {
     this.get('poll');
+  }
+
+  post(url, data) {
+    axios.post(url[0] == '/' ? url : this.base + url,
+               data, this.config).catch((e) => this.handle_error(e));
+  }
+
+  put(url, data) {
+    axios.put(url[0] == '/' ? url : this.base + url,
+               data, this.config).catch((e) => this.handle_error(e));
   }
 
 };
