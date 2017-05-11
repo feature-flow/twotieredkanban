@@ -85,7 +85,7 @@ class Frame extends React.Component {
     return (
       <div>
         <AppBar
-          title="Kanban"
+           title={this.props.title}
           leftIcon='menu'
           onLeftIconClick={toggle_drawer}
           >
