@@ -69,6 +69,7 @@ class Task extends TaskContainer {
     this.size = size;
     this.complete = complete;
     this.parent = parent;
+    this.rev = 0;
   }
 
   update(task) {
@@ -82,6 +83,12 @@ class Task extends TaskContainer {
     this.parent = task.parent;
     this.state = task.state;
     this.order = task.order;
+
+    // Give React a little help:
+    this.rev += 1;
+    if (this.parent) {
+      this.parent.rev += 1;
+    }
   }
 }
 

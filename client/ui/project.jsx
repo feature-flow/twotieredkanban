@@ -26,7 +26,13 @@ class ProjectDialog extends DialogBase {
 
 class Project extends React.Component {
 
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextProps.project.rev !== this.rev;
+  }
+  
   render () {
+    this.rev = this.props.project.rev;
     return (
       <Card>
         <CardText>
