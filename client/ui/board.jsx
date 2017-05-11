@@ -1,9 +1,9 @@
 import React from 'react';
 
-import Frame from 'Frame';
 import BoardServer from '../model/board';
 
-import Projects from './Projects';
+import Frame from './frame';
+import Projects from './projects';
 
 module.exports = class extends React.Component {
 

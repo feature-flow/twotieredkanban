@@ -21,9 +21,7 @@ module.exports = {
     filename: './static/bundle.js'
   },
   resolve: {
-          modules: ['node_modules',
-              path.resolve(__dirname, 'client/ui'),
-              path.resolve(__dirname, 'client/model')],
+    modules: ['node_modules'],
     alias: {
         applicationStyles: path.resolve(__dirname, 'client/styles/app.scss')
     },

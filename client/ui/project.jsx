@@ -1,7 +1,7 @@
 import React from 'react';
 import {Button, Card, CardText, CardActions, IconButton} from 'react-toolbox';
 
-import {Dialog, DialogBase, Input} from './Dialog';
+import {Dialog, DialogBase, Input} from './dialog';
 
 class ProjectDialog extends DialogBase {
   

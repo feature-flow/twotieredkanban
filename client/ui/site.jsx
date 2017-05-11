@@ -1,7 +1,8 @@
 import React from 'react';
 
-import Frame from 'Frame';
 import SiteServer from '../model/site';
+
+import Frame from './frame';
 
 module.exports = class extends React.Component {
 

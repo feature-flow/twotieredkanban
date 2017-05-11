@@ -2,7 +2,7 @@ import React from 'react';
 import {Button} from 'react-toolbox';
 
 import {ProjectDialog} from './project';
-import ProjectColumn from './ProjectColumn';
+import ProjectColumn from './projectcolumn';
 
 module.exports = class extends React.Component {
 
