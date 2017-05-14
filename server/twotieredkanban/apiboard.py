@@ -14,36 +14,27 @@ class Board(Sync):
 
     @post("/projects")
     def add_project(self, title, description, order):
-        self.context.new_release(title, description=description, order=order)
-        return self.response()
-
-    @put("/projects/:id")
-    def update_release(self, id, title, description):
-        self.context.update_task(id, title=title, description=description)
+        self.context.new_project(title, description=description, order=order)
         return self.response()
 
     @put("/move/:task_id")
-    def move(self, task_id, state, order, parent_id=None):
-        self.context.move(task_id, parent_id, state, order)
+    def move(self, task_id, state_id=None, order=None, parent_id=None):
+        self.context.move(task_id, parent_id, state_id, order)
         return self.response()
 
-    @post("/releases/:release_id")
-    def add_task(self, release_id, name, order,
+    @post("/project/:id")
+    def add_task(self, id, title, order,
                  description='', size=1, blocked='', assigned=None):
         task = self.context.new_task(
-            release_id, name, description=description,
+            id, title, description=description,
             size=size, blocked=blocked, assigned=assigned,
             order=order,
             )
         return self.response()
 
     @put("/tasks/:task_id")
-    def update_task(self, task_id, name=None,
-                    description=None, size=None, blocked=None, assigned=None,
-                    ):
-        self.context.update_task(
-            task_id, name=name, description=description,
-            size=size, blocked=blocked, assigned=assigned)
+    def update_task(self, bobo_request, task_id):
+        self.context.update_task(task_id, **bobo_request.json)
         return self.response()
 
     # @delete("/tasks/:task_id")

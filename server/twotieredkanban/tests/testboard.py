@@ -87,27 +87,27 @@ class BoardTests(unittest.TestCase):
             self.board.updates(self.board_generation))
         self.assertTrue(self.vars.generation > self.board_generation)
 
-    def test_new_release(self):
-        self.board.new_release('first', 42, 'Do First thing')
+    def test_new_project(self):
+        self.board.new_project('first', 42, 'Do First thing')
         self.assertEqual(
             dict(generation=self.vars.generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.board_generation))
-        self.assertEqual('first'         , self.vars.release.title)
-        self.assertEqual(42              , self.vars.release.order)
-        self.assertEqual('Do First thing', self.vars.release.description)
+        self.assertEqual('first'         , self.vars.project.title)
+        self.assertEqual(42              , self.vars.project.order)
+        self.assertEqual('Do First thing', self.vars.project.description)
 
         self.assertTrue(self.vars.generation > self.board_generation)
 
     def test_new_task(self):
-        self.board.new_release('first', 42, 'Do First thing')
+        self.board.new_project('first', 42, 'Do First thing')
         self.assertEqual(
             dict(generation=self.vars.board_generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.board_generation))
 
         self.board.new_task(
-            self.vars.release.id, 'a sub', 43, 'A First subtask')
+            self.vars.project.id, 'a sub', 43, 'A First subtask')
         self.assertEqual(
             dict(generation=self.vars.generation,
                  tasks=dict(adds=[self.vars.task])),
@@ -117,62 +117,62 @@ class BoardTests(unittest.TestCase):
         self.assertEqual('a sub'          , self.vars.task.title)
         self.assertEqual(43               , self.vars.task.order)
         self.assertEqual('A First subtask', self.vars.task.description)
-        self.assertEqual(self.vars.release, self.vars.task.parent)
+        self.assertEqual(self.vars.project, self.vars.task.parent)
 
 
     def test_update_some(self):
-        self.board.new_release('first', 42, 'Do First thing')
+        self.board.new_project('first', 42, 'Do First thing')
         self.assertEqual(
             dict(generation=self.vars.board_generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.board_generation))
 
-        self.board.update_task(self.vars.release.id, assigned='j1m')
+        self.board.update_task(self.vars.project.id, assigned='j1m')
         self.assertEqual(
             dict(generation=self.vars.generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.vars.board_generation))
         self.assertTrue(self.vars.generation > self.vars.board_generation)
 
-        self.assertEqual('first'         , self.vars.release.title)
-        self.assertEqual(42              , self.vars.release.order)
-        self.assertEqual('Do First thing', self.vars.release.description)
-        self.assertEqual('j1m'           , self.vars.release.assigned)
+        self.assertEqual('first'         , self.vars.project.title)
+        self.assertEqual(42              , self.vars.project.order)
+        self.assertEqual('Do First thing', self.vars.project.description)
+        self.assertEqual('j1m'           , self.vars.project.assigned)
 
     def test_update_all(self):
-        self.board.new_release('first', 42, 'Do First thing')
+        self.board.new_project('first', 42, 'Do First thing')
         self.assertEqual(
             dict(generation=self.vars.board_generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.board_generation))
 
         data = dict(
-            title='a release',
+            title='a project',
             description='It will be great',
             size=2,
             blocked="It's in the way",
             assigned='j1m',
             )
 
-        self.board.update_task(self.vars.release.id, **data)
+        self.board.update_task(self.vars.project.id, **data)
         self.assertEqual(
             dict(generation=self.vars.generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.vars.board_generation))
         self.assertTrue(self.vars.generation > self.vars.board_generation)
 
     def test_update_invalid(self):
-        self.board.new_release('first', 42, 'Do First thing')
+        self.board.new_project('first', 42, 'Do First thing')
         self.assertEqual(
             dict(generation=self.vars.board_generation,
-                 tasks=dict(adds=[self.vars.release])),
+                 tasks=dict(adds=[self.vars.project])),
             self.board.updates(self.board_generation))
 
         with self.assertRaises(Exception):
-            self.board.update_task(self.vars.release.id, order='42')
+            self.board.update_task(self.vars.project.id, order='42')
 
         with self.assertRaises(Exception):
-            self.board.update_task(self.vars.release.id, foo=1)
+            self.board.update_task(self.vars.project.id, foo=1)
 
         self.assertEqual(self.board.generation, self.vars.board_generation)
 
@@ -181,22 +181,22 @@ class BoardTests(unittest.TestCase):
                 if state.title == title][0]
 
     def test_move(self):
-        self.board.new_release('first' , 42, 'Do First thing')
+        self.board.new_project('first' , 42, 'Do First thing')
         vars = self.vars
         self.assertEqual(dict(generation=vars.gen1, tasks=dict(adds=[vars.t1])),
                          self.board.updates(self.board_generation))
 
-        self.board.new_release('second', 43, 'Do Next thing')
+        self.board.new_project('second', 43, 'Do Next thing')
         self.assertEqual(dict(generation=vars.gen2, tasks=dict(adds=[vars.t2])),
                          self.board.updates(vars.gen1))
         self.assertTrue(vars.gen2 > vars.gen1)
 
-        self.board.new_release('third', 44, 'Do 3rd thing')
+        self.board.new_project('third', 44, 'Do 3rd thing')
         self.assertEqual(dict(generation=vars.gen3, tasks=dict(adds=[vars.t3])),
                          self.board.updates(vars.gen2))
         self.assertTrue(vars.gen3 > vars.gen2)
 
-        # Make second task a subtask
+        # Make second project a task
         self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'), 1)
         self.assertEqual(dict(generation=vars.gen4, tasks=dict(adds=[vars.t2])),
                          self.board.updates(vars.gen3))
@@ -206,7 +206,7 @@ class BoardTests(unittest.TestCase):
         self.assertEqual('Doing', vars.t2.state.title)
         self.assertEqual(1, vars.t2.order)
 
-        # Move first task to new state
+        # Move first project to new state
         self.board.move(vars.t1.id, None, self._state_id('Development'), 2)
         self.assertEqual(dict(generation=vars.gen5, tasks=dict(adds=[vars.t1])),
                          self.board.updates(vars.gen4))
@@ -228,24 +228,24 @@ class BoardTests(unittest.TestCase):
 
         # Now, some invalid moves:
 
-        # Can't move to subtask:
+        # Can't move to task:
         with self.assertRaises(Exception):
             self.board.move(vars.t3.id, vars.t2.id, self._state_id('Doing'), 4)
 
-        # Can't make non-empty feature a subtask:
+        # Can't make non-empty feature a task:
         with self.assertRaises(Exception):
             self.board.move(vars.t1.id, vars.t3.id, self._state_id('Doing'), 4)
 
-        # Can't move to feature with subtask state:
+        # Can't move to feature with task state:
         with self.assertRaises(Exception):
             self.board.move(vars.t3.id, None, self._state_id('Doing'), 4)
 
-        # Can't move to task with to-level state:
+        # Can't move to project with to-level state:
         with self.assertRaises(Exception):
             self.board.move(vars.t3.id, vars.t1.id, self._state_id('Backlog'),
                             4)
 
-        # We can promote a task to a feature:
+        # We can promote a project to a feature:
         self.board.move(vars.t2.id, None, self._state_id('Backlog'), 5)
         self.assertEqual(dict(generation=vars.gen7, tasks=dict(adds=[vars.t2])),
                          self.board.updates(vars.gen6))
@@ -290,3 +290,41 @@ class BoardTests(unittest.TestCase):
         self.assertEqual('Doing', vars.t2.state.title)
         self.assertEqual(7, vars.t2.order)
         self.assertEqual(None, vars.t2.complete)
+
+    def test_move_into_project_wo_changing_state_or_order(self):
+        self.board.new_project('first' , 42, 'Do First thing')
+        vars = self.vars
+        self.assertEqual(dict(generation=vars.gen1, tasks=dict(adds=[vars.t1])),
+                         self.board.updates(self.board_generation))
+
+        self.board.new_project('second', 43, 'Do Next thing')
+        self.assertEqual(dict(generation=vars.gen2, tasks=dict(adds=[vars.t2])),
+                         self.board.updates(vars.gen1))
+        self.assertTrue(vars.gen2 > vars.gen1)
+
+        self.board.new_project('third', 44, 'Do 3rd thing')
+        self.assertEqual(dict(generation=vars.gen3, tasks=dict(adds=[vars.t3])),
+                         self.board.updates(vars.gen2))
+        self.assertTrue(vars.gen3 > vars.gen2)
+
+        # Make second project a task
+        self.board.move(vars.t2.id, vars.t1.id)
+        self.assertEqual(vars.t1.id, vars.t2.parent.id)
+        self.assertEqual(None, vars.t2.state)
+        self.assertEqual(43, vars.t2.order)
+
+        # Move t2 to an actual state:
+        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'))
+
+        # Move t2 to t3, and state and order are preserved:
+        self.board.move(vars.t2.id, vars.t3.id)
+        self.assertEqual(vars.t3.id, vars.t2.parent.id)
+        self.assertEqual(self._state_id('Doing'), vars.t2.state.id)
+        self.assertEqual(43, vars.t2.order)
+
+        # Move t1 to new state then move to p3 and state is lost:
+        self.board.move(vars.t1.id, state_id=self._state_id('Development'))
+        self.board.move(vars.t1.id, vars.t3.id)
+        self.assertEqual(vars.t3.id, vars.t1.parent.id)
+        self.assertEqual(None, vars.t1.state)
+        self.assertEqual(42, vars.t1.order)

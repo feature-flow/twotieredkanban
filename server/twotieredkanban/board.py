@@ -18,7 +18,7 @@ class Board(persistent.Persistent):
         self.states = zc.generationalset.GSet("states", changes)
         self.tasks = zc.generationalset.GSet("tasks", changes)
         self.update(name, title, description)
-        self.archive = BTrees.OOBTree.OOBTree() # FUTURE {release_id -> subset }
+        self.archive = BTrees.OOBTree.OOBTree() # FUTURE {project_id -> subset }
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -71,14 +71,14 @@ class Board(persistent.Persistent):
         else:
             return None
 
-    def new_release(self, title, order, description=''):
+    def new_project(self, title, order, description=''):
         self.tasks.add(Task(title, description=description, order=order))
 
-    def new_task(self, release_id, title, order,
+    def new_task(self, project_id, title, order,
                  description='', size=1, blocked=None, assigned=None,
                  ):
         task = Task(title,
-                    parent=self.tasks[release_id],
+                    parent=self.tasks[project_id],
                     description=description,
                     size=size,
                     blocked=blocked,
@@ -93,33 +93,42 @@ class Board(persistent.Persistent):
         task.update(**data)
         self.tasks.changed(task)
 
-    def move(self, task_id, parent_id, state, order):
+    def move(self, task_id, parent_id=None, state_id=None, order=None):
         task = self.tasks[task_id]
         parent = self.tasks[parent_id] if parent_id is not None else None
-        state = self.states[state]
+
+        if state_id is None:
+            if task.parent is not None and parent is not None:
+                state = task.state # Still a task, so retain state
+            else:
+                state = None
+        else:
+            state = self.states[state_id]
 
         if parent is not None:
             if parent.parent is not None:
                 raise TaskValueError("Can't move project into task")
 
             if task.parent is None:
-                # We're demoting a release to a task. Make sure it has
+                # We're demoting a project to a task. Make sure it has
                 # no children
                 if any(t for t in self.tasks if t.parent is task):
                     raise TaskValueError(
                         "Can't make non-empty project into a task")
 
-            if state.parent is None:
+            if state is not None and state.parent is None:
                 raise TaskValueError("Invalid project state")
 
         else:
-            if state.parent is not None:
+            if state is not None and state.parent is not None:
                 raise TaskValueError("Invalid task state")
 
         task.parent = parent
         task.state = state
-        task.order = order
-        if state.complete:
+        if order is not None:
+            task.order = order
+
+        if state is not None and state.complete:
             if not task.complete:
                 task.complete = time.time()
         else:
@@ -136,7 +145,7 @@ class Board(persistent.Persistent):
     #         self.archive[task.id] = task
 
 class TaskTypeError(TypeError):
-    """Tried to perform not applicable to task type (release vs task)
+    """Tried to perform not applicable to task type (project vs task)
     """
 
 class TaskValueError(TypeError):
