@@ -96,11 +96,12 @@ class Board extends TaskContainer {
 
   constructor(name) {
     super();
+    this.name = name;
     this.tasks = {}; // {id -> task} for all tasks
     this.states = []; // [top-level-state]
     this.states_by_id = {}; // {id -> top-level-state
     this.all_tasks = [];
-    this.title = name;
+    this.title = '';
     this.site = {boards: []};
   }
 
