@@ -9,7 +9,9 @@
   },
   "author": "Jim Fulton",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "classnames": "^2.2.5"
+  },
   "devDependencies": {
     "axios": "^0.16.1",
     "babel-core": "^6.24.1",
