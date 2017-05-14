@@ -100,7 +100,7 @@ class Board extends TaskContainer {
     this.states = []; // [top-level-state]
     this.states_by_id = {}; // {id -> top-level-state
     this.all_tasks = [];
-    this.title = this.name;
+    this.title = name;
     this.site = {boards: []};
   }
 
@@ -234,9 +234,10 @@ class Board extends TaskContainer {
     }
   }
 
-  order(before, front) {
+  order(before_id, front) {
     const r = Math.random();
-    if (before) {
+    if (before_id != undefined) {
+      const before = this.tasks[before_id];
       const i = this.all_tasks.indexOf(before);
       if (i == 0) {
         return before.order - .5 - r;

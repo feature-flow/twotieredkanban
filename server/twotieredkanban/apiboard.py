@@ -23,8 +23,8 @@ class Board(Sync):
         return self.response()
 
     @put("/move/:task_id")
-    def move(self, task_id, parent_id, state, order):
-        self.context.transition(task_id, parent_id, state, order)
+    def move(self, task_id, state, order, parent_id=None):
+        self.context.move(task_id, parent_id, state, order)
         return self.response()
 
     @post("/releases/:release_id")
