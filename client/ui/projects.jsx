@@ -9,7 +9,7 @@ module.exports = class extends React.Component {
   render() {
 
     const board = this.props.board;
-    const states = board.states;
+    const states = board.project_states;
 
     if (states.length == 0) {
       return <div></div>;

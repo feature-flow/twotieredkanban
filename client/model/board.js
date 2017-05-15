@@ -97,12 +97,18 @@ class Board extends TaskContainer {
   constructor(name) {
     super();
     this.name = name;
-    this.tasks = {}; // {id -> task} for all tasks
-    this.states = []; // [top-level-state]
-    this.states_by_id = {}; // {id -> top-level-state
-    this.all_tasks = [];
     this.title = '';
+    this.description = '';
     this.site = {boards: []};
+
+    this.tasks = {}; // {id -> task} for all tasks
+    this.all_tasks = [];
+
+    this.states = [];
+    this.project_states = [];
+    this.task_states = [];
+    this.states_by_id = {}; // {id -> top-level-state
+
   }
 
   add_task(task) {
@@ -143,6 +149,9 @@ class Board extends TaskContainer {
       if (updates.board.title) {
         this.title = updates.board.title;
       }
+      if (updates.board.description) {
+        this.description = updates.board.description;
+      }
       if (updates.board.users) {
         this.users = updates.board.users;
       }
@@ -155,43 +164,22 @@ class Board extends TaskContainer {
     }
 
     if (updates.states) {
-
-      // top-level states
       updates.states.adds.forEach((state) => {
-        if (! state.parent) {
-          if (this.states_by_id[state.id]) {
-            Object.assign(this.states_by_id[state.id], state);
-          }
-          else {
-            this.states.push(state);
-            this.states_by_id[state.id] = state;
-            state.projects = this.subtasks(state.id);
-            state.has_substates = false;
-          }
+        if (this.states_by_id[state.id]) {
+          Object.assign(this.states_by_id[state.id], state);
+        }
+        else {
+          this.states.push(state);
+          this.states_by_id[state.id] = state;
+          state.projects = this.subtasks(state.id);
+          state.has_substates = false;
         }
       });
-      
-      // substates
-      // Note that we deal with substates in a second pass so we know
-      // parent states are in place.
-      updates.states.adds.forEach((state) => {
-        if (state.parent) {
-          if (this.states_by_id[state.id]) {
-            Object.assign(this.states_by_id[state.id], state);
-          }
-          else {
-            const parent = this.states_by_id[state.parent];
-            if (! parent.substates) {
-              parent.substates = [];
-              parent.has_substates = true;
-            }
-            parent.substates.push(state);
-            if (! this.default_substate) {
-              this.default_substate = state.id;
-            }
-          }
-        }
-      });
+      this.states.sort(this.cmp_order);
+      this.project_states = this.states.filter((state) => ! state.task);
+      this.task_states = this.states.filter((state) => state.task);
+      this.default_project_state_id = this.project_states[0].id;
+      this.default_task_state_id = this.task_states[0].id;
     }
 
     if (updates.tasks) {
@@ -203,7 +191,7 @@ class Board extends TaskContainer {
             task.id,
             task.title,
             task.description,
-            task.state ? task.state : this.states[0].id,
+            task.state ? task.state : this.default_project_state_id,
             task.order
           ));
         }
@@ -219,7 +207,7 @@ class Board extends TaskContainer {
               task.id,
               task.title,
               task.description,
-              task.state ? task.state : this.default_substate,
+              task.state ? task.state : this.default_task_state_id,
               task.order,
               task.blocked,
               task.created,

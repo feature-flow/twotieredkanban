@@ -25,48 +25,40 @@ class BoardTests(unittest.TestCase):
                  board=self.board,
                  ),
             self.board.updates(0))
-        ids = set()
-        dev = Var()
-        def check_dev(id):
-            if id != dev.v:
-                raise AssertionError('bad parent')
 
         self.assertEqual(
-            [{'complete': False, 'id': Var(f=ids.add), 'order': 0,
-              'parent': None, 'title': 'Backlog', 'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 1048576,
-              'parent': None, 'title': 'Ready', 'working': False},
-             {'complete': False, 'id': dev, 'order': 2097152,
-              'parent': None, 'title': 'Development', 'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 2097152,
-              'parent': Var(f=check_dev), 'title': 'Ready',
+            [{'complete': False, 'explode': False, 'id': 'Backlog',
+              'order': 0, 'task': False, 'title': 'Backlog',
               'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 2097152,
-              'parent': Var(f=check_dev), 'title': 'Doing',
-              'working': True},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 2097152,
-              'parent': Var(f=check_dev), 'title': 'Needs review',
+             {'complete': False, 'explode': False, 'id': 'Ready',
+              'order': 1, 'task': False, 'title': 'Ready', 'working': False},
+             {'complete': False, 'explode': True, 'id': 'Development',
+              'order': 2, 'task': False, 'title': 'Development',
               'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 2097152,
-              'parent': Var(f=check_dev), 'title': 'Review',
-              'working': True},
-             {'complete': True, 'id': Var(f=ids.add), 'order': 2097152,
-              'parent': Var(f=check_dev), 'title': 'Done',
+             {'complete': False, 'explode': False, 'id': 'ready',
+              'order': 3, 'task': True, 'title': 'Ready', 'working': False},
+             {'complete': False, 'explode': False, 'id': 'Doing',
+              'order': 4, 'task': True, 'title': 'Doing', 'working': True},
+             {'complete': False, 'explode': False, 'id': 'Needs review',
+              'order': 5, 'task': True, 'title': 'Needs review',
               'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 3145728,
-              'parent': None, 'title': 'Acceptance',
+             {'complete': False, 'explode': False, 'id': 'Review',
+              'order': 6, 'task': True, 'title': 'Review', 'working': True},
+             {'complete': True, 'explode': False, 'id': 'Done',
+              'order': 7, 'task': True, 'title': 'Done', 'working': False},
+             {'complete': False, 'explode': False, 'id': 'Acceptance',
+              'order': 8, 'task': False, 'title': 'Acceptance',
               'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 4194304,
-              'parent': None, 'title': 'Deploying',
+             {'complete': False, 'explode': False, 'id': 'Deploying',
+              'order': 9, 'task': False, 'title': 'Deploying',
               'working': False},
-             {'complete': False, 'id': Var(f=ids.add), 'order': 5242880,
-              'parent': None, 'title': 'Deployed', 'working': False}],
+             {'complete': False, 'explode': False, 'id': 'Deployed',
+              'order': 10, 'task': False, 'title': 'Deployed',
+              'working': False}],
             reduce(self.states))
 
-        ids.add(dev.v)
-        self.assertEqual(len(self.states),
-                         len([i for i in ids
-                              if isinstance(i, str) and len(i) == 32]))
+        self.assertEqual(len(set(state.id for state in self.states)),
+                         len(self.states))
 
     def test_json(self):
         self.assertEqual(

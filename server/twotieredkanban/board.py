@@ -30,12 +30,8 @@ class Board(persistent.Persistent):
         for i, state in enumerate(state_data):
             if isinstance(state, str):
                 state = dict(title=state)
-            substates = state.pop("substates", ())
-            state = State(i*(1<<20), **state)
+            state = State(i, **state)
             self.states.add(state)
-            for sub in substates:
-                sub['parent'] = state.id
-                self.states.add(State(i*(1<<20), **sub))
 
     @property
     def generation(self):
@@ -116,11 +112,11 @@ class Board(persistent.Persistent):
                     raise TaskValueError(
                         "Can't make non-empty project into a task")
 
-            if state is not None and state.parent is None:
+            if state is not None and not state.task:
                 raise TaskValueError("Invalid project state")
 
         else:
-            if state is not None and state.parent is not None:
+            if state is not None and state.task:
                 raise TaskValueError("Invalid task state")
 
         task.parent = parent
@@ -154,14 +150,15 @@ class TaskValueError(TypeError):
 
 class State(persistent.Persistent):
 
-    def __init__(self, order, title,
-                 working=False, complete=False, parent=None):
-        self.id = uuid.uuid1().hex
+    def __init__(self, order, title, id=None, explode=False,
+                 working=False, complete=False, task=False):
+        self.id = id or title
         self.order = order
         self.title = title
         self.working = working
         self.complete = complete
-        self.parent = parent
+        self.task = task
+        self.explode = explode
 
     def json_reduce(self):
         return self.__dict__.copy()
