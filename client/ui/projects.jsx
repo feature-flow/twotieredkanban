@@ -1,7 +1,7 @@
 import React from 'react';
 import {Button} from 'react-toolbox';
 
-import {ProjectDialog} from './project';
+import {AddProject} from './project';
 import ProjectColumn from './projectcolumn';
 
 module.exports = class extends React.Component {
@@ -35,10 +35,6 @@ module.exports = class extends React.Component {
       });
     };
 
-    const add_project = (data) => {
-      this.props.api.add_project(data.title, data.description || '');
-    };
-
     return (
       <div className="kb-board">
         <table>
@@ -56,7 +52,7 @@ module.exports = class extends React.Component {
           <Button icon='add' floating
                   onMouseUp={() => this.refs.add.show()}
                   />
-          <ProjectDialog action="Add" ref="add" finish={add_project} />
+          <AddProject ref="add" api={this.props.api} />
         </div>
       </div>
     ); 

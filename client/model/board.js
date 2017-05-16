@@ -15,7 +15,7 @@ class TaskContainer {
   }
 
   add_subtask(task) {
-    this.subtasks(task.state).push(task);
+    this.subtasks(task.state.id).push(task);
     this.subtasks().push(task);
     this.update_stats();
   }
@@ -25,7 +25,7 @@ class TaskContainer {
   }
 
   remove_subtask(task) {
-    this.ar_remove(this.subtasks(task.state), task);
+    this.ar_remove(this.subtasks(task.state.id), task);
     this.ar_remove(this.subtasks(), task);
     this.update_stats();
   }
@@ -115,8 +115,18 @@ class Board extends TaskContainer {
     const old = this.tasks[task.id];
     let add = true;
     let sort = true;
+
+    task.state = this.states_by_id[task.state];
+    if (! task.state) {
+      console.log(`Invalid state id ${task.state} for ${task.id}`);
+      task.state = this.states_by_id[
+        task.parent ?
+          this.default_task_state_id :
+          this.default_project_state_id];
+    }
+    
     if (old) {
-      if (task.parent != old.parent || task.state != old.state) {
+      if (task.parent != old.parent || task.state.id != old.state.id) {
         (old.parent ? old.parent : this).remove_subtask(old);
       }
       else {
@@ -140,8 +150,10 @@ class Board extends TaskContainer {
     }
     
     if (sort) {
-      parent.sort(task.state);
+      parent.sort(task.state.id);
     }
+
+    parent.rev += 1;
   }
 
   update(updates) {
@@ -169,15 +181,18 @@ class Board extends TaskContainer {
           Object.assign(this.states_by_id[state.id], state);
         }
         else {
+          state.substates = this.task_states;
           this.states.push(state);
           this.states_by_id[state.id] = state;
           state.projects = this.subtasks(state.id);
-          state.has_substates = false;
         }
       });
       this.states.sort(this.cmp_order);
       this.project_states = this.states.filter((state) => ! state.task);
-      this.task_states = this.states.filter((state) => state.task);
+      this.task_states.splice(
+        0, this.task_states.length,
+        ... this.states.filter((state) => state.task)
+      );
       this.default_project_state_id = this.project_states[0].id;
       this.default_task_state_id = this.task_states[0].id;
     }

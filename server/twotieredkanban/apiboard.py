@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Board(Sync):
 
     @post("/projects")
-    def add_project(self, title, description, order):
+    def add_project(self, title, order, description=''):
         self.context.new_project(title, description=description, order=order)
         return self.response()
 
