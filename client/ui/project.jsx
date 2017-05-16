@@ -98,7 +98,7 @@ class Project extends React.Component {
   tasks() {
     return this.props.project.subtasks().map((task) => {
       return (
-        <Task task={task} key={task.id} />
+        <Task task={task} key={task.id} api={this.props.api} />
       );
     });
   }
@@ -121,7 +121,8 @@ class Project extends React.Component {
   }
   
   render () {
-    this.rev = this.props.project.rev;
+    const {project} = this.props;
+    this.rev = project.rev;
 
     const add_project = (data) => {
       this.props.api.add_task(
@@ -131,7 +132,8 @@ class Project extends React.Component {
     return (
       <Card>
         <CardText>
-          {this.props.project.title}
+          {project.title}
+          [{project.total_completed}/{project.total_size}]
           {this.icons()}
         </CardText>
         {this.more()}

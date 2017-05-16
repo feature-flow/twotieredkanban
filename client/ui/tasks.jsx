@@ -31,7 +31,7 @@ class AddTask extends TaskDialog {
   finish(data) {
     this.props.api.add_task(
       this.props.project.id, data.title, data.description,
-      data.size, data.blocked);
+      parseInt(data.size), data.blocked);
   }  
 }
 
