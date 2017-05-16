@@ -15,7 +15,7 @@ class TaskDialog extends DialogBase {
         <Input label='Title' required={true} onChange={this.val("title")} />
         <Input label='Description' multiline={true}
                onChange={this.val("description")} />
-        <Input label='Size' type="number"
+        <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
         <Input label='Blocked' multiline={true}
                onChange={this.val("blocked")} />
@@ -32,8 +32,27 @@ class AddTask extends TaskDialog {
     this.props.api.add_task(
       this.props.project.id, data.title, data.description,
       data.size, data.blocked);
+  }  
+}
+
+class EditTask extends TaskDialog {
+
+  action() { return "Edit"; }
+
+  show() {
+    const task = this.props.task;
+    super.show({id: task.id,
+                title: task.title,
+                description: task.description,
+                size: task.size,
+                blocked: task.blocked
+               });
   }
-  
+
+  finish(data) {
+    this.props.api.update_task(data.id, data.title, data.description,
+                               parseInt(data.size), data.blocked);
+  }
 }
 
 
@@ -119,16 +138,23 @@ class TaskColumn extends React.Component {
 
 class Task extends React.Component {
 
+  shouldComponentUpdate(nextProps, nextState) {
+    return (nextProps.task.rev !== this.rev);
+  }
+
   size() {
     return this.props.task.size > 1 ? '[' + this.props.task.size + ']' : '';
   }
   
   render() {
+    this.rev = this.props.task.rev;
+
     return (
-      <Card>
+      <Card onClick={() => this.refs.edit.show()}>
         <CardText>
           {this.props.task.title} {this.size()}
         </CardText>
+        <EditTask ref="edit" task={this.props.task} api={this.props.api} />
       </Card>
     );
   }
