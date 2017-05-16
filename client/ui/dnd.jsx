@@ -36,25 +36,45 @@ class Draggable extends React.Component {
 }
 
 class DropZone extends React.Component {
-
-  // TODO: drop condition (when I get to dropping into projects)
-
+  
   constructor(props) {
     super(props);
     this.state = {dragover: false};
   }
 
-  render() {
-
-    const dragover = (ev) => {ev.preventDefault(); return false; };
-    const dragenter = () => this.setState({dragover: true});
-    const dragleave = () => this.setState({dragover: false});
-
-    const drop = (ev) => {
+  allowed(dt) {
+    return this.props.disallow.filter(
+      (t) => dt.types.indexOf('text/' + t) >= 0).length == 0;
+  }
+  
+  dragover(ev) {
+    if (this.allowed(ev.dataTransfer)) {
       ev.preventDefault();
-      dragleave();
-      this.props.dropped(ev.dataTransfer);
+      return false;
+    }
+    else {
+      return true;
     };
+  }
+
+  dragenter(ev) {
+    if (this.allowed(ev.dataTransfer)) {
+      this.setState({dragover: true});
+    }
+  }
+
+  dragleave() {
+    this.setState({dragover: false});
+  }
+
+  drop(ev) {
+    ev.preventDefault();
+    this.dragleave();
+    this.props.dropped(ev.dataTransfer);
+  }
+
+  
+  render() {
 
     const className = classes(
       this.props.className,
@@ -63,16 +83,19 @@ class DropZone extends React.Component {
     return (
       <div draggable="true"
            className={className}
-           onDragEnter={dragenter}
-           onDragLeave={dragleave}
-           onDragOver={dragover}
-           onDrop={drop}
+           onDragEnter={(ev) => this.dragenter(ev)}
+           onDragLeave={(ev) => this.dragleave(ev)}
+           onDragOver={(ev) => this.dragover(ev)}
+           onDrop={(ev) => this.drop(ev)}
            >
         {this.props.children}
       </div>
     );
   }
 }
+
+DropZone.defaultProps = {disallow: []};
+
 
 module.exports = {
   Draggable: Draggable,

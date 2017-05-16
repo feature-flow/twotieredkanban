@@ -108,12 +108,16 @@ class TaskColumn extends React.Component {
   tasks() {
     return this.props.tasks.map((task) => {
 
-      const dropped = (dt) => this.dropped(dt, task.id); 
+      const dropped = (dt) => this.dropped(dt, task.id);
+
+      const ddata = {'text/id': task.id};
+      ddata['text/' + task.id] = task.id;
 
       return (
         <div key={task.id}>
-          <DropZone className="kb-divider" dropped={dropped} />
-          <Draggable data={{'text/id': task.id}}>
+          <DropZone className="kb-divider"
+                    disallow={[task.id]} />
+          <Draggable data={ddata}>
             <Task task={task} api={this.props.api} />
           </Draggable>
         </div>
@@ -125,10 +129,16 @@ class TaskColumn extends React.Component {
 
     const dropped = (dt) => this.dropped(dt); 
 
+    const disallow = ['children'];
+    if (this.props.tasks.length > 0) {
+      disallow.push(this.props.tasks.slice(-1)[0].id);
+    }
+    
     return (
       <div className="kb-column">
         {this.tasks()}
-        <DropZone className="kb-divider kb-tail" dropped={dropped} />
+        <DropZone className="kb-divider kb-tail"
+                  disallow={disallow} dropped={dropped}  />
       </div>
     );
 

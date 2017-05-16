@@ -17,12 +17,19 @@ module.exports = class extends React.Component {
   projects() {
     return this.props.projects.map((project) => {
 
-      const dropped = (dt) => this.dropped(dt, project.id); 
+      const dropped = (dt) => this.dropped(dt, project.id);
+
+      const ddata = {'text/id': project.id};
+      ddata['text/' + project.id] = project.id;
+      if (project.count > 0) {
+        ddata['text/children'] = project.count;
+      }
 
       return (
         <div key={project.id}>
-          <DropZone className="kb-divider" dropped={dropped} />
-          <Draggable data={{'text/id': project.id}}>
+          <DropZone className="kb-divider" dropped={dropped}
+                    disallow={[project.id]} />
+          <Draggable data={ddata}>
             <Project project={project} api={this.props.api} />
           </Draggable>
           
@@ -32,12 +39,19 @@ module.exports = class extends React.Component {
   }
 
   render() {
-    const dropped = (dt) => this.dropped(dt); 
+    const dropped = (dt) => this.dropped(dt);
+
+    const {projects} = this.props;
+
+    const disallow = projects.length > 0 ? [projects.slice(-1)[0].id] : [];
 
     return (
       <div className="kb-column">
         {this.projects()}
-        <DropZone className="kb-divider kb-tail" dropped={dropped} />
+        <DropZone className="kb-divider kb-tail"
+                  dropped={dropped}
+                  disallow={disallow}
+                  />
       </div>
     );
   }
