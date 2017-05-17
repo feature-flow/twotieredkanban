@@ -5,6 +5,7 @@ class TaskContainer {
     this.total_completed = 0;
     this.count = 0;
     this.subtasks_by_state = {}; // state_id -> [task]
+    this.rev = 0;
   }
 
   subtasks(state) {
@@ -18,6 +19,7 @@ class TaskContainer {
     this.subtasks(task.state.id).push(task);
     this.subtasks().push(task);
     this.update_stats();
+    this.rev += 1;
   }
 
   ar_remove(list, element) {
@@ -28,6 +30,7 @@ class TaskContainer {
     this.ar_remove(this.subtasks(task.state.id), task);
     this.ar_remove(this.subtasks(), task);
     this.update_stats();
+    this.rev += 1;
   }
 
   update_stats() {
@@ -69,7 +72,6 @@ class Task extends TaskContainer {
     this.size = size;
     this.complete = complete;
     this.parent = parent;
-    this.rev = 0;
   }
 
   update(task) {
