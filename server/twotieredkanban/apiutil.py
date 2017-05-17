@@ -20,9 +20,6 @@ def put(*args, **kw):
 def delete(*args, **kw):
     return bobo.delete(*args, check=check, **kw)
 
-# Punt on auth for now
-from bobo import get, post, put, delete
-
 class Encoder(json.JSONEncoder):
 
     def default(self, obj):

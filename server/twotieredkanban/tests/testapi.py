@@ -25,7 +25,7 @@ class APITests(setupstack.TestCase):
                        """,
             bobo_handle_exceptions = False,
             )
-        self.app = pkg_resources.load_entry_point(
+        self._app = pkg_resources.load_entry_point(
             'zc.zodbwsgi', 'paste.filter_app_factory', 'main')(
             app, {},
             configuration = demo_db,
@@ -33,14 +33,16 @@ class APITests(setupstack.TestCase):
             thread_transaction_manager = 'False',
             initializer = "twotieredkanban.apibase:initialize"
             )
-        self.db = self.app.database
+        self.db = self._app.database
         self.conn = self.db.open()
-        self.app = self.test_app()
+        self.app = self._test_app()
         self.vars = Vars()
 
-    def test_app(self):
+    def _test_app(self, email='test@example.com'):
         extra_environ = {}
-        tapp = webtest.TestApp(self.app, extra_environ=extra_environ)
+        tapp = webtest.TestApp(self._app, extra_environ=extra_environ)
+        if email:
+            tapp.get('/?email=' + email)
         return tapp
 
     def update_app(self, app, resp):
@@ -194,3 +196,20 @@ class APITests(setupstack.TestCase):
         self.assertEqual(t1['order'], task['order'])
         self.assertEqual(p2id, task['parent'])
 
+    def test_auth(self):
+        # unauthenticated users can't get things
+        app = self._test_app(None)
+        app.get('/', status=401)
+
+        # Add a regular users, which an admin can do:
+        admins = ['test@example.com']
+        users = admins + ['user@admin.com']
+        self.app.put('/site/users', dict(users=users, admins=admins))
+
+        # Now a user can get the board
+        app = self._test_app(users[-1])
+        app.get('/')
+        # But they aren't allowed to do admin functions:
+        self.app.put('/site/users',
+                     dict(users=users, admins=admins),
+                     status=403)
