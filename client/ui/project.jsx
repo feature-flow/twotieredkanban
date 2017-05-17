@@ -2,7 +2,7 @@ import React from 'react';
 import {Card, CardText, IconButton} from 'react-toolbox';
 
 import {Dialog, DialogBase, Input} from './dialog';
-import {AddTask, Task, TaskBoard} from './tasks';
+import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
 
 class ProjectDialog extends DialogBase {
   
@@ -104,13 +104,20 @@ class Project extends React.Component {
   }
   
   more() {
+    const {api, project} = this.props;
+    
     if (this.props.project.state.explode) {
-      return <TaskBoard project={this.props.project} api={this.props.api} />;
+      return <TaskBoard project={project} api={api} />;
     }
     else if (this.state.expanded) {
       return (
         <div>
-          {this.tasks()}
+          <TaskColumn
+               project={project}
+               state={{}}
+               tasks={project.subtasks()}
+               api={api}
+             />
           {this.add_edit()}
         </div>
       );

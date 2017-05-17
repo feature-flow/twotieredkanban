@@ -173,5 +173,6 @@ class Task extends React.Component {
 module.exports = {
   AddTask: AddTask,
   Task: Task,
-  TaskBoard: TaskBoard
+  TaskBoard: TaskBoard,
+  TaskColumn: TaskColumn
 };
