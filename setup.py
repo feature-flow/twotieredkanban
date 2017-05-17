@@ -1,17 +1,15 @@
 name, version = 'twotieredkanban', '0'
 
 install_requires = [
-    'oauthlib',
     'bobo',
     'gevent',
-    'requests',
     'PyJWT',
     'setuptools',
     'zc.generationalset',
-    'zc.zodbwsgi',
     'zope.exceptions',                  # XXX required by zodbwsgi
     ]
-extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest'])
+extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest',
+                            'zc.zodbwsgi'])
 
 entry_points = """
 [zc.buildout]
