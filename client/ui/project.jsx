@@ -94,14 +94,6 @@ class Project extends React.Component {
       );
     }
   }
-
-  tasks() {
-    return this.props.project.subtasks().map((task) => {
-      return (
-        <Task task={task} key={task.id} api={this.props.api} />
-      );
-    });
-  }
   
   more() {
     const {api, project} = this.props;
