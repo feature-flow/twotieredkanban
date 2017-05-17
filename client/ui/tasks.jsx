@@ -116,7 +116,7 @@ class TaskColumn extends React.Component {
       return (
         <div key={task.id}>
           <DropZone className="kb-divider"
-                    disallow={[task.id]} />
+                    disallow={[task.id]} dropped={dropped} />
           <Draggable data={ddata}>
             <Task task={task} api={this.props.api} />
           </Draggable>
