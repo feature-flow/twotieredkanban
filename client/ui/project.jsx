@@ -1,7 +1,8 @@
 import React from 'react';
 import {Card, CardText, IconButton} from 'react-toolbox';
+import RichTextEditor from 'react-rte';
 
-import {Dialog, DialogBase, Input} from './dialog';
+import {Dialog, DialogBase, Input, Editor} from './dialog';
 import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
 
 class ProjectDialog extends DialogBase {
@@ -11,10 +12,9 @@ class ProjectDialog extends DialogBase {
     
     return (
       <Dialog title={this.action() + " project"} action={action} ref="dialog"
-              finish={() => this.finish(this.state)}>
+              finish={() => this.finish(this.state)} type="large">
         <Input label='Title' required={true} onChange={this.val("title")} />
-        <Input label='Description' multiline={true}
-               onChange={this.val("description")} />
+        <Editor onChange={this.val("description")} />
       </Dialog>
     );
   }
@@ -24,8 +24,13 @@ class AddProject extends ProjectDialog {
 
   action() { return "Add"; }
 
+  show() {
+    super.show({description: RichTextEditor.createEmptyValue()});
+  }
+
   finish(data) {
-    this.props.api.add_project(data.title, data.description);
+    this.props.api.add_project(
+      data.title, data.description.toString('html'));
   }
   
 }
@@ -36,13 +41,17 @@ class EditProject extends ProjectDialog {
 
   show() {
     const project = this.props.project;
-    super.show({id: project.id,
-                title: project.title,
-                description: project.description});
+    super.show({
+      id: project.id,
+      title: project.title,
+      description:
+      RichTextEditor.createValueFromString(project.description, 'html')
+    });
   }
 
   finish(data) {
-    this.props.api.update_task(data.id, data.title, data.description);
+    this.props.api.update_task(data.id, data.title,
+                               data.description.toString('html'));
   }
 
 }

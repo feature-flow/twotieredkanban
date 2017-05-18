@@ -1,7 +1,8 @@
 import React from 'react';
 import {Card, CardText} from 'react-toolbox';
+import RichTextEditor from 'react-rte';
 
-import {Dialog, DialogBase, Input} from './dialog';
+import {Dialog, DialogBase, Editor, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
 
 class TaskDialog extends DialogBase {
@@ -11,10 +12,9 @@ class TaskDialog extends DialogBase {
     
     return (
       <Dialog title={action + " task"} action={action} ref="dialog"
-              finish={() => this.finish(this.state)}>
+              finish={() => this.finish(this.state)} type="large">
         <Input label='Title' required={true} onChange={this.val("title")} />
-        <Input label='Description' multiline={true}
-               onChange={this.val("description")} />
+        <Editor onChange={this.val("description")} />
         <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
         <Input label='Blocked' multiline={true}
@@ -28,9 +28,13 @@ class AddTask extends TaskDialog {
 
   action() { return "Add"; }
 
+  show() {
+    super.show({description: RichTextEditor.createEmptyValue()});
+  }
+
   finish(data) {
     this.props.api.add_task(
-      this.props.project.id, data.title, data.description,
+      this.props.project.id, data.title, data.description.toString('html'),
       parseInt(data.size), data.blocked);
   }  
 }
@@ -43,14 +47,16 @@ class EditTask extends TaskDialog {
     const task = this.props.task;
     super.show({id: task.id,
                 title: task.title,
-                description: task.description,
+                description:
+                RichTextEditor.createValueFromString(task.description, 'html'),
                 size: task.size,
                 blocked: task.blocked
                });
   }
 
   finish(data) {
-    this.props.api.update_task(data.id, data.title, data.description,
+    this.props.api.update_task(data.id, data.title,
+                               data.description.toString('html'),
                                parseInt(data.size), data.blocked);
   }
 }

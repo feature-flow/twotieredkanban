@@ -1,5 +1,6 @@
 import React from 'react';
 import {Dialog, Input} from 'react-toolbox';
+import RichTextEditor from 'react-rte';
 
 class Dialog_ extends React.Component {
 
@@ -52,6 +53,18 @@ class Input_ extends React.Component {
   }
 }
 
+class Editor extends React.Component {
+
+  render () {
+    return (
+      <RichTextEditor
+         value={this.props.onChange()}
+        onChange={this.props.onChange}
+      />
+    );
+  }
+}
+
 class DialogBase extends React.Component {
   constructor() {
     super();
@@ -86,5 +99,6 @@ class DialogBase extends React.Component {
 module.exports = {
   Dialog: Dialog_,
   Input: Input_,
+  Editor: Editor,
   DialogBase: DialogBase
 };
