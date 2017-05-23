@@ -81,8 +81,7 @@ class DropZone extends React.Component {
       {dragover: this.state.dragover});
     
     return (
-      <div draggable="true"
-           className={className}
+      <div className={className}
            onDragEnter={(ev) => this.dragenter(ev)}
            onDragLeave={(ev) => this.dragleave(ev)}
            onDragOver={(ev) => this.dragover(ev)}
