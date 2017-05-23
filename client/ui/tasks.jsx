@@ -166,7 +166,7 @@ class Task extends React.Component {
     this.rev = this.props.task.rev;
 
     return (
-      <Card onClick={() => this.refs.edit.show()}>
+      <Card className="kb-task" onClick={() => this.refs.edit.show()}>
         <CardText>
           {this.props.task.title} {this.size()}
         </CardText>
