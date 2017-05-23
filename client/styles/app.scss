@@ -1,5 +1,6 @@
 table {
     border-collapse:collapse;
+    width: 100%;
 }
 
 table,td,th {
@@ -13,10 +14,20 @@ th {
     background-color: #eee;
 }
 
+td {
+    height: 1px;
+}
+
 .kb-project {
+    width: auto;
+    margin: .5em;
     background-color: #f9f9f9;
 }
 
+.kb-task {
+    width: auto;
+    margin: .5em;
+}
 
 .kb-divider {
     height: 1ex;
@@ -31,4 +42,10 @@ th {
 .kb-tail {
     flex-grow: 1;
     height: 2ex;
+}
+
+.kb-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
