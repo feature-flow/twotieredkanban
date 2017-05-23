@@ -15,43 +15,43 @@ module.exports = class extends React.Component {
   } 
 
   projects() {
-    return this.props.projects.map((project) => {
+    const result = [];
 
+    this.props.projects.forEach((project) => {
       const dropped = (dt) => this.dropped(dt, project.id);
-
       const ddata = {'text/id': project.id};
       ddata['text/' + project.id] = project.id;
       if (project.count > 0) {
         ddata['text/children'] = project.count;
       }
 
-      return (
-        <div key={project.id}>
-          <DropZone className="kb-divider" dropped={dropped}
-                    disallow={[project.id]} />
-          <Draggable data={ddata}>
+      result.push(
+        <DropZone className="kb-divider" dropped={dropped}
+                  disallow={[project.id]} key={"above-" + project.id} />
+      );
+      result.push(
+          <Draggable data={ddata} key={project.id}>
             <Project project={project} api={this.props.api} />
           </Draggable>
-          
-        </div>
       );
     });
+
+    const {projects} = this.props;
+    const disallow = projects.length > 0 ? [projects.slice(-1)[0].id] : [];
+    result.push(
+        <DropZone className="kb-divider kb-tail"
+                  dropped={(dt) => this.dropped(dt)}
+                  disallow={disallow}
+                  />
+    );
+
+    return result;
   }
 
   render() {
-    const dropped = (dt) => this.dropped(dt);
-
-    const {projects} = this.props;
-
-    const disallow = projects.length > 0 ? [projects.slice(-1)[0].id] : [];
-
     return (
       <div className="kb-column">
         {this.projects()}
-        <DropZone className="kb-divider kb-tail"
-                  dropped={dropped}
-                  disallow={disallow}
-                  />
       </div>
     );
   }
