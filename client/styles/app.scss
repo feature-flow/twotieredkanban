@@ -1,0 +1,68 @@
+table {
+    border-collapse:collapse;
+    width: 100%;
+}
+
+table,td,th {
+    border: 1px solid grey;
+}
+
+th {
+    border-bottom: 2px solid black;
+    text-align: center;
+    padding: 3px;
+    background-color: #eee;
+}
+
+td {
+    height: 1px;
+}
+
+.kb-project {
+    width: auto;
+    margin: .5em;
+    background-color: #f9f9f9;
+}
+
+.kb-task {
+    width: auto;
+    margin: .5em;
+    background-color: #fff999;
+}
+
+.kb-divider {
+    height: 1ex;
+    transition: height .3s;
+}
+
+.kb-divider.dragover {
+    height: 4ex;
+    background-color: #ccff99;
+}
+
+.kb-tail {
+    flex-grow: 1;
+    height: 2ex;
+}
+
+.kb-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.kb-column.working {
+    .kb-task {
+        background-color: #dfd;
+    }
+}
+
+.kb-column.complete {
+    .kb-task {
+        background-color: #ddf;
+    }
+}
+
+.kb-task.blocked {
+    background-color: #fdd;
+}

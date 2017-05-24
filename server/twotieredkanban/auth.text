@@ -1,0 +1,12 @@
+Some notes on authentication.
+
+Authentication will be performed in 2 steps.
+
+Initial authentication will use oauth in production.  For dev, we'll
+use a puntastic form of authentication where a use need only supply an
+email query string on the / request. Note that a minimal version of
+the punt is *all* we're doing now.
+
+Initial authentication will cause a JWT token to be saved in a cookie
+and will suffice for authentication when present.  A logout route
+clears this.
