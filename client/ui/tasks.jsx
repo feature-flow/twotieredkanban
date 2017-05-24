@@ -112,26 +112,25 @@ class TaskColumn extends React.Component {
   } 
 
   tasks() {
-    return this.props.tasks.map((task) => {
+    const result = [];
+    
+    this.props.tasks.forEach((task) => {
 
       const dropped = (dt) => this.dropped(dt, task.id);
 
       const ddata = {'text/id': task.id};
       ddata['text/' + task.id] = task.id;
 
-      return (
-        <div key={task.id}>
-          <DropZone className="kb-divider"
-                    disallow={[task.id]} dropped={dropped} />
-          <Draggable data={ddata}>
-            <Task task={task} api={this.props.api} />
-          </Draggable>
-        </div>
+      result.push(
+        <DropZone className="kb-divider" key={"above-" + task.id}
+                  disallow={[task.id]} dropped={dropped} />
+      );
+      result.push(
+        <Draggable data={ddata} key={task.id}>
+          <Task task={task} api={this.props.api} />
+        </Draggable>
       );
     });
-  }
-
-  render() {
 
     const dropped = (dt) => this.dropped(dt); 
 
@@ -139,17 +138,22 @@ class TaskColumn extends React.Component {
     if (this.props.tasks.length > 0) {
       disallow.push(this.props.tasks.slice(-1)[0].id);
     }
+
+    result.push(
+      <DropZone className="kb-divider kb-tail"
+                disallow={disallow} dropped={dropped} />
+    );
     
+    return result;
+  }
+
+  render() {
     return (
       <div className="kb-column">
         {this.tasks()}
-        <DropZone className="kb-divider kb-tail"
-                  disallow={disallow} dropped={dropped}  />
       </div>
     );
-
   }
-
 }
 
 class Task extends React.Component {
