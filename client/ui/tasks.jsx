@@ -1,5 +1,6 @@
 import React from 'react';
 import {Card, CardText} from 'react-toolbox';
+import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
 import {Dialog, DialogBase, Editor, Input} from './dialog';
@@ -140,7 +141,7 @@ class TaskColumn extends React.Component {
     }
 
     result.push(
-      <DropZone className="kb-divider kb-tail"
+      <DropZone className="kb-divider kb-tail" key='tail'
                 disallow={disallow} dropped={dropped} />
     );
     
@@ -148,8 +149,15 @@ class TaskColumn extends React.Component {
   }
 
   render() {
+    const className = classes(
+      'kb-column',
+      {
+        working: this.props.state.working,
+        complete: this.props.state.complete
+      });
+
     return (
-      <div className="kb-column">
+      <div className={className}>
         {this.tasks()}
       </div>
     );
@@ -169,8 +177,12 @@ class Task extends React.Component {
   render() {
     this.rev = this.props.task.rev;
 
+  const className = classes(
+      'kb-task', {blocked: !! this.props.task.blocked});
+
+
     return (
-      <Card className="kb-task" onClick={() => this.refs.edit.show()}>
+      <Card className={className} onClick={() => this.refs.edit.show()}>
         <CardText>
           {this.props.task.title} {this.size()}
         </CardText>
