@@ -39,7 +39,7 @@ module.exports = class extends React.Component {
     const {projects} = this.props;
     const disallow = projects.length > 0 ? [projects.slice(-1)[0].id] : [];
     result.push(
-        <DropZone className="kb-divider kb-tail"
+        <DropZone className="kb-divider kb-tail" key='tail'
                   dropped={(dt) => this.dropped(dt)}
                   disallow={disallow}
                   />
