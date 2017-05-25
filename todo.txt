@@ -1,6 +1,5 @@
 
 
-- Include google fonts in bundle
 - user admin/auth
 - longpoll properly (threadpool for everything else)
 - burn-down chart
