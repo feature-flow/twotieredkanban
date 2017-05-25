@@ -17,17 +17,21 @@ module.exports = {
       extensions: ['.js', '.jsx', '.css']
   },
   module: {
-    loaders: [
+    rules: [
       {
-        loader: 'babel-loader',
-        query: {
-          presets: ['react', 'es2015']
-        },
         test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/
+        exclude: /(node_modules|bower_components)/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: ['react', 'es2015']
+            }
+          }
+        ]
       },
       {
-          test: /\.css$/,
+        test: /\.css$/,
         use: [
           "style-loader",
           {
