@@ -12,9 +12,8 @@ module.exports = {
   resolve: {
     modules: ['node_modules'],
     alias: {
-        applicationStyles: path.resolve(__dirname, 'client/styles/app.scss')
     },
-      extensions: ['.js', '.jsx', '.css']
+    extensions: ['.js', '.jsx', '.css']
   },
   module: {
     rules: [
@@ -45,6 +44,10 @@ module.exports = {
           },
           "postcss-loader" // has separate config, see postcss.config.js nearby
         ]
+      },
+      {
+        test: /\.scss$/,
+        use: ["style-loader", "css-loader", "sass-loader" ]
       }
     ]
   },

@@ -6,7 +6,7 @@ const Main = require('./ui/main');
 const Site = require('./ui/site');
 const Board = require('./ui/board');
 
-require('style-loader!css-loader!sass-loader!applicationStyles');
+require('./styles/app.scss');
 
 ReactDOM.render(
 <Router history={hashHistory}>
