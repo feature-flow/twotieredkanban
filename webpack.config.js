@@ -3,19 +3,8 @@ const path = require('path');
 
 module.exports = {
   entry: [
-    'script-loader!jquery/dist/jquery.min.js',
-    //'script!foundation-sites/dist/js/foundation.min.js',
     './client/app.jsx'
     ],
-  externals: {
-    jquery: 'jQuery'
-  },
-  plugins: [
-    new webpack.ProvidePlugin({
-      '$': 'jquery',
-      'jQuery': 'jquery'
-    })
-  ],
   output: {
     path: __dirname,
     filename: './static/bundle.js'
