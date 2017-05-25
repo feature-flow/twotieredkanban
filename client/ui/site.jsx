@@ -1,8 +1,7 @@
 import React from 'react';
 
-import SiteAPI from '../model/siteapi';
-
 import Frame from './frame';
+import SiteAPI from 'SiteAPI';
 
 module.exports = class extends React.Component {
 

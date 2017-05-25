@@ -12,6 +12,8 @@ module.exports = {
   resolve: {
     modules: ['node_modules'],
     alias: {
+      BoardAPI: path.resolve(__dirname, 'client/model/boardapi'),
+      SiteAPI:  path.resolve(__dirname, 'client/model/siteapi')
     },
     extensions: ['.js', '.jsx', '.css']
   },

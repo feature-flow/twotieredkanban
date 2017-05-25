@@ -1,7 +1,6 @@
 import React from 'react';
 
-import BoardAPI from '../model/boardapi';
-
+import BoardAPI from 'BoardAPI';
 import Frame from './frame';
 import Projects from './projects';
 
