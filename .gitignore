@@ -6,5 +6,7 @@ dist
 *.pyc
 /key.cfg
 /parts
+/demo/static
 /static
 /node_modules
+/attic
