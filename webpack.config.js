@@ -57,7 +57,7 @@ module.exports = function (env) {
     devtool: 'cheap-module-eval-source-map'
   };
 
-  if (env.demo) {
+  if (env && env.demo) {
     config.output.filename = './demo/static/bundle.js';
     config.resolve.alias = {
         BoardAPI: path.resolve(__dirname, 'client/model/demoboardapi'),
