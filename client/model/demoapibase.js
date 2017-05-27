@@ -1,4 +1,6 @@
-const open_request = window.indexedDB.open("FeatureFlowDemo", 1);
+import indexedDB from "indexedDB";
+
+const open_request = indexedDB.open("FeatureFlowDemo", 1);
 open_request.onupgradeneeded = (ev) => {
   const db = ev.target.result;
   db.createObjectStore('boards', {autoIncrement : true, keyPath: 'name' });

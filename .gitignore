@@ -10,3 +10,4 @@ dist
 /static
 /node_modules
 /attic
+/.tmp

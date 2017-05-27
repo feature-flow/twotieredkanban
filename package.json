@@ -8,8 +8,7 @@
   "description": "simple react app",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --compilers js:babel-core/register client/tests/test*.js",
-    "start": "node server.js"
+    "test": "mocha-webpack --webpack-config webpack.config-test.js \"client/tests/test*.js\""
   },
   "author": "Jim Fulton",
   "license": "MIT",
@@ -35,6 +34,7 @@
     "chai": "^3.5.0",
     "css-loader": "^0.28.1",
     "expect": "^1.20.2",
+    "fake-indexeddb": "^2.0.3",
     "jquery": "^3.2.1",
     "karma": "^1.7.0",
     "karma-chrome-launcher": "^2.1.1",
@@ -43,6 +43,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^2.0.3",
     "mocha": "^3.3.0",
+    "mocha-webpack": "^0.7.0",
     "node-sass": "^4.5.2",
     "postcss-cssnext": "^2.10.0",
     "postcss-each": "^0.9.3",
@@ -53,6 +54,7 @@
     "sass-loader": "^6.0.3",
     "script-loader": "^0.7.0",
     "style-loader": "^0.17.0",
-    "webpack": "^2.5.1"
+    "webpack": "^2.5.1",
+    "webpack-node-externals": "^1.6.0"
   }
 }
