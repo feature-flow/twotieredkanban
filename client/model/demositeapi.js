@@ -2,33 +2,37 @@ import APIBase from './demoapibase';
 import {Site} from './site';
 
 module.exports = class extends APIBase {
-  constructor(view) {
-    super(new Site(), view);
+
+  constructor(view, cb) {
+    super(new Site(), view, cb);
   }
 
-  poll() {
+  poll(cb) {
     super.poll().then((db) => {
-      this.boards(db.transaction('boards'), (boards) => {
-        this.update({site: {boards: boards}});
+      this.transaction('boards', 'readonly', (trans) => {
+        this.boards(trans, (boards) => {
+          this.update(trans, {site: {boards: boards}}, cb);
+        });
       });
     });
   }
   
-  add_board(name) {
-    const store = this.db.transaction(['boards'], 'readwrite')
-                         .objectStore('boards');
+  add_board(name, cb) {
+    this.transaction('boards', 'readwrite', (trans) => {
+      const store = trans.objectStore('boards');
 
-    this.all(store.openCursor(name), (boards) => {
-      if (boards.length > 0) {
-        this.handle_error("There is already a board with that name");
-      }
-      else {
-        this.r(store.add({name: name, title: '', description: ''}), () => {
+      this.all(store.openCursor(name), (boards) => {
+        if (boards.length > 0) {
+          this.handle_error("There is already a board with that name");
+        }
+        else {
+          this.r(store.add({name: name, title: '', description: ''}), () => {
             this.all(store.openCursor(), (boards) => {
-              this.update({site: {boards: boards}});
+              this.update(trans, {site: {boards: boards}}, cb);
             });
           });
-      }
+        }
+      });
     });
   }
 };
