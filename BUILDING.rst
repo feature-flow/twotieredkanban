@@ -20,7 +20,7 @@ Build::
   webpack --env.demo
 
 To run, open ``demo/index.html`` in your browser. If the browser
-generates a ``file`` url by following the symbolic link, edit the URL
+generates a ``file::`` url by following the symbolic link, edit the URL
 to end in ``demo/index.html``.
 
 Server mode
@@ -28,6 +28,11 @@ Server mode
 
 To build, run the buildout. This will build the Python app, run npm,
 and webpack.
+
+Create a local ``kanban`` Postgres database.  Alternatively, supply an
+alternate connection string when you run buildout::
+
+  bin/buildout database=postgresql://myuser@myhost/dbname
 
 To run::
 
