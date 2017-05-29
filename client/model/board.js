@@ -109,7 +109,7 @@ class Board extends TaskContainer {
     this.states = [];
     this.project_states = [];
     this.task_states = [];
-    this.states_by_id = {}; // {id -> top-level-state
+    this.states_by_id = {}; // {id -> state
 
   }
 

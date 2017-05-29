@@ -8,11 +8,11 @@ let open_database = () => {
   open_request = indexedDB.open(dbname, 1);
   open_request.onupgradeneeded = (ev) => {
     const db = ev.target.result;
-    db.createObjectStore('boards', {autoIncrement : true, keyPath: 'name' });
-    db.createObjectStore('users',  {autoIncrement : true, keyPath: 'id' });
-    db.createObjectStore('states', {autoIncrement : true, keyPath: 'id' })
+    db.createObjectStore('boards', {keyPath: 'name' });
+    db.createObjectStore('users',  {keyPath: 'id' });
+    db.createObjectStore('states', {keyPath: 'id' })
       .createIndex('board', 'board', {unique: false});
-    db.createObjectStore('tasks',  {autoIncrement : true, keyPath: 'id' })
+    db.createObjectStore('tasks',  {keyPath: 'id' })
       .createIndex('board', 'board', {unique: false});
   };
   
@@ -52,12 +52,27 @@ module.exports = class {
     alert(err);
   }
 
-  r(request, f) {
-    request.onsuccess = (ev) => f(ev.target.result);
-    request.onerror = (e) => this.handle_error(e);
+  r(request, f, cb) {
+    request.onsuccess = (ev) => {
+      try {
+        f(ev.target.result);
+      }
+      catch (err) {
+        this.handle_error(err);
+        if (cb) {
+          cb(err);
+        }
+      }
+    };
+    request.onerror = (ev) => {
+      this.handle_error(ev);
+      if (cb) {
+        cb(ev);
+      }
+    };
   }
 
-  all(request, f) {
+  all(request, f, cb) {
     const results = [];
     request.onsuccess = (ev) => {
       const cursor = ev.target.result;
@@ -66,10 +81,23 @@ module.exports = class {
         cursor.continue();
       }
       else {
-        f(results);
+        try {
+          f(results);
+        }
+        catch (err) {
+          this.handle_error(err);
+          if (cb) {
+            cb(err);
+          }
+        }
       }
     };
-    request.onerror = (ev) => this.handle_error(ev);
+    request.onerror = (ev) => {
+      this.handle_error(ev);
+      if (cb) {
+        cb(ev);
+      }
+    };
   }
 
   poll() {
@@ -79,10 +107,23 @@ module.exports = class {
     });
   }
 
-  transaction(stores, mode, cb) {
+  transaction(stores, mode, f, cb) {
     const trans = this.db.transaction(stores, mode);
-    trans.onerror = (err) => this.handle_error(err);
-    cb(trans);
+    trans.onerror = (ev) => {
+      this.handle_error(ev);
+      if (cb) {
+        cb(ev);
+      }
+    };
+    try {
+      f(trans);
+    }
+    catch (err) {
+      this.handle_error(err);
+      if (cb) {
+        cb(err);
+      }
+    }
   }
 
   update(trans, data, cb) {
@@ -90,7 +131,7 @@ module.exports = class {
       this.model.update(data);
       this.view.setState({model: this.model});
       if (cb) {
-        cb(this);
+        cb(this, data);
       }
     };
   }

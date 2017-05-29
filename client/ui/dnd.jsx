@@ -15,6 +15,7 @@ class Draggable extends React.Component {
     const dragstart = (ev) => {
       if (! ev.dataTransfer.types.length) {
         const data = this.props.data;
+        console.log('dragging', data);
         for (const name in data) {
           ev.dataTransfer.setData(name, data[name]);
         }

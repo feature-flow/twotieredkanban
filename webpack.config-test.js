@@ -8,7 +8,7 @@ module.exports = {
   resolve: {
     modules: ['node_modules'],
     alias: {
-      indexedDB: 'fake-indexeddb',
+      indexedDB: 'fake-indexeddb'
     },
     extensions: ['.js', '.jsx', '.css']
   },
@@ -25,7 +25,14 @@ module.exports = {
             }
           }
         ]
-      }
+      },
+      { test: /\.json$/, use: ["json-loader"] }
     ]
-  }
+  },
+  output: {
+    // sourcemap support for IntelliJ/Webstorm 
+    devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+    devtoolFallbackModuleFilenameTemplate: '[absolute-resource-path]?[hash]'
+  },
+  devtool: "cheap-module-source-map"
 };

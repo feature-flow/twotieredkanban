@@ -45,13 +45,15 @@ module.exports = function (env) {
                 localIdentName: "[name]--[local]--[hash:base64:8]"
               }
             },
-            "postcss-loader" // has separate config, see postcss.config.js nearby
+            // has separate config, see postcss.config.js nearby
+            "postcss-loader"
           ]
         },
         {
           test: /\.scss$/,
           use: ["style-loader", "css-loader", "sass-loader" ]
-        }
+        },
+        { test: /\.json$/, use: ["json-loader"] }
       ]
     },
     devtool: 'cheap-module-eval-source-map'
