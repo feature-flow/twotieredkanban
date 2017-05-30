@@ -10,7 +10,7 @@ let open_database = () => {
     const db = ev.target.result;
     db.createObjectStore('boards', {keyPath: 'name' });
     db.createObjectStore('users',  {keyPath: 'id' });
-    db.createObjectStore('states', {keyPath: 'id' })
+    db.createObjectStore('states', {keyPath: 'key' })
       .createIndex('board', 'board', {unique: false});
     db.createObjectStore('tasks',  {keyPath: 'id' })
       .createIndex('board', 'board', {unique: false});

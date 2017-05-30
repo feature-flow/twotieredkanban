@@ -7,7 +7,23 @@ describe("demo board api", () => {
 
   beforeEach("Add board", (done) => {
     new SiteAPI({setState: () => null}, (api) => {
-      api.add_board('test', () => done());
+      api.add_board('test', () => {
+        // Add another board to provide an opportunity to fail at
+        // keeping separate board data separate:
+        api.add_board('test2', () => {
+          const view = {setState: expect.createSpy()};
+          new BoardAPI(view, 'test2', (board_api) => {
+            board_api.add_project('Proj', 'the proj', () => {
+              let project;
+              [project] = board_api.model.all_tasks;
+              board_api.add_task(
+                project.id, 'Task', 'the task', 2, null, () => {
+                done();
+                });
+            });
+          });
+        });
+      });
     });
   });
   
@@ -52,7 +68,45 @@ describe("demo board api", () => {
       ]);
       expect(model.tasks).toEqual({});
       expect(model.site).toEqual(
-        {boards: [{name: 'test', title: '', description: ''}]}
+        {boards: [{name: 'test', title: '', description: ''},
+                  {name: 'test2', title: '', description: ''}]}
+      );
+      done();
+    });
+  });
+
+  it("should load state", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test2', (api) => {
+      const model = api.model;
+      expect(view.setState).toHaveBeenCalledWith({model: model});
+      expect(model.name).toEqual('test2');
+      expect(model.title).toEqual('');
+      expect(model.description).toEqual('');
+      expect(model.states.map(basic_state)).toEqual([
+        state(0, 'Backlog'),
+        state(1, 'Ready'),
+        state(2, {title: 'Development', explode: true}),
+        state(3, {"task": true, "title": "Ready", "id": "ready"}),
+        state(4, {"task": true, "title": "Doing", "working": true}),
+        state(5, {"task": true, "title": "Needs review"}),
+        state(6, {"task": true, "title": "Review", "working": true}),
+        state(7, {"task": true, "title": "Done", "complete": true}),
+        state(8, "Acceptance"),
+        state(9, "Deploying"),
+        state(10, "Deployed")
+      ]);
+      expect(model.all_tasks.map((t) => (
+        {title: t.title, description: t.description, parent: !! t.parent,
+         size: t.size
+        })))
+        .toEqual([
+          {title: 'Task', description: 'the task', parent: true, size: 2},
+          {title: 'Proj', description: 'the proj', parent: false, size: 0}
+        ]);
+      expect(model.site).toEqual(
+        {boards: [{name: 'test', title: '', description: ''},
+                  {name: 'test2', title: '', description: ''}]}
       );
       done();
     });
@@ -240,5 +294,5 @@ describe("demo board api", () => {
         .then(() => done());
     });
   });
-
+  
 });

@@ -4,14 +4,12 @@ import APIBase from './demoapibase';
 import {Board} from './board';
 import default_states from './model.json';
 
-
-
-
-const state = (order, props) => {
-  const s = {order: order, explode: false,
+const state = (board, order, props) => {
+  const s = {board: board, order: order, explode: false,
              working: false, complete: false, task: false};
   Object.assign(s, typeof props == 'string'? {title: props} : props);
   s.id = s.id || s.title;
+  s.key = [board, s.id];
   return s;
 };
 
@@ -39,13 +37,15 @@ module.exports = class extends APIBase {
           const board = Object.assign({}, boards.filter(
             (board) => board.name == this.model.name)[0]);
           board.site = {boards: boards};
-          this.all(trans.objectStore('states').openCursor(), (states) => {
+          this.all(trans.objectStore('states')
+                   .index('board').openCursor(this.model.name),
+                   (states) => {
             if (states.length == 0) {
               // new board, initialize states
               let order = -1;
               const initial_states = default_states.map((props) => {
                 order += 1;
-                return state(order, props);
+                return state(this.model.name, order, props);
               });
               this.add_all(trans.objectStore('states'), initial_states, () => {
                 this.update(
@@ -55,7 +55,9 @@ module.exports = class extends APIBase {
               });
             }
             else {
-              this.all(trans.objectStore('tasks').openCursor(), (tasks) => {
+              this.all(trans.objectStore('tasks')
+                       .index('board').openCursor(this.model.name),
+                       (tasks) => {
                 this.update(
                   trans,
                   {board: board, states: {adds: states}, tasks: {adds: tasks}},
@@ -71,7 +73,7 @@ module.exports = class extends APIBase {
   add_project(title, description, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const project = {
-        id: uuid(),
+        board: this.model.name, id: uuid(),
         title: title,
         description: description,
         order: this.model.order(undefined, true)
@@ -85,7 +87,7 @@ module.exports = class extends APIBase {
   add_task(project_id, title, description, size, blocked, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const task = {
-        id: uuid(),
+        board: this.model.name, id: uuid(),
         parent: project_id,
         title: title, description: description, size: size, blocked: blocked,
         order: this.model.order(undefined, true)
