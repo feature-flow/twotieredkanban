@@ -1,5 +1,7 @@
 import indexedDB from "indexedDB";
 
+import demosample from "./demosample.json";
+
 const dbname = "FeatureFlowDemo";
 let open_request = null;
 let opened = null;
@@ -9,7 +11,15 @@ let open_database = () => {
   open_request.onupgradeneeded = (ev) => {
     const db = ev.target.result;
     db.createObjectStore('boards', {keyPath: 'name' });
-    db.createObjectStore('users',  {keyPath: 'id' });
+
+    db.createObjectStore('users',  {keyPath: 'id' })
+      .transaction.oncomplete = () => {
+        const store = db.transaction('users', 'readwrite').objectStore('users');
+        demosample.users.forEach((u) => {
+          store.add(u);
+        });
+      };
+
     db.createObjectStore('states', {keyPath: 'key' })
       .createIndex('board', 'board', {unique: false});
     db.createObjectStore('tasks',  {keyPath: 'id' })
@@ -138,5 +148,12 @@ module.exports = class {
 
   boards(trans, f) {
     this.all(trans.objectStore('boards').openCursor(), f);
+  }
+
+  users(trans, f) {
+    this.all(trans.objectStore('users').openCursor(), (users) => {
+      const user = users.filter((u) => u.current);
+      f(users, user.length > 0 ? user[0] : users[0]);
+    });
   }
 }
