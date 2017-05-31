@@ -14,6 +14,23 @@ describe("demo site api", () => {
       const model = api.model;
       expect(view.setState).toHaveBeenCalledWith({model: model});
       expect(model.boards).toEqual([]);
+      expect(model.user).toEqual(
+        {id: "ryou", nick: "ryou", email: "ryou@example.com",
+         name: "Ryou Person", admin: true, current: true});
+      expect(model.users).toEqual([
+        {"id": "alex", "nick": "alex", "email": "alex@example.com",
+         "name": "Alex Person"},
+        {"id": "cas", "nick": "cas", "email": "cas@example.com",
+         "name": "Cas Person"},
+        {"id": "gal", "nick": "gal", "email": "gal@example.com",
+         "name": "Gal Person"},
+        {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
+         "name": "Jaci Person", "admin": true},
+        {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
+         "name": "Kiran Person"},
+        {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
+         "name": "Ryou Person", "admin": true, "current": true}
+      ]);
       done();
     });
   });

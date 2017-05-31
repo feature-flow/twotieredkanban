@@ -9,9 +9,14 @@ module.exports = class extends APIBase {
 
   poll(cb) {
     super.poll().then((db) => {
-      this.transaction('boards', 'readonly', (trans) => {
+      this.transaction(['boards', 'users'], 'readonly', (trans) => {
         this.boards(trans, (boards) => {
-          this.update(trans, {site: {boards: boards}}, cb);
+          this.users(trans, (users, user) => {
+            this.update(
+              trans,
+              {site: {boards: boards, users: users}, user: user},
+              cb);
+          });
         });
       });
     });

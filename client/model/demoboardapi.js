@@ -32,41 +32,50 @@ module.exports = class extends APIBase {
 
   poll(cb) {
     super.poll().then((db) => {
-      this.transaction(['boards', 'states', 'tasks'], 'readwrite', (trans) => {
-        this.boards(trans, (boards) => {
-          const board = Object.assign({}, boards.filter(
-            (board) => board.name == this.model.name)[0]);
-          board.site = {boards: boards};
-          this.all(trans.objectStore('states')
-                   .index('board').openCursor(this.model.name),
-                   (states) => {
-            if (states.length == 0) {
-              // new board, initialize states
-              let order = -1;
-              const initial_states = default_states.map((props) => {
-                order += 1;
-                return state(this.model.name, order, props);
-              });
-              this.add_all(trans.objectStore('states'), initial_states, () => {
-                this.update(
-                  trans,
-                  {board: board, states: {adds: initial_states}},
-                  cb);
-              });
-            }
-            else {
-              this.all(trans.objectStore('tasks')
+      this.transaction(
+        ['boards', 'states', 'tasks', 'users'], 'readwrite', (trans) => {
+          this.boards(trans, (boards) => {
+            this.users(trans, (users, user) => {
+              const board = Object.assign({}, boards.filter(
+                (board) => board.name == this.model.name)[0]);
+              board.site = {boards: boards, users: users};
+              this.all(trans.objectStore('states')
                        .index('board').openCursor(this.model.name),
-                       (tasks) => {
-                this.update(
-                  trans,
-                  {board: board, states: {adds: states}, tasks: {adds: tasks}},
-                  cb);
-              });
-            }
+                       (states) => {
+                         if (states.length == 0) {
+                           // new board, initialize states
+                           let order = -1;
+                           const initial_states = default_states.map(
+                             (props) => {
+                               order += 1;
+                               return state(this.model.name, order, props);
+                             });
+                           this.add_all(
+                             trans.objectStore('states'), initial_states,
+                             () => {
+                               this.update(
+                                 trans,
+                                 {board: board, user: user,
+                                  states: {adds: initial_states}},
+                                 cb);
+                             });
+                         }
+                         else {
+                           this.all(trans.objectStore('tasks')
+                                    .index('board').openCursor(this.model.name),
+                                    (tasks) => {
+                                      this.update(
+                                        trans,
+                                        {board: board, user: user,
+                                         states: {adds: states},
+                                         tasks: {adds: tasks}},
+                                        cb);
+                                    });
+                         }
+                       });
+            });
           });
         });
-      });
     });
   }
 

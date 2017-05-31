@@ -2,12 +2,17 @@ class Site {
 
   constructor() {
     this.boards = [];
+    this.user = {email: ''};
   }
 
   update(data) {
-    this.boards = data.site.boards;
+    if (data.site) {
+      Object.assign(this, data.site);
+    }
+    if (data.user) {
+      this.user = data.user;
+    }
   }
-    
 }
 
 module.exports = {

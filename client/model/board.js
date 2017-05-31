@@ -101,7 +101,7 @@ class Board extends TaskContainer {
     this.name = name;
     this.title = '';
     this.description = '';
-    this.site = {boards: []};
+    this.site = {boards: [], users: []};
 
     this.tasks = {}; // {id -> task} for all tasks
     this.all_tasks = [];
@@ -169,12 +169,16 @@ class Board extends TaskContainer {
       if (updates.board.users) {
         this.users = updates.board.users;
       }
-      if (updates.board.admins) {
-        this.admins = updates.board.admins;
+      if (updates.board.user) {
+        this.user = updates.board.user;
       }
       if (updates.board.site) {
         this.site = updates.board.site;
       }
+    }
+
+    if (updates.user) {
+      this.user = updates.user;
     }
 
     if (updates.states) {

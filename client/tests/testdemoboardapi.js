@@ -53,6 +53,9 @@ describe("demo board api", () => {
       expect(model.name).toEqual('test');
       expect(model.title).toEqual('');
       expect(model.description).toEqual('');
+      expect(model.user).toEqual(
+        {id: "ryou", nick: "ryou", email: "ryou@example.com",
+         name: "Ryou Person", admin: true, current: true});
       expect(model.states.map(basic_state)).toEqual([
         state(0, 'Backlog'),
         state(1, 'Ready'),
@@ -69,7 +72,21 @@ describe("demo board api", () => {
       expect(model.tasks).toEqual({});
       expect(model.site).toEqual(
         {boards: [{name: 'test', title: '', description: ''},
-                  {name: 'test2', title: '', description: ''}]}
+                  {name: 'test2', title: '', description: ''}],
+         users: [
+           {"id": "alex", "nick": "alex", "email": "alex@example.com",
+            "name": "Alex Person"},
+           {"id": "cas", "nick": "cas", "email": "cas@example.com",
+            "name": "Cas Person"},
+           {"id": "gal", "nick": "gal", "email": "gal@example.com",
+            "name": "Gal Person"},
+           {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
+            "name": "Jaci Person", "admin": true},
+           {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
+            "name": "Kiran Person"},
+           {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
+            "name": "Ryou Person", "admin": true, "current": true}
+         ]}
       );
       done();
     });
@@ -106,7 +123,21 @@ describe("demo board api", () => {
         ]);
       expect(model.site).toEqual(
         {boards: [{name: 'test', title: '', description: ''},
-                  {name: 'test2', title: '', description: ''}]}
+                  {name: 'test2', title: '', description: ''}],
+         users: [
+           {"id": "alex", "nick": "alex", "email": "alex@example.com",
+            "name": "Alex Person"},
+           {"id": "cas", "nick": "cas", "email": "cas@example.com",
+            "name": "Cas Person"},
+           {"id": "gal", "nick": "gal", "email": "gal@example.com",
+            "name": "Gal Person"},
+           {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
+            "name": "Jaci Person", "admin": true},
+           {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
+            "name": "Kiran Person"},
+           {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
+            "name": "Ryou Person", "admin": true, "current": true}
+         ]}
       );
       done();
     });
