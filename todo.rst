@@ -2,9 +2,6 @@
 
   - Project and task add forms aren't getting cleared
 
-  - Switching boards doesn't work because the Board UI components get
-    reused.  I'd assumed they were reconstructed.
-
 
 - Design landing page (/):
 
