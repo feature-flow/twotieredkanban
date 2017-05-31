@@ -102,6 +102,7 @@ class Board extends TaskContainer {
     this.title = '';
     this.description = '';
     this.site = {boards: [], users: []};
+    this.user = {email: ''};
 
     this.tasks = {}; // {id -> task} for all tasks
     this.all_tasks = [];
