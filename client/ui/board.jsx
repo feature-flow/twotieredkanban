@@ -32,6 +32,7 @@ module.exports = class extends React.Component {
            boards={board.site.boards}
            add_board={(name) => this.api.add_board(name)}
            title={this.props.params.name}
+           user={this.state.model.user}
            />
         <Projects board={board} api={this.api} />
       </div>);

@@ -14,11 +14,13 @@ module.exports = class extends React.Component {
   render() {
     return (
       <div>
-        <Frame boards={this.state.model.boards}
-               add_board={(name) => this.api.add_board(name)}
-               title="Boards"
-               />
-        <h2>Site</h2>
+        <Frame
+          boards={this.state.model.boards}
+          add_board={(name) => this.api.add_board(name)}
+          title="Boards"
+          user={this.state.model.user}
+          />
+          <h2>Site</h2>
       </div>
     );
   }
