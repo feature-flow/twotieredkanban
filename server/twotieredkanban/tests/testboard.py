@@ -12,7 +12,7 @@ class BoardTests(unittest.TestCase):
 
     def setUp(self):
         from ..site import Site
-        self.site = Site('user@example.com')
+        self.site = Site()
         self.site.add_board('dev', 'Development', 'Development projects')
         self.board = self.site.boards['dev']
         self.board_generation = self.board.generation

@@ -6,6 +6,7 @@ import pkg_resources
 import webtest
 
 from .var import Vars
+from .demosample import users
 
 demo_db = '''
 <zodb>
@@ -19,6 +20,14 @@ class APITests(setupstack.TestCase):
     maxDiff = None
 
     def setUp(self):
+        from ..apibase import config
+        config(dict(auth='twotieredkanban.tests.auth'))
+
+        @self.register
+        def clear_auth():
+            from .. import apibase
+            apibase.auth = None
+
         app = bobo.Application(
             bobo_resources="""
                        twotieredkanban.apibase
@@ -77,12 +86,12 @@ class APITests(setupstack.TestCase):
         self.assertEqual(
             dict(updates=
                  dict(generation=self.vars.generation,
-                      site=dict(admins=['test@example.com'],
-                                users=['test@example.com'],
-                                boards=[])
-                      )
+                      site=dict(users=[],
+                                boards=[]),
+                      user=users[0],
+                      ),
                  ),
-        self.get('/site/poll').json)
+            self.get('/site/poll').json)
 
     def test_add_board(self):
         self.get('/site/poll') # set generation
@@ -91,8 +100,7 @@ class APITests(setupstack.TestCase):
         self.assertEqual(
             dict(updates=
                  dict(generation=self.vars.generation,
-                      site=dict(admins=['test@example.com'],
-                                users=['test@example.com'],
+                      site=dict(users=[],
                                 boards=[data])
                       )
                  ),
@@ -197,19 +205,19 @@ class APITests(setupstack.TestCase):
         self.assertEqual(p2id, task['parent'])
 
     def test_auth(self):
-        # unauthenticated users can't get things
+        # Note that this test, like the ones above use a very dump
+        # auth plugin. We're just testing for proper interaction with
+        # the auth plugin.
+
+        # unauthenticated users can't get redirected to a login page
+        from .. import apibase
+        from . auth import BadAuth, NonAdminAuth
+        apibase.auth = BadAuth
         app = self._test_app(None)
-        app.get('/', status=401)
+        r = app.get('/', status=302)
+        self.assertEqual(r.headers['location'], 'http://localhost/auth/login')
 
-        # Add a regular users, which an admin can do:
-        admins = ['test@example.com']
-        users = admins + ['user@admin.com']
-        self.app.put('/site/users', dict(users=users, admins=admins))
-
-        # Now a user can get the board
-        app = self._test_app(users[-1])
-        app.get('/')
-        # But they aren't allowed to do admin functions:
-        self.app.put('/site/users',
-                     dict(users=users, admins=admins),
-                     status=403)
+        # Non admin users can't do admin things
+        apibase.auth = NonAdminAuth
+        app = self._test_app()
+        self.app.post('/site/boards', dict(boards=[]), status=403)

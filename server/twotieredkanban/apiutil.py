@@ -43,6 +43,10 @@ class Sync:
     def response(self, **data):
         generation = self.base.request.headers.get('x-generation', 0)
         updates = self.context.updates(int(generation))
+        if generation == 0:
+            # first load, set uswer
+            updates['user'] = self.base.user
+
         if updates:
             data['updates'] = updates
         return self._response(data)
@@ -63,3 +67,4 @@ class Sync:
 
         wait(oid)
         return self._response()
+

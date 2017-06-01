@@ -10,7 +10,7 @@ class Site(Sync):
         r = base.check(func)
         if r:
             return r
-        if base.email not in base.site.admins:
+        if not base.user.get('admin'):
             base.error(403, dict(error="You must be an adminstrator"))
 
     @post('/boards')
@@ -18,9 +18,4 @@ class Site(Sync):
         if name in self.context.boards:
             self.base.error("A board with name %r already exists." % name)
         self.context.add_board(name, title, description)
-        return self.response()
-
-    @put('/users')
-    def put_users(self, users, admins):
-        self.context.update_users(users, admins)
         return self.response()

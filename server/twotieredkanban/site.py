@@ -7,26 +7,28 @@ class Site(persistent.Persistent):
 
     id = 'site'
 
-    def __init__(self, initial_email):
+    # List of users as seen by the client.  This is a view on actial
+    # user data managed by the auth plugin.  It's assumed that the
+    # number of users is limited.
+    users = ()
+
+    def __init__(self):
         from BTrees.OOBTree import BTree
         self.boards = BTree()
-        self.users = self.admins = [initial_email]
         self.changes = changes = zc.generationalset.GSet()
         self.changes.add(self)
 
     def json_reduce(self):
         return dict(
             users=self.users,
-            admins=self.admins,
             boards=[dict(name=board.name,
                          title=board.title,
                          description=board.description)
                     for board in self.boards.values()],
             )
 
-    def update_users(self, users, admins):
+    def update_users(self, users):
         self.users = list(users)
-        self.admins = list(admins)
         self.changes.add(self)
         for board in self.boards.values():
             board.site_changed()

@@ -2,15 +2,16 @@ import unittest
 
 from .var import Var
 
+from .demosample import users
+
 class SiteTests(unittest.TestCase):
 
     def setUp(self):
         from ..site import Site
-        self.site = Site('user@example.com')
+        self.site = Site()
 
     def test_new_site(self):
-        self.assertEqual(self.site.admins, ['user@example.com'])
-        self.assertEqual(self.site.users, ['user@example.com'])
+        self.assertEqual(self.site.users, ())
         self.assertEqual(dict(self.site.boards), {})
         self.assertEqual(self.site, self.site.updates(0)['site'])
 
@@ -37,19 +38,16 @@ class SiteTests(unittest.TestCase):
         board = self.site.boards['first']
         site_generation = self.site.generation
         board_generation = board.generation
-        self.site.update_users(['kate', 'ed'], ['kate'])
-        self.assertEqual(['kate', 'ed'], self.site.users)
-        self.assertEqual(['kate'], self.site.admins)
-
+        self.site.update_users(users)
+        self.assertEqual(list(users), self.site.users)
         self.assertTrue(self.site.generation > site_generation)
         self.assertTrue(board.generation > board_generation)
 
     def test_json(self):
         self.site.add_board('first', 'The first one', 'Yup, the first')
-        self.site.update_users(['kate', 'ed'], ['kate'])
+        self.site.update_users(users)
         self.assertEqual(
-            dict(users=['kate', 'ed'],
-                 admins=['kate'],
+            dict(users=list(users),
                  boards=[dict(name='first',
                               title='The first one',
                               description='Yup, the first')]),
