@@ -8,7 +8,7 @@ dist
 /parts
 /demo/static
 /static
-/node_modules
+node_modules
 /attic
 /.tmp
 db.cfg
