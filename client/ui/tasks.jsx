@@ -1,25 +1,40 @@
 import React from 'react';
-import {Card, CardText} from 'react-toolbox';
+import {Card, CardText, Dropdown} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
 import {Dialog, DialogBase, Editor, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
+import {UserAvatar, User} from './who';
 
 class TaskDialog extends DialogBase {
   
   render() {
     const action = this.action();
+
+    const users = this.props.api.model.site.users.map(
+      (u) => Object.assign({value: u.id}, u));
+    const template = (user) => <User user={user} />;
     
     return (
-      <Dialog title={action + " task"} action={action} ref="dialog"
-              finish={() => this.finish(this.state)} type="large">
+      <Dialog
+         title={action + " task"} action={action} ref="dialog"
+         finish={() => this.finish(this.state)} type="large"
+        >
         <Input label='Title' required={true} onChange={this.val("title")} />
-        <Editor onChange={this.val("description")} />
         <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
+        <Dropdown className="kb-assigned"
+           auto={false}
+           source={users}
+           onChange={this.val("assigned")}
+           label="Assigned"
+           value={this.val("assigned")()}
+           template={template}
+           />
         <Input label='Blocked' multiline={true}
                onChange={this.val("blocked")} />
+        <Editor onChange={this.val("description")} />
       </Dialog>
     );
   }
@@ -30,13 +45,18 @@ class AddTask extends TaskDialog {
   action() { return "Add"; }
 
   show() {
-    super.show({description: RichTextEditor.createEmptyValue()});
+    super.show({
+      title: '',
+      description: RichTextEditor.createEmptyValue(),
+      size: 1,
+      blocked: ''
+    });
   }
 
   finish(data) {
     this.props.api.add_task(
       this.props.project.id, data.title, data.description.toString('html'),
-      parseInt(data.size), data.blocked);
+      parseInt(data.size), data.blocked, data.assigned);
   }  
 }
 
@@ -51,14 +71,15 @@ class EditTask extends TaskDialog {
                 description:
                 RichTextEditor.createValueFromString(task.description, 'html'),
                 size: task.size,
-                blocked: task.blocked
+                blocked: task.blocked,
+                assigned: task.assigned
                });
   }
 
   finish(data) {
-    this.props.api.update_task(data.id, data.title,
-                               data.description.toString('html'),
-                               parseInt(data.size), data.blocked);
+    this.props.api.update_task(
+      data.id, data.title, data.description.toString('html'),
+      parseInt(data.size), data.blocked, data.assigned);
   }
 }
 
@@ -175,16 +196,24 @@ class Task extends React.Component {
   }
   
   render() {
-    this.rev = this.props.task.rev;
+    const {task} = this.props;
+    this.rev = task.rev;
 
-  const className = classes(
-      'kb-task', {blocked: !! this.props.task.blocked});
+    const className = classes('kb-task', {blocked: !! task.blocked});
 
+    const avatar = () =>
+            task.assigned ?
+            <UserAvatar
+              email={task.user.email}
+              title={task.user.name}
+              size="20"
+              />
+      : null;
 
     return (
       <Card className={className} onClick={() => this.refs.edit.show()}>
         <CardText>
-          {this.props.task.title} {this.size()}
+          {this.props.task.title} {this.size()} {avatar()}
         </CardText>
         <EditTask ref="edit" task={this.props.task} api={this.props.api} />
       </Card>

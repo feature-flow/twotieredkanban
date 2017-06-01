@@ -93,12 +93,13 @@ module.exports = class extends APIBase {
     }, cb);
   }
 
-  add_task(project_id, title, description, size, blocked, cb) {
+  add_task(project_id, title, description, size, blocked, assigned, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const task = {
         board: this.model.name, id: uuid(),
         parent: project_id,
-        title: title, description: description, size: size, blocked: blocked,
+        title: title, description: description,
+        size: size, blocked: blocked, assigned: assigned,
         order: this.model.order(undefined, true)
       };
       this.r(trans.objectStore('tasks').add(task), () => {
@@ -107,7 +108,7 @@ module.exports = class extends APIBase {
     }, cb);
   }
 
-  update_task(id, title, description, size, blocked, cb) {
+  update_task(id, title, description, size, blocked, assigned, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(id), (task) => {
@@ -118,6 +119,9 @@ module.exports = class extends APIBase {
         }
         if (blocked !== undefined) {
           task.blocked = blocked;
+        }
+        if (assigned !== undefined) {
+          task.assigned = assigned;
         }
         this.r(tasks.put(task), () => {
           this.update(trans, {tasks: {adds: [task]}}, cb);

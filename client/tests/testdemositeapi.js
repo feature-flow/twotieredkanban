@@ -16,20 +16,20 @@ describe("demo site api", () => {
       expect(model.boards).toEqual([]);
       expect(model.user).toEqual(
         {id: "ryou", nick: "ryou", email: "ryou@example.com",
-         name: "Ryou Person", admin: true, current: true});
+         name: "Ryou Bosso", admin: true, current: true});
       expect(model.users).toEqual([
         {"id": "alex", "nick": "alex", "email": "alex@example.com",
-         "name": "Alex Person"},
+         "name": "Alex Peeple"},
         {"id": "cas", "nick": "cas", "email": "cas@example.com",
-         "name": "Cas Person"},
+         "name": "Cas Emplo"},
         {"id": "gal", "nick": "gal", "email": "gal@example.com",
-         "name": "Gal Person"},
+         "name": "Gal Humana"},
         {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-         "name": "Jaci Person", "admin": true},
+         "name": "Jaci Admi", "admin": true},
         {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-         "name": "Kiran Person"},
+         "name": "Kiran Persons"},
         {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-         "name": "Ryou Person", "admin": true, "current": true}
+         "name": "Ryou Bosso", "admin": true, "current": true}
       ]);
       done();
     });

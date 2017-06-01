@@ -17,7 +17,7 @@ describe("demo board api", () => {
               let project;
               [project] = board_api.model.all_tasks;
               board_api.add_task(
-                project.id, 'Task', 'the task', 2, null, () => {
+                project.id, 'Task', 'the task', 2, null, undefined, () => {
                 done();
                 });
             });
@@ -55,7 +55,7 @@ describe("demo board api", () => {
       expect(model.description).toEqual('');
       expect(model.user).toEqual(
         {id: "ryou", nick: "ryou", email: "ryou@example.com",
-         name: "Ryou Person", admin: true, current: true});
+         name: "Ryou Bosso", admin: true, current: true});
       expect(model.states.map(basic_state)).toEqual([
         state(0, 'Backlog'),
         state(1, 'Ready'),
@@ -75,17 +75,17 @@ describe("demo board api", () => {
                   {name: 'test2', title: '', description: ''}],
          users: [
            {"id": "alex", "nick": "alex", "email": "alex@example.com",
-            "name": "Alex Person"},
+            "name": "Alex Peeple"},
            {"id": "cas", "nick": "cas", "email": "cas@example.com",
-            "name": "Cas Person"},
+            "name": "Cas Emplo"},
            {"id": "gal", "nick": "gal", "email": "gal@example.com",
-            "name": "Gal Person"},
+            "name": "Gal Humana"},
            {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-            "name": "Jaci Person", "admin": true},
+            "name": "Jaci Admi", "admin": true},
            {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-            "name": "Kiran Person"},
+            "name": "Kiran Persons"},
            {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-            "name": "Ryou Person", "admin": true, "current": true}
+            "name": "Ryou Bosso", "admin": true, "current": true}
          ]}
       );
       done();
@@ -126,17 +126,17 @@ describe("demo board api", () => {
                   {name: 'test2', title: '', description: ''}],
          users: [
            {"id": "alex", "nick": "alex", "email": "alex@example.com",
-            "name": "Alex Person"},
+            "name": "Alex Peeple"},
            {"id": "cas", "nick": "cas", "email": "cas@example.com",
-            "name": "Cas Person"},
+            "name": "Cas Emplo"},
            {"id": "gal", "nick": "gal", "email": "gal@example.com",
-            "name": "Gal Person"},
+            "name": "Gal Humana"},
            {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-            "name": "Jaci Person", "admin": true},
+            "name": "Jaci Admi", "admin": true},
            {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-            "name": "Kiran Person"},
+            "name": "Kiran Persons"},
            {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-            "name": "Ryou Person", "admin": true, "current": true}
+            "name": "Ryou Bosso", "admin": true, "current": true}
          ]}
       );
       done();
@@ -168,17 +168,19 @@ describe("demo board api", () => {
         let project;
         [project] = model.all_tasks;
         view.setState.restore();
-        api.add_task(project.id, 'a task', 'do the task', 2, null, () => {
-          expect(view.setState).toHaveBeenCalledWith({model: model});
-          let task;
-          [task] = model.all_tasks.filter((task) => task.id != project.id);
-          expect(task.title).toBe('a task');
-          expect(task.description).toBe('do the task');
-          expect(task.size).toBe(2);
-          expect(task.blocked).toBe(null);
-          expect(task.order).toBeLessThan(0);
-          done();
-        });
+        api.add_task(
+          project.id, 'a task', 'do the task', 2, null, undefined, () => {
+            expect(view.setState).toHaveBeenCalledWith({model: model});
+            let task;
+            [task] = model.all_tasks.filter((task) => task.id != project.id);
+            expect(task.title).toBe('a task');
+            expect(task.description).toBe('do the task');
+            expect(task.size).toBe(2);
+            expect(task.blocked).toBe(null);
+            expect(task.order).toBeLessThan(0);
+            expect(task.assigned).toNotExist();
+            done();
+          });
       });
     });
   });
@@ -190,31 +192,38 @@ describe("demo board api", () => {
       api.add_project('first', 'do the first', () => {
         let project;
         [project] = model.all_tasks;
-        api.add_task(project.id, 'a task', 'do the task', 2, null, () => {
-          expect(view.setState).toHaveBeenCalledWith({model: model});
-          let task;
-          [task] = model.all_tasks.filter((task) => task.id != project.id);
-          view.setState.restore();
-          api.update_task(task.id, 'A task', 'Do the task', 3, 'waaa', () => {
+        api.add_task(
+          project.id, 'a task', 'do the task', 2, null, undefined,
+          () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
-            expect(task.title).toBe('A task');
-            expect(task.description).toBe('Do the task');
-            expect(task.size).toBe(3);
-            expect(task.blocked).toBe('waaa');
-
-            // Check partial udate
+            let task;
+            [task] = model.all_tasks.filter((task) => task.id != project.id);
             view.setState.restore();
-            api.update_task(task.id, 'Task', 'Do the Task',
-                            undefined, undefined, () => {
-              expect(view.setState).toHaveBeenCalledWith({model: model});
-              expect(task.title).toBe('Task');
-              expect(task.description).toBe('Do the Task');
-              expect(task.size).toBe(3);
-              expect(task.blocked).toBe('waaa');
-              done();
-            });
+            api.update_task(
+              task.id, 'A task', 'Do the task', 3, 'waaa', 'cas', () => {
+                expect(view.setState).toHaveBeenCalledWith({model: model});
+                expect(task.title).toBe('A task');
+                expect(task.description).toBe('Do the task');
+                expect(task.size).toBe(3);
+                expect(task.blocked).toBe('waaa');
+                expect(task.assigned).toBe('cas');
+
+                // Check partial udate
+                view.setState.restore();
+                api.update_task(
+                  task.id, 'Task', 'Do the Task',
+                  undefined, undefined, undefined,
+                  () => {
+                    expect(view.setState).toHaveBeenCalledWith({model: model});
+                    expect(task.title).toBe('Task');
+                    expect(task.description).toBe('Do the Task');
+                    expect(task.size).toBe(3);
+                    expect(task.blocked).toBe('waaa');
+                    expect(task.assigned).toBe('cas');
+                    done();
+                  });
+              });
           });
-        });
       });
     });
   });

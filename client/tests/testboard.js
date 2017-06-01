@@ -39,7 +39,7 @@ function initialized_board() {
   const board = new Board('test');
   board.update({
     board: {name: 'dev', title: 'Test', description: 'test board',
-            site: {boards: boards}},
+            site: {boards: boards, users: []}},
     states: {adds: states}});
   return board;
 }
@@ -57,7 +57,7 @@ describe("Kanban Board", () => {
     expect(board.name).toBe("test");
     expect(board.title).toBe("Test");
     expect(board.description).toBe("test board");
-    expect(board.site).toEqual({boards: boards});
+    expect(board.site).toEqual({boards: boards, users: []});
     expect(board.project_states.map((s) => ({id: s.id, title: s.title})))
       .toEqual([
         {"id": "Backlog", "title": "Backlog"},

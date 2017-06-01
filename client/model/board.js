@@ -103,6 +103,7 @@ class Board extends TaskContainer {
     this.description = '';
     this.site = {boards: [], users: []};
     this.user = {email: ''};
+    this.users_by_id = {};
 
     this.tasks = {}; // {id -> task} for all tasks
     this.all_tasks = [];
@@ -126,6 +127,9 @@ class Board extends TaskContainer {
         task.parent ?
           this.default_task_state_id :
           this.default_project_state_id];
+    }
+    if (task.assigned) {
+      task.user = this.users_by_id[task.assigned];
     }
     
     if (old) {
@@ -167,14 +171,12 @@ class Board extends TaskContainer {
       if (updates.board.description) {
         this.description = updates.board.description;
       }
-      if (updates.board.users) {
-        this.users = updates.board.users;
-      }
-      if (updates.board.user) {
-        this.user = updates.board.user;
-      }
       if (updates.board.site) {
         this.site = updates.board.site;
+        this.users_by_id = {};
+        this.site.users.forEach((u) => {
+          this.users_by_id[u.id] = u;
+        });
       }
     }
 

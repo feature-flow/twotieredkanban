@@ -66,3 +66,15 @@ td {
 .kb-task.blocked {
     background-color: #fdd;
 }
+
+.kb-scrollable {
+    overflow-y: scroll;
+}
+
+.kb-user {
+    display: flex;
+    flexDirection: row;
+    img {
+        margin-right: 1em;
+    }
+}

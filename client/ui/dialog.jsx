@@ -37,6 +37,7 @@ class Dialog_ extends React.Component {
          onOverlayClick={cancel}
          title={this.props.title}
          type={this.props.type || "normal"}
+         className="kb-scrollable"
          >
         {this.props.children}
       </Dialog>

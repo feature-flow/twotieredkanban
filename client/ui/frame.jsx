@@ -2,7 +2,7 @@ import React from 'react';
 import {AppBar, Dialog, Drawer, Input, Link,
         List, ListItem, ListSubHeader, Navigation
        } from 'react-toolbox';
-import {Gravitar} from "./who";
+import {UserAvatar} from "./who";
 
 class AddDialog extends React.Component {
 
@@ -82,7 +82,6 @@ class Frame extends React.Component {
         this.props.add_board(name);
       }
     };
-
     
     return (
       <div>
@@ -90,7 +89,7 @@ class Frame extends React.Component {
            title={this.props.title}
            leftIcon='menu'
            onLeftIconClick={toggle_drawer}
-           rightIcon={<Gravitar email={this.props.user.email} />}
+           rightIcon={<UserAvatar email={this.props.user.email} />}
           >
           <Navigation type='horizontal'>
           </Navigation>
