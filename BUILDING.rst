@@ -28,9 +28,9 @@ Run
     to end in ``demo/index.html``.
 
   If you're using Firefox or Safari
-    The browsers don't seem to work correctly, so you'll want to host
-    the demo files with a web server.  You can use the express
-    server. See express/README.rst
+    The browsers don't seem to work correctly with ``file://`` urls,
+    so you'll want to host the demo files with a web server.  You can
+    use the express server. See express/README.rst
 
     We're mostly developing with Chrome. There are a number of
     problems using other browsers at this point.
