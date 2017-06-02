@@ -1,7 +1,8 @@
 import uuid from 'uuid/v1';
 
-import APIBase from './demoapibase';
-import {Board} from './board';
+import {Board} from '../model/board';
+
+import BaseAPI from './baseapi';
 import default_states from './model.json';
 
 const state = (board, order, props) => {
@@ -13,7 +14,7 @@ const state = (board, order, props) => {
   return s;
 };
 
-module.exports = class extends APIBase {
+module.exports = class extends BaseAPI {
 
   constructor(view, name, cb) {
     super(new Board(name), view, cb);

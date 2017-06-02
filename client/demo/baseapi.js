@@ -1,6 +1,6 @@
 import indexedDB from "indexedDB";
 
-import demosample from "./demosample.json";
+import sample from "./sample.json";
 
 const dbname = "FeatureFlowDemo";
 let open_request = null;
@@ -15,7 +15,7 @@ let open_database = () => {
     db.createObjectStore('users',  {keyPath: 'id' })
       .transaction.oncomplete = () => {
         const store = db.transaction('users', 'readwrite').objectStore('users');
-        demosample.users.forEach((u) => {
+        sample.users.forEach((u) => {
           store.add(u);
         });
       };

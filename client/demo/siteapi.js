@@ -1,7 +1,8 @@
-import APIBase from './demoapibase';
-import {Site} from './site';
+import {Site} from '../model/site';
 
-module.exports = class extends APIBase {
+import BaseAPI from './baseapi';
+
+module.exports = class extends BaseAPI {
 
   constructor(view, cb) {
     super(new Site(), view, cb);

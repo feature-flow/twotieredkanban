@@ -62,9 +62,9 @@ module.exports = function (env) {
   if (env && env.demo) {
     config.output.filename = './demo/static/bundle.js';
     config.resolve.alias = {
-        indexedDB: path.resolve(__dirname, 'client/model/demoindexeddb'),
-        BoardAPI: path.resolve(__dirname, 'client/model/demoboardapi'),
-        SiteAPI:  path.resolve(__dirname, 'client/model/demositeapi')
+        indexedDB: path.resolve(__dirname, 'client/demo/indexeddb'),
+        BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
+        SiteAPI:   path.resolve(__dirname, 'client/demo/siteapi')
     };
   }
 
