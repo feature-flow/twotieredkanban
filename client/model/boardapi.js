@@ -13,17 +13,17 @@ module.exports = class extends APIBase {
                order: this.model.order(undefined, true)});
   }
 
-  add_task(project_id, title, description, size, blocked) {
+  add_task(project_id, title, description, size, blocked, assigned) {
     this.post('project/' + project_id,
               {title: title, description: description,
-               size: size, blocked: blocked,
+               size: size, blocked: blocked, assigned: assigned,
                order: this.model.order(undefined, true)});
   }
 
-  update_task(id, title, description, size, blocked) {
+  update_task(id, title, description, size, blocked, assigned) {
     this.put('tasks/' + id,
              {title: title, description: description,
-              size: size, blocked: blocked});
+              size: size, blocked: blocked, assigned: assigned});
   }
 
   move(task_id, parent_id, state_id, before_id) {
