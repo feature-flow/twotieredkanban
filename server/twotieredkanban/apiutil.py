@@ -41,8 +41,8 @@ class Sync:
         return response
 
     def response(self, **data):
-        generation = self.base.request.headers.get('x-generation', 0)
-        updates = self.context.updates(int(generation))
+        generation = int(self.base.request.headers.get('x-generation', 0))
+        updates = self.context.updates(generation)
         if generation == 0:
             # first load, set uswer
             updates['user'] = self.base.user

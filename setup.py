@@ -17,6 +17,9 @@ default = twotieredkanban.kbrecipe:Recipe
 
 [paste.server_runner]
 main = twotieredkanban.server:runner
+
+[console_scripts]
+emailpw-invite = twotieredkanban.emailpw:invite_or_reset_script
 """
 
 from setuptools import setup

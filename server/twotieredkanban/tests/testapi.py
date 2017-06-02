@@ -1,4 +1,3 @@
-from pprint import pprint
 from zope.testing import setupstack
 import bobo
 import json
@@ -15,6 +14,22 @@ demo_db = '''
 </zodb>
 '''
 
+def make_app():
+    app = bobo.Application(
+        bobo_resources="""
+                       twotieredkanban.apibase
+                       """,
+        bobo_handle_exceptions = False,
+    )
+    return pkg_resources.load_entry_point(
+        'zc.zodbwsgi', 'paste.filter_app_factory', 'main')(
+            app, {},
+            configuration = demo_db,
+            max_connections = '4',
+            thread_transaction_manager = 'False',
+            initializer = "twotieredkanban.apibase:initialize"
+        )
+
 class APITests(setupstack.TestCase):
 
     maxDiff = None
@@ -28,31 +43,14 @@ class APITests(setupstack.TestCase):
             from .. import apibase
             apibase.auth = None
 
-        app = bobo.Application(
-            bobo_resources="""
-                       twotieredkanban.apibase
-                       """,
-            bobo_handle_exceptions = False,
-            )
-        self._app = pkg_resources.load_entry_point(
-            'zc.zodbwsgi', 'paste.filter_app_factory', 'main')(
-            app, {},
-            configuration = demo_db,
-            max_connections = '4',
-            thread_transaction_manager = 'False',
-            initializer = "twotieredkanban.apibase:initialize"
-            )
-        self.db = self._app.database
-        self.conn = self.db.open()
+        self._app = make_app()
         self.app = self._test_app()
         self.vars = Vars()
 
-    def _test_app(self, email='test@example.com'):
-        extra_environ = {}
-        tapp = webtest.TestApp(self._app, extra_environ=extra_environ)
-        if email:
-            tapp.get('/?email=' + email)
-        return tapp
+    def _test_app(self):
+        app = webtest.TestApp(self._app)
+        app.extra_environ['HTTP_X_GENERATION'] = '0'
+        return app
 
     def update_app(self, app, resp):
         try:
@@ -213,7 +211,7 @@ class APITests(setupstack.TestCase):
         from .. import apibase
         from . auth import BadAuth, NonAdminAuth
         apibase.auth = BadAuth
-        app = self._test_app(None)
+        app = self._test_app()
         r = app.get('/', status=302)
         self.assertEqual(r.headers['location'], 'http://localhost/auth/login')
 

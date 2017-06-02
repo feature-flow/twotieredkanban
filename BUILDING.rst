@@ -52,5 +52,17 @@ To run::
 
 (Use ``start`` rather than ``fg`` to run the server in the background.)
 
-Visit ``http://localhost:8000/?email=test.example.com`` to log in.
+Before accessing the Kanban for the first time, you will need to
+invite a (bootstrap) user::
+
+  bin/emailpw-invite --admin db.cfg jim@jimfulton.info 'Jim Fulton'
+
+This will print an "email" message with a URL path, which will look
+something like::
+
+  /auth/accept?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImppbUBqaW1mdWx0b24uaW5mbyJ9.iZRzDFb5-yKFQB0xJv1Pg5uicQG4hImOJiAe8ncJ9_o
+
+Copy the path from the output and add it to http://localhost:3000 in
+your browser.  That should present a page to set your password and
+then log in.
 
