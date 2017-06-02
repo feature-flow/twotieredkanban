@@ -1,12 +1,21 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const {Route, Router, IndexRoute, hashHistory} = require('react-router');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Route, Router, IndexRoute, hashHistory} from 'react-router';
 
-const Main = require('./ui/main');
-const Site = require('./ui/site');
-const Board = require('./ui/board');
+import Site from './ui/site';
+import {Board} from './ui/board';
 
 require('./styles/app.scss');
+
+class Main extends React.Component {
+  render() {
+    return (
+      <div>
+        {this.props.children}
+      </div>
+      );
+  }
+}
 
 ReactDOM.render(
 <Router history={hashHistory}>

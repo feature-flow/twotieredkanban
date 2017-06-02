@@ -1,5 +1,7 @@
 import React from 'react';
+import {Button} from 'react-toolbox';
 
+import {Boards, AddBoardDialog} from './boards';
 import Frame from './frame';
 import SiteAPI from 'SiteAPI';
 
@@ -12,15 +14,17 @@ module.exports = class extends React.Component {
   }
 
   render() {
+    const boards = this.state.model.boards;
     return (
       <div>
         <Frame
-          boards={this.state.model.boards}
-          add_board={(name) => this.api.add_board(name)}
-          title="Boards"
-          user={this.state.model.user}
-          />
-          <h2>Site</h2>
+           title="Boards"
+           user={this.state.model.user}
+           boards={boards}
+           />
+        <Boards boards={boards} />
+        <Button icon='add' floating onMouseUp={() => this.refs.add.show()} />
+          <AddBoardDialog api={this.api} ref="add" />
       </div>
     );
   }
