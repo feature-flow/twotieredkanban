@@ -1,6 +1,8 @@
 - Bugs
 
-  - Project and task add forms aren't getting cleared
+  - Tasks don't update after edit
+  - Edit forms don't clear assigned
+  - Need tests for client sode server api
 
 
 - Design landing page (/):
