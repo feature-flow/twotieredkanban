@@ -1,11 +1,11 @@
 import React from 'react';
 import {IconMenu, MenuItem} from 'react-toolbox';
 
-import {UserAvatar, UserSelect} from '../ui/who';
-import {Dialog, DialogBase, Input} from '../ui/dialog';
+import {UserAvatar, UserSelect, UserProfile} from '../ui/who';
+import {Dialog, DialogBase, show_dialog} from '../ui/dialog';
 
 class UserSwitch extends DialogBase {
-  
+
   render() {
     const {model, api} = this.props;
     return (
@@ -21,41 +21,20 @@ class UserSwitch extends DialogBase {
   }
 }
 
-class Profile extends DialogBase {
-  
-  render() {
-    return (
-      <Dialog
-         title="Update your information" action="Update" ref="dialog"
-         finish={() => this.props.api.update_profile(this.state)}
-         type="small"
-        >
-        <Input label='Name' required={true} onChange={this.val("name")} />
-        <Input label='Email' required={true} onChange={this.val("email")} />
-        <Input label='Nickname' required={true} onChange={this.val("nick")} />
-      </Dialog>
-    );
-  }
-}
-
 module.exports = {
   Avatar: class extends React.Component {
     render () {
       const {model, api} = this.props;
       const user = model.user;
-      const profile = () => {
-        this.refs.profile.show(
-          { id: user.id, name: user.name, email: user.email, nick: user.nick }
-        );
-      };
-      const switch_user = () => this.refs.switch.show({user: user.id});
       return (
         <IconMenu icon={<UserAvatar email={user.email}/>}
                   position='topRight' menuRipple>
-          <MenuItem icon='edit' caption='Profile' onClick={profile} />
-          <Profile ref="profile" api={this.props.api} />
+          <MenuItem icon='edit' caption='Profile'
+                    onClick={show_dialog(this.refs.profile, user)} />
+          <UserProfile
+             ref="profile" finish={(data) => api.update_profile(data)} />
           <MenuItem icon='directions_walk' caption='Switch user'
-                    onClick={switch_user} />
+                    onClick={show_dialog(this.refs.switch, {user: user.id})} />
           <UserSwitch ref="switch" model={model} api={api} />
         </IconMenu>
       );

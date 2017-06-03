@@ -2,7 +2,10 @@ import React from 'react';
 import {Avatar, Dropdown, Tooltip} from 'react-toolbox';
 import md5 from 'md5';
 
+import {Dialog, DialogBase, Input} from './dialog';
+
 const TAvatar = Tooltip(Avatar);
+
 
 const UserAvatar = (props) => {
   const {email, size, title} = props;
@@ -28,20 +31,50 @@ const User = (props) => (
 
 const user_select_template = (user) => <User user={user} />;
 
+const UserSelect = (props) => {
+  const users = props.users.map(
+    (u) => Object.assign({value: u.id}, u));
+  
+  return (<Dropdown className="kb-assigned"
+          auto={false}
+          source={users}
+          onChange={props.onChange}
+          label={props.label}
+          value={props.onChange()}
+          template={user_select_template}
+          />);
+};
+
+class Profile extends DialogBase {
+  
+  render() {
+
+    const finish = () => {
+      this.props.finish(
+        {
+          id: this.state.id,
+          name: this.state.name,
+          email: this.state.email,
+          nick: this.state.nick
+        });
+    };
+
+    return (
+      <Dialog
+         title="Update your information" type="small" action="Update"
+         finish={finish} ref="dialog">
+        <Input label='Name' required={true} onChange={this.val("name")} />
+        <Input label='Email' required={true} onChange={this.val("email")} />
+        <Input label='Nickname' required={true} onChange={this.val("nick")} />
+      </Dialog>
+    );
+  }
+}
+
+
 module.exports = {
   UserAvatar: UserAvatar,
   User: User,
-  UserSelect: (props) => {
-    const users = props.users.map(
-      (u) => Object.assign({value: u.id}, u));
-    
-    return (<Dropdown className="kb-assigned"
-            auto={false}
-            source={users}
-            onChange={props.onChange}
-            label={props.label}
-            value={props.onChange()}
-            template={user_select_template}
-            />);
-  }
+  UserSelect: UserSelect,
+  UserProfile: Profile
 };
