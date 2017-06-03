@@ -159,31 +159,38 @@ class Subroute(Sync):
     @bobo.query('/logout')
     def logout(self):
         response = bobo.redirect('/auth/login')
-        response.set_cookie(TOKEN, '')
+        response.set_cookie(jwtauth.TOKEN, '')
         return response
 
+    @bobo.get('/emailpw.css')
+    def css(self):
+        return css
 
-login_form = """
-<form action="login" method="POST">
-  <h2>%s</h2>
-  <label>Enter your email</label>
-  <input type="text" name="email">
-  <label>Enter your password</label>
-  <input type="password" name="password">
-  <input type="submit">
-</form>
+css = ''
+
+login_form = """<html>
+<head><link rel="stylesheet" type="text/css" href="emailpw.css"></head>
+<body><form action="login" method="POST" class="kb-emailpw"><fieldset>
+  <legend>%s</legend>
+  <p><label for="email">Enter your email</label>
+     <input type="text" name="email"></p>
+  <p><label for-"password">Enter your password</label>
+     <input type="password" name="password"></p>
+  <p><input type="submit" value="Log in"></p>
+</fieldset></form></body></html>
 """
 
-pw_form = """
-<form action="accept" method="POST">
-  <h2>%s</h2>
-  <label>Enter your password</label>
-  <input type="password" name="password" maxlength="999">
-  <label>Confirm your password</label>
-  <input type="password" name="confirm" maxlength="999">
-  <input type="hidden" name="token" value="%s">
-  <input type="submit">
-</form>
+pw_form = """<html>
+<head><link rel="stylesheet" type="text/css" href="emailpw.css"></head>
+<body><form action="accept" method="POST" class="kb-emailpw"><fieldset>
+  <legend>%s</legend>
+  <p><label for-"password">Enter your password</label>
+     <input type="password" name="password" maxlength="999"></p>
+  <p><label for-"confirm">Confirm your password</label>
+     <input type="password" name="confirm" maxlength="999"></p>
+  <p><input type="hidden" name="token" value="%s">
+     <input type="submit" value="Set password"></p>
+</fieldset></form></body></html>
 """
 
 invite_message = """
