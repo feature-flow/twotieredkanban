@@ -5,16 +5,12 @@ import RichTextEditor from 'react-rte';
 
 import {Dialog, DialogBase, Editor, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
-import {UserAvatar, User} from './who';
+import {UserAvatar, UserSelect} from './who';
 
 class TaskDialog extends DialogBase {
   
   render() {
     const action = this.action();
-
-    const users = this.props.api.model.site.users.map(
-      (u) => Object.assign({value: u.id}, u));
-    const template = (user) => <User user={user} />;
     
     return (
       <Dialog
@@ -24,14 +20,8 @@ class TaskDialog extends DialogBase {
         <Input label='Title' required={true} onChange={this.val("title")} />
         <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
-        <Dropdown className="kb-assigned"
-           auto={false}
-           source={users}
-           onChange={this.val("assigned")}
-           label="Assigned"
-           value={this.val("assigned")()}
-           template={template}
-           />
+        <UserSelect label="Assigned" onChange={this.val("assigned")}
+                    users={this.props.api.model.site.users} />
         <Input label='Blocked' multiline={true}
                onChange={this.val("blocked")} />
         <Editor onChange={this.val("description")} />

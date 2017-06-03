@@ -1,10 +1,8 @@
 import React from 'react';
-import {AppBar, Dialog, Drawer, Input,
-        List, ListItem, ListSubHeader, Navigation
-       } from 'react-toolbox';
+import {AppBar, Drawer, Navigation, IconMenu, MenuItem} from 'react-toolbox';
 
-import {UserAvatar} from "./who";
-import {Boards} from "./boards";
+import {Boards} from './boards';
+import {Avatar} from 'AuthUI';
 
 class Frame extends React.Component {
 
@@ -24,9 +22,9 @@ class Frame extends React.Component {
            title={this.props.title}
            leftIcon='menu'
            onLeftIconClick={toggle_drawer}
-           rightIcon={<UserAvatar email={this.props.user.email} />}
           >
           <Navigation type='horizontal'>
+            <Avatar user={this.props.user} api={this.props.api} />
           </Navigation>
         </AppBar>
         <Drawer active={this.state.show_drawer}

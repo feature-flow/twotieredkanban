@@ -21,6 +21,7 @@ module.exports = class extends React.Component {
            title="Boards"
            user={this.state.model.user}
            boards={boards}
+           api={this.api}
            />
         <Boards boards={boards} />
         <Button icon='add' floating onMouseUp={() => this.refs.add.show()} />

@@ -14,7 +14,8 @@ module.exports = function (env) {
       modules: ['node_modules'],
       alias: {
         BoardAPI: path.resolve(__dirname, 'client/model/boardapi'),
-        SiteAPI:  path.resolve(__dirname, 'client/model/siteapi')
+        SiteAPI:  path.resolve(__dirname, 'client/model/siteapi'),
+        AuthUI:   path.resolve(__dirname, 'client/emailpw/ui')
       },
       extensions: ['.js', '.jsx', '.css']
     },
@@ -62,9 +63,10 @@ module.exports = function (env) {
   if (env && env.demo) {
     config.output.filename = './demo/static/bundle.js';
     config.resolve.alias = {
-        indexedDB: path.resolve(__dirname, 'client/demo/indexeddb'),
-        BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
-        SiteAPI:   path.resolve(__dirname, 'client/demo/siteapi')
+      indexedDB: path.resolve(__dirname, 'client/demo/indexeddb'),
+      BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
+      SiteAPI:   path.resolve(__dirname, 'client/demo/siteapi'),
+      AuthUI:    path.resolve(__dirname, 'client/demo/ui')
     };
   }
 
