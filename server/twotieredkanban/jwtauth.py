@@ -19,5 +19,9 @@ def decode(token, secret, key=None):
 def save(jar, secret, secure=False, **data):
     jar.set_cookie(TOKEN, token(secret, **data), secure=secure, httponly=True)
 
-def load(jar, secret):
-    return decode(jar.cookies.get(TOKEN), secret)
+def load(jar, secret, key=None):
+    token = jar.cookies.get(TOKEN)
+    data = token and decode(token, secret)
+    if data and key:
+        data = data.get(key)
+    return data

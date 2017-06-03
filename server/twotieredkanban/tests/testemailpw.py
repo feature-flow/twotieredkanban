@@ -2,6 +2,8 @@ import mock
 import webtest
 from zope.testing import setupstack
 
+from .var import Vars
+
 from .testapi import make_app
 
 class EmailPWTests(setupstack.TestCase):
@@ -22,6 +24,11 @@ class EmailPWTests(setupstack.TestCase):
 
     def _test_app(self):
         return webtest.TestApp(self.app)
+
+    def test_no_cookie(self):
+        app = self._test_app()
+        r = app.get('/', status=302)
+        self.assertEqual(r.headers['location'], 'http://localhost/auth/login')
 
     def test_main(self):
         db = self.app.database
@@ -93,3 +100,38 @@ class EmailPWTests(setupstack.TestCase):
                              list(site.emailpw.users_by_uid.items()))
             self.assertEqual([(user.email, user)],
                              list(site.emailpw.users_by_email.items()))
+
+    def test_update_profile(self):
+        db = self.app.database
+        from .. import emailpw
+        with db.transaction() as conn:
+            user = emailpw.User('user@example.com', 'Tester', 'tester')
+            user.set_pw(b'secret')
+            epw = emailpw.get_emailpw(conn.root.sites[''], True)
+            epw.users_by_uid[user.id] = user
+            epw.users_by_email[user.email] = user
+
+        app = self._test_app()
+        r = app.get('/auth/login')
+        r.forms[0].set('password', 'secret')
+        r.forms[0].set('email', user.email)
+        r2 = r.forms[0].submit()
+
+        # Now, we'll updata the user's profile
+        r = app.put_json('/auth/user',
+                         dict(name='name', nick='nick', email='e@example.com'))
+        vars = Vars()
+        self.assertEqual(
+            {'updates': {'generation': vars.generation,
+             'site': {'boards': [],
+                      'users': [{'admin': False,
+                                 'email': 'e@example.com',
+                                 'id': vars.id,
+                                 'name': 'name',
+                                 'nick': 'nick'}]},
+             'user': {'admin': False,
+                      'email': 'e@example.com',
+                      'id': vars.id,
+                      'name': 'name',
+                      'nick': 'nick'}}},
+            r.json)

@@ -40,12 +40,15 @@ class Sync:
         response.pragma = 'no-cache'
         return response
 
-    def response(self, **data):
+    def response(self, send_user=False, **data):
         generation = int(self.base.request.headers.get('x-generation', 0))
         updates = self.context.updates(generation)
         if generation == 0:
             # first load, set uswer
             updates['user'] = self.base.user
+
+        if send_user:
+            updates['user'] = send_user
 
         if updates:
             data['updates'] = updates

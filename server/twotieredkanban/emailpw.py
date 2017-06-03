@@ -8,7 +8,7 @@ import os
 import uuid
 
 from . import jwtauth
-from .apiutil import Sync, post
+from .apiutil import Sync, post, put
 
 def hash(salt, pw):
     return salt + hashlib.pbkdf2_hmac('sha256', pw, salt, 100000)
@@ -68,7 +68,7 @@ def get_emailpw(site, create=False):
     return emailpw
 
 def user(base):
-    uid = jwtauth.load(base.request, base.root.secret)['uid']
+    uid = jwtauth.load(base.request, base.root.secret, 'uid')
     if uid is not None:
         emailpw = get_emailpw(base.site)
         if emailpw is not None:
@@ -121,6 +121,20 @@ class Subroute(Sync):
     def invite(self, email, name=''):
         invite_or_reset(self.context, email, name, self.base.request.host_url)
         return self.response()
+
+    @put("/user")
+    def put_user(self, name=None, email=None, nick=None):
+        emailpw = get_emailpw(self.context)
+        user = emailpw.users_by_uid.get(self.base.user['id'])
+        if name is not None:
+            user.name = name
+        if email is not None:
+            user.email = email
+        if nick is not None:
+            user.nick = nick
+        self.context.update_users(user.data
+                                  for user in emailpw.users_by_uid.values())
+        return self.response(send_user=user.data)
 
     @bobo.get("/accept")
     def get_accept(self, token, message='Set your password'):
