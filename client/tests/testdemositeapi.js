@@ -53,5 +53,28 @@ describe("demo site api", () => {
       });
     });
   });
+
+  describe("User-management common to site and boards", () => {
+
+    it("should switch users", (done) => {
+
+      const view = {setState: expect.createSpy()};
+      new SiteAPI(view, (api) => {
+        const model = api.model;
+        expect(api.user.id).toBe('ryou');
+        expect(model.user.id).toBe('ryou');
+        api.switch_user('cas', () => {
+          expect(api.user.id).toBe('cas');
+          expect(model.user.id).toBe('cas');
+          api.transaction('users', 'readonly', (trans) => {
+            api.users(trans, () => {
+              expect(api.user.id).toBe('cas');
+              trans.oncomplete = () => done();
+            });
+          });
+        });
+      });
+    });
+  });
   
 });

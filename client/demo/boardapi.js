@@ -36,7 +36,7 @@ module.exports = class extends BaseAPI {
       this.transaction(
         ['boards', 'states', 'tasks', 'users'], 'readwrite', (trans) => {
           this.boards(trans, (boards) => {
-            this.users(trans, (users, user) => {
+            this.users(trans, (users) => {
               const board = Object.assign({}, boards.filter(
                 (board) => board.name == this.model.name)[0]);
               board.site = {boards: boards, users: users};
@@ -56,7 +56,7 @@ module.exports = class extends BaseAPI {
                              () => {
                                this.update(
                                  trans,
-                                 {board: board, user: user,
+                                 {board: board, user: this.user,
                                   states: {adds: initial_states}},
                                  cb);
                              });
@@ -67,7 +67,7 @@ module.exports = class extends BaseAPI {
                                     (tasks) => {
                                       this.update(
                                         trans,
-                                        {board: board, user: user,
+                                        {board: board, user: this.user,
                                          states: {adds: states},
                                          tasks: {adds: tasks}},
                                         cb);

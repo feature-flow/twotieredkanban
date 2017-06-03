@@ -153,7 +153,31 @@ module.exports = class {
   users(trans, f) {
     this.all(trans.objectStore('users').openCursor(), (users) => {
       const user = users.filter((u) => u.current);
-      f(users, user.length > 0 ? user[0] : users[0]);
+      this.user = user.length > 0 ? user[0] : users[0]; 
+      f(users);
     });
   }
-}
+
+  switch_user(uid, cb) {
+    this.transaction('users', 'readwrite', (trans) => {
+      const users = trans.objectStore('users');
+      this.r(users.get(this.user.id), (user) => {
+        user.current = false;
+        this.r(users.put(user), () => {
+          this.r(users.get(uid), (user) => {
+            user.current = true;
+            this.r(users.put(user), () => {
+              const update = {user: user};
+              this.update(trans, update, () => {
+                this.user = user;
+                if (cb) {
+                  cb(this, update);
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+};
