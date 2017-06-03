@@ -101,5 +101,6 @@ module.exports = {
   Dialog: Dialog_,
   Input: Input_,
   Editor: Editor,
-  DialogBase: DialogBase
+  DialogBase: DialogBase,
+  show_dialog: (dialog, state) => () => dialog.show(state)
 };
