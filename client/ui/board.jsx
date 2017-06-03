@@ -31,9 +31,8 @@ module.exports = {
       return (
         <div>
           <Frame
-             boards={board.site.boards}
              title={this.props.params.name}
-             user={this.state.model.user}
+             model={board}
              api={this.api}
              />
           <Projects board={board} api={this.api} />

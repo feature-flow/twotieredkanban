@@ -138,6 +138,9 @@ module.exports = class {
 
   update(trans, data, cb) {
     trans.oncomplete = () => {
+      if (data.user) {
+        this.user = data.user;
+      }
       this.model.update(data);
       this.view.setState({model: this.model});
       if (cb) {
@@ -152,9 +155,8 @@ module.exports = class {
 
   users(trans, f) {
     this.all(trans.objectStore('users').openCursor(), (users) => {
-      const user = users.filter((u) => u.current);
-      this.user = user.length > 0 ? user[0] : users[0]; 
-      f(users);
+      const user = users.filter((u) => u.current)[0];
+      f(users, user);
     });
   }
 
@@ -167,17 +169,30 @@ module.exports = class {
           this.r(users.get(uid), (user) => {
             user.current = true;
             this.r(users.put(user), () => {
-              const update = {user: user};
-              this.update(trans, update, () => {
-                this.user = user;
-                if (cb) {
-                  cb(this, update);
-                }
-              });
+              this.update(trans, {user: user}, cb);
             });
           });
         });
       });
     });
+  }
+
+  update_profile(data, cb) {
+    if (data.id !== this.user.id) {
+      this.handle_error("update_profile: Invalid user id");
+    }
+    else {
+      const user =
+              Object.assign(
+                Object.assign({}, this.user),
+                {name: data.name, nick: data.nick, email: data.email});
+      this.transaction('users', 'readwrite', (trans) => {
+        this.r(trans.objectStore('users').put(user), () => {
+          this.users(trans, (users, user) => {
+            this.update(trans, {user: user, site: {users: users}}, cb);
+          });
+        });
+      });
+    }
   }
 };

@@ -75,6 +75,37 @@ describe("demo site api", () => {
         });
       });
     });
+
+    it("should update user's profile", (done) => {
+
+      const view = {setState: expect.createSpy()};
+      new SiteAPI(view, (api) => {
+        const model = api.model;
+        expect(api.user.id).toBe('ryou');
+        expect(model.user.id).toBe('ryou');
+        api.update_profile(
+          {"id": "ryou", "nick": "test", "email": "test@example.com",
+           "name": "Test"}, () => {
+             expect(api.user).toEqual(
+               {"id": "ryou", "nick": "test", "email": "test@example.com",
+                "name": "Test", "admin": true, "current": true}
+             );
+             expect(api.model.users.filter((u) => u.id === api.user.id))
+               .toEqual([api.user]); // Make sure model users are updated
+             api.transaction('users', 'readonly', (trans) => {
+               api.users(trans, () => {
+                 expect(api.user).toEqual(
+                   {"id": "ryou", "nick": "test", "email": "test@example.com",
+                    "name": "Test", "admin": true, "current": true}
+                 );
+                 expect(api.model.users.filter((u) => u.id === api.user.id))
+                   .toEqual([api.user]); // Make sure model users are updated
+                 trans.oncomplete = () => done();
+               });
+             });
+           });
+      });
+    });
+
   });
-  
 });

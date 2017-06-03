@@ -19,8 +19,7 @@ module.exports = class extends React.Component {
       <div>
         <Frame
            title="Boards"
-           user={this.state.model.user}
-           boards={boards}
+           model={this.state.model}
            api={this.api}
            />
         <Boards boards={boards} />
@@ -29,5 +28,4 @@ module.exports = class extends React.Component {
       </div>
     );
   }
-
 };

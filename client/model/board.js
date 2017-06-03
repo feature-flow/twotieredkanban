@@ -101,9 +101,10 @@ class Board extends TaskContainer {
     this.name = name;
     this.title = '';
     this.description = '';
-    this.site = {boards: [], users: []};
-    this.user = {email: ''};
+    this.boards = [];
+    this.users = [];
     this.users_by_id = {};
+    this.user = {email: ''};
 
     this.tasks = {}; // {id -> task} for all tasks
     this.all_tasks = [];
@@ -171,13 +172,14 @@ class Board extends TaskContainer {
       if (updates.board.description) {
         this.description = updates.board.description;
       }
-      if (updates.board.site) {
-        this.site = updates.board.site;
-        this.users_by_id = {};
-        this.site.users.forEach((u) => {
-          this.users_by_id[u.id] = u;
-        });
-      }
+    }
+
+    if (updates.site) {
+      Object.assign(this, updates.site);
+      this.users_by_id = {};
+      this.users.forEach((u) => {
+        this.users_by_id[u.id] = u;
+      });
     }
 
     if (updates.user) {

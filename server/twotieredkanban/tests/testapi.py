@@ -5,7 +5,7 @@ import pkg_resources
 import webtest
 
 from .var import Vars
-from .demosample import users
+from .sample import users
 
 demo_db = '''
 <zodb>

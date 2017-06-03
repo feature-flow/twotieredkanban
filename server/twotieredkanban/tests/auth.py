@@ -1,6 +1,6 @@
 import bobo
 
-from .demosample import users
+from .sample import users
 
 def user(base):
     return users[0]

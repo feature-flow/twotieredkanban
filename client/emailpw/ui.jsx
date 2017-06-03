@@ -6,7 +6,7 @@ import {UserAvatar} from "../ui/who";
 module.exports = {
   Avatar: (props) => {
     return (
-      <IconMenu icon={<UserAvatar email={props.user.email}/>}
+      <IconMenu icon={<UserAvatar email={props.model.user.email}/>}
                 position='topRight' menuRipple>
         <MenuItem value='profile' icon='edit' caption='Profile' />
         <MenuItem

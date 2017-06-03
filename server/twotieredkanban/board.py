@@ -51,7 +51,6 @@ class Board(persistent.Persistent):
             name=self.name,
             title=self.title,
             description=self.description,
-            site = self.site,
             )
 
     def updates(self, generation):
@@ -60,6 +59,7 @@ class Board(persistent.Persistent):
             for add in updates.pop('adds'):
                 if add is self:
                     updates[self.id] = self
+                    updates[self.site.id] = self.site
                 else:
                     name = add.pop('id')
                     updates[name] = add

@@ -69,13 +69,12 @@ class Project extends React.Component {
   }
 
   add_edit() {
+    const {project, api, board} = this.props;
     const add = () => {};
     return (
       <span className="icons">
-        <AddTask     project={this.props.project}
-                     ref="add" api={this.props.api} />
-        <EditProject project={this.props.project}
-                     ref="edit" api={this.props.api} />
+        <AddTask     ref="add" project={project} board={board} api={api} />
+        <EditProject ref="edit" project={project} api={api} />
         <IconButton icon="add"       onMouseUp={() => this.refs.add.show() } />
         <IconButton icon="mode_edit" onMouseUp={() => this.refs.edit.show()} />
       </span>
@@ -105,10 +104,10 @@ class Project extends React.Component {
   }
   
   more() {
-    const {api, project} = this.props;
+    const {api, board, project} = this.props;
     
     if (this.props.project.state.explode) {
-      return <TaskBoard project={project} api={api} />;
+      return <TaskBoard project={project} board={board} api={api} />;
     }
     else if (this.state.expanded) {
       return (
@@ -117,6 +116,7 @@ class Project extends React.Component {
                project={project}
                state={{}}
                tasks={project.subtasks()}
+               board={board}
                api={api}
              />
           {this.add_edit()}

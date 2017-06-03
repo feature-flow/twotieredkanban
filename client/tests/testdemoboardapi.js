@@ -71,10 +71,10 @@ describe("demo board api", () => {
         state(10, "Deployed")
       ]);
       expect(model.tasks).toEqual({});
-      expect(model.site).toEqual(
-        {boards: [{name: 'test', title: '', description: ''},
-                  {name: 'test2', title: '', description: ''}],
-         users: [
+      expect(model.boards).toEqual([
+        {name: 'test', title: '', description: ''},
+        {name: 'test2', title: '', description: ''}]);
+      expect(model.users).toEqual([
            {"id": "alex", "nick": "alex", "email": "alex@example.com",
             "name": "Alex Peeple"},
            {"id": "cas", "nick": "cas", "email": "cas@example.com",
@@ -87,8 +87,7 @@ describe("demo board api", () => {
             "name": "Kiran Persons"},
            {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
             "name": "Ryou Bosso", "admin": true, "current": true}
-         ]}
-      );
+         ]);
       done();
     });
   });
@@ -122,24 +121,23 @@ describe("demo board api", () => {
           {title: 'Task', description: 'the task', parent: true, size: 2},
           {title: 'Proj', description: 'the proj', parent: false, size: 0}
         ]);
-      expect(model.site).toEqual(
-        {boards: [{name: 'test', title: '', description: ''},
-                  {name: 'test2', title: '', description: ''}],
-         users: [
-           {"id": "alex", "nick": "alex", "email": "alex@example.com",
-            "name": "Alex Peeple"},
-           {"id": "cas", "nick": "cas", "email": "cas@example.com",
-            "name": "Cas Emplo"},
-           {"id": "gal", "nick": "gal", "email": "gal@example.com",
-            "name": "Gal Humana"},
-           {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-            "name": "Jaci Admi", "admin": true},
-           {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-            "name": "Kiran Persons"},
-           {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-            "name": "Ryou Bosso", "admin": true, "current": true}
-         ]}
-      );
+      expect(model.boards).toEqual([
+        {name: 'test', title: '', description: ''},
+        {name: 'test2', title: '', description: ''}]);
+      expect(model.users).toEqual([
+        {"id": "alex", "nick": "alex", "email": "alex@example.com",
+         "name": "Alex Peeple"},
+        {"id": "cas", "nick": "cas", "email": "cas@example.com",
+         "name": "Cas Emplo"},
+        {"id": "gal", "nick": "gal", "email": "gal@example.com",
+         "name": "Gal Humana"},
+        {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
+         "name": "Jaci Admi", "admin": true},
+        {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
+         "name": "Kiran Persons"},
+        {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
+         "name": "Ryou Bosso", "admin": true, "current": true}
+      ]);
       done();
     });
   });

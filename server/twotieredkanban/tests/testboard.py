@@ -10,6 +10,9 @@ def reduce(data):
 
 class BoardTests(unittest.TestCase):
 
+    maxDiff = None
+
+
     def setUp(self):
         from ..site import Site
         self.site = Site()
@@ -23,6 +26,7 @@ class BoardTests(unittest.TestCase):
             dict(generation=self.board_generation,
                  states=dict(adds=Var(self, 'states')),
                  board=self.board,
+                 site=self.site,
                  ),
             self.board.updates(0))
 
@@ -62,20 +66,20 @@ class BoardTests(unittest.TestCase):
 
     def test_json(self):
         self.assertEqual(
-            dict(site=self.site, name='dev', title='Development',
+            dict(name='dev', title='Development',
                  description='Development projects'),
             self.board.json_reduce())
 
     def test_update(self):
         self.board.update('do', 'Do things', 'Get things done')
         self.assertEqual(
-            dict(site=self.site, name='do', title='Do things',
+            dict(name='do', title='Do things',
                  description='Get things done'),
             self.board.json_reduce())
 
         self.assertEqual(
             dict(generation=self.vars.generation,
-                 board=self.board),
+                 board=self.board, site=self.site),
             self.board.updates(self.board_generation))
         self.assertTrue(self.vars.generation > self.board_generation)
 

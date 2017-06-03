@@ -38,8 +38,8 @@ function task(id, order, data) {
 function initialized_board() {
   const board = new Board('test');
   board.update({
-    board: {name: 'dev', title: 'Test', description: 'test board',
-            site: {boards: boards, users: []}},
+    board: {name: 'dev', title: 'Test', description: 'test board'},
+    site: {boards: boards, users: []},
     states: {adds: states}});
   return board;
 }
@@ -49,7 +49,8 @@ describe("Kanban Board", () => {
   it("Should initialize", () => {
     const board = new Board('test');
     expect(board.name).toBe('test');
-    expect(board.site).toEqual({boards: [], users: []});
+    expect(board.boards).toEqual([]);
+    expect(board.users).toEqual([]);
   });
 
   it("Should handle its own data", () => {
@@ -57,7 +58,8 @@ describe("Kanban Board", () => {
     expect(board.name).toBe("test");
     expect(board.title).toBe("Test");
     expect(board.description).toBe("test board");
-    expect(board.site).toEqual({boards: boards, users: []});
+    expect(board.boards).toEqual(boards);
+    expect(board.users).toEqual([]);
     expect(board.project_states.map((s) => ({id: s.id, title: s.title})))
       .toEqual([
         {"id": "Backlog", "title": "Backlog"},
@@ -116,9 +118,4 @@ describe("Kanban Board", () => {
       .toEqual(['p2', 't3', 't2', 't1']);
   });
 
-
-
-
 });
-
-//  it("", () => {});

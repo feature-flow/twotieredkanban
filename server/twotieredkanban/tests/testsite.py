@@ -2,7 +2,7 @@ import unittest
 
 from .var import Var
 
-from .demosample import users
+from .sample import users
 
 class SiteTests(unittest.TestCase):
 

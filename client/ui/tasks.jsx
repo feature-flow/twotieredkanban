@@ -21,9 +21,9 @@ class TaskDialog extends DialogBase {
         <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
         <UserSelect label="Assigned" onChange={this.val("assigned")}
-                    users={this.props.api.model.site.users} />
-        <Input label='Blocked' multiline={true}
-               onChange={this.val("blocked")} />
+                    users={this.props.board.users} />
+        <Input
+           label='Blocked' multiline={true} onChange={this.val("blocked")} />
         <Editor onChange={this.val("description")} />
       </Dialog>
     );
@@ -94,6 +94,7 @@ class TaskBoard extends React.Component {
                project={project}
                state={state}
                tasks={project.subtasks(state.id)}
+               board={this.props.board}
                api={this.props.api}
                />
           </td>
@@ -139,7 +140,7 @@ class TaskColumn extends React.Component {
       );
       result.push(
         <Draggable data={ddata} key={task.id}>
-          <Task task={task} api={this.props.api} />
+          <Task task={task} board={this.props.board} api={this.props.api} />
         </Draggable>
       );
     });
@@ -186,7 +187,7 @@ class Task extends React.Component {
   }
   
   render() {
-    const {task} = this.props;
+    const {task, board, api} = this.props;
     this.rev = task.rev;
 
     const className = classes('kb-task', {blocked: !! task.blocked});
@@ -205,7 +206,7 @@ class Task extends React.Component {
         <CardText>
           {this.props.task.title} {this.size()} {avatar()}
         </CardText>
-        <EditTask ref="edit" task={this.props.task} api={this.props.api} />
+        <EditTask ref="edit" task={task} board={board} api={api} />
       </Card>
     );
   }

@@ -7,8 +7,7 @@ import ProjectColumn from './projectcolumn';
 module.exports = class extends React.Component {
 
   render() {
-
-    const board = this.props.board;
+    const {board} = this.props;
     const states = board.project_states;
 
     if (states.length == 0) {
@@ -28,6 +27,7 @@ module.exports = class extends React.Component {
             <ProjectColumn
               state={state}
               projects={board.subtasks(state.id)}
+              board={board}
               api={this.props.api}
               />
           </td>
@@ -47,6 +47,7 @@ module.exports = class extends React.Component {
           <ProjectColumn
              state={states[0]}
              projects={board.subtasks(states[0].id)}
+             board={board}
              api={this.props.api}
              />
           <Button icon='add' floating
@@ -57,4 +58,4 @@ module.exports = class extends React.Component {
       </div>
     ); 
   }
-}
+};

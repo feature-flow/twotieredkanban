@@ -2,6 +2,7 @@ class Site {
 
   constructor() {
     this.boards = [];
+    this.users = [];
     this.user = {email: ''};
   }
 

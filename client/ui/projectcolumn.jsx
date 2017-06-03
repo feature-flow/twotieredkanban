@@ -16,6 +16,7 @@ module.exports = class extends React.Component {
 
   projects() {
     const result = [];
+    const {board, api} = this.props;
 
     this.props.projects.forEach((project) => {
       const dropped = (dt) => this.dropped(dt, project.id);
@@ -30,9 +31,9 @@ module.exports = class extends React.Component {
                   disallow={[project.id]} key={"above-" + project.id} />
       );
       result.push(
-          <Draggable data={ddata} key={project.id}>
-            <Project project={project} api={this.props.api} />
-          </Draggable>
+        <Draggable data={ddata} key={project.id}>
+          <Project project={project} board={board} api={api} />
+        </Draggable>
       );
     });
 

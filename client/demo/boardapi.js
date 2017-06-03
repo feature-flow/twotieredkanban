@@ -36,10 +36,10 @@ module.exports = class extends BaseAPI {
       this.transaction(
         ['boards', 'states', 'tasks', 'users'], 'readwrite', (trans) => {
           this.boards(trans, (boards) => {
-            this.users(trans, (users) => {
+            this.users(trans, (users, user) => {
               const board = Object.assign({}, boards.filter(
                 (board) => board.name == this.model.name)[0]);
-              board.site = {boards: boards, users: users};
+              const site = {boards: boards, users: users};
               this.all(trans.objectStore('states')
                        .index('board').openCursor(this.model.name),
                        (states) => {
@@ -56,7 +56,7 @@ module.exports = class extends BaseAPI {
                              () => {
                                this.update(
                                  trans,
-                                 {board: board, user: this.user,
+                                 {board: board, site: site, user: user,
                                   states: {adds: initial_states}},
                                  cb);
                              });
@@ -67,9 +67,13 @@ module.exports = class extends BaseAPI {
                                     (tasks) => {
                                       this.update(
                                         trans,
-                                        {board: board, user: this.user,
-                                         states: {adds: states},
-                                         tasks: {adds: tasks}},
+                                        {
+                                          board: board,
+                                          site: site,
+                                          user: user,
+                                          states: {adds: states},
+                                          tasks: {adds: tasks}
+                                        },
                                         cb);
                                     });
                          }

@@ -12,10 +12,10 @@ module.exports = class extends BaseAPI {
     super.poll().then((db) => {
       this.transaction(['boards', 'users'], 'readonly', (trans) => {
         this.boards(trans, (boards) => {
-          this.users(trans, (users) => {
+          this.users(trans, (users, user) => {
             this.update(
               trans,
-              {site: {boards: boards, users: users}, user: this.user},
+              {site: {boards: boards, users: users}, user: user},
               cb);
           });
         });
