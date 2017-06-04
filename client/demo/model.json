@@ -1,9 +1,11 @@
 ["Backlog", "Ready",
- {"title": "Development", "explode": true},
+ {"title": "Development", "explode": true, "working": true},
  {"task": true, "title": "Ready", "id": "ready"},
  {"task": true, "title": "Doing", "working": true},
  {"task": true, "title": "Needs review"},
  {"task": true, "title": "Review", "working": true},
  {"task": true, "title": "Done", "complete": true},
- "Acceptance", "Deploying", "Deployed"
+ {"title": "Acceptance", "working": true},
+ {"title": "Deploying", "working": true},
+ "Deployed"
 ]

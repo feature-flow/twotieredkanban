@@ -60,18 +60,22 @@ describe("demo board api", () => {
       expect(model.states.map(basic_state)).toEqual([
         state(0, 'Backlog'),
         state(1, 'Ready'),
-        state(2, {title: 'Development', explode: true}),
+        state(2, {title: 'Development', explode: true, "working": true}),
         state(3, {"task": true, "title": "Ready", "id": "ready"}),
         state(4, {"task": true, "title": "Doing", "working": true}),
         state(5, {"task": true, "title": "Needs review"}),
         state(6, {"task": true, "title": "Review", "working": true}),
         state(7, {"task": true, "title": "Done", "complete": true}),
-        state(8, "Acceptance"),
-        state(9, "Deploying"),
+        state(8, {title: "Acceptance", "working": true}),
+        state(9, {title: "Deploying", "working": true}),
         state(10, "Deployed")
       ]);
       expect(model.tasks).toEqual({});
       expect(model.boards).toEqual([
+        { "description":
+          "This sample board provides an example board with sample" +
+          " projects and tasks",
+          "name": "sample", "title": "Sample board" },
         {name: 'test', title: '', description: ''},
         {name: 'test2', title: '', description: ''}]);
       expect(model.users).toEqual([
@@ -103,14 +107,14 @@ describe("demo board api", () => {
       expect(model.states.map(basic_state)).toEqual([
         state(0, 'Backlog'),
         state(1, 'Ready'),
-        state(2, {title: 'Development', explode: true}),
+        state(2, {title: 'Development', explode: true, "working": true}),
         state(3, {"task": true, "title": "Ready", "id": "ready"}),
         state(4, {"task": true, "title": "Doing", "working": true}),
         state(5, {"task": true, "title": "Needs review"}),
         state(6, {"task": true, "title": "Review", "working": true}),
         state(7, {"task": true, "title": "Done", "complete": true}),
-        state(8, "Acceptance"),
-        state(9, "Deploying"),
+        state(8, {title: "Acceptance", "working": true}),
+        state(9, {title: "Deploying", "working": true}),
         state(10, "Deployed")
       ]);
       expect(model.all_tasks.map((t) => (
@@ -122,6 +126,10 @@ describe("demo board api", () => {
           {title: 'Proj', description: 'the proj', parent: false, size: 0}
         ]);
       expect(model.boards).toEqual([
+        { "description":
+          "This sample board provides an example board with sample" +
+          " projects and tasks",
+          "name": "sample", "title": "Sample board" },
         {name: 'test', title: '', description: ''},
         {name: 'test2', title: '', description: ''}]);
       expect(model.users).toEqual([

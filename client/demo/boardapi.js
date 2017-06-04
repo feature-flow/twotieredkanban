@@ -2,17 +2,8 @@ import uuid from 'uuid/v1';
 
 import {Board} from '../model/board';
 
-import BaseAPI from './baseapi';
+import {BaseAPI, board_states} from './baseapi';
 import default_states from './model.json';
-
-const state = (board, order, props) => {
-  const s = {board: board, order: order, explode: false,
-             working: false, complete: false, task: false};
-  Object.assign(s, typeof props == 'string'? {title: props} : props);
-  s.id = s.id || s.title;
-  s.key = [board, s.id];
-  return s;
-};
 
 module.exports = class extends BaseAPI {
 
@@ -44,13 +35,8 @@ module.exports = class extends BaseAPI {
                        .index('board').openCursor(this.model.name),
                        (states) => {
                          if (states.length == 0) {
-                           // new board, initialize states
-                           let order = -1;
-                           const initial_states = default_states.map(
-                             (props) => {
-                               order += 1;
-                               return state(this.model.name, order, props);
-                             });
+                           const initial_states =
+                                   board_states(this.model.name); 
                            this.add_all(
                              trans.objectStore('states'), initial_states,
                              () => {

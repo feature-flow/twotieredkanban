@@ -14,7 +14,11 @@ describe("demo site api", () => {
     new SiteAPI(view, (api) => {
       const model = api.model;
       expect(view.setState).toHaveBeenCalledWith({model: model});
-      expect(model.boards).toEqual([]);
+      expect(model.boards).toEqual([
+        { "description":
+          "This sample board provides an example board with sample" +
+          " projects and tasks",
+          "name": "sample", "title": "Sample board" }]);
       expect(model.user).toEqual(
         {id: "ryou", nick: "ryou", email: "ryou@example.com",
          name: "Ryou Bosso", admin: true, current: true});
@@ -46,8 +50,13 @@ describe("demo site api", () => {
           expect(view.setState).toHaveBeenCalledWith({model: model});
           expect(model.boards)
             .toEqual([
+              { "description":
+                "This sample board provides an example board with sample" +
+                  " projects and tasks",
+                "name": "sample", "title": "Sample board" },
               {name: 'test', title: '', description: ''},
-              {name: 'test2', title: '', description: ''}]);
+              {name: 'test2', title: '', description: ''}
+            ]);
           done();
         });
       });

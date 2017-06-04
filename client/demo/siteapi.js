@@ -1,6 +1,6 @@
 import {Site} from '../model/site';
 
-import BaseAPI from './baseapi';
+import {BaseAPI} from './baseapi';
 
 module.exports = class extends BaseAPI {
 
