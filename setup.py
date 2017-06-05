@@ -2,7 +2,7 @@ name, version = 'twotieredkanban', '0'
 
 install_requires = [
     'bobo',
-    'gevent',
+    'gevent', 'psycogreen',
     'PyJWT',
     'setuptools',
     'zc.generationalset',

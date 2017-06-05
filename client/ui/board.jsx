@@ -11,17 +11,23 @@ module.exports = {
     constructor(props) {
       super(props);
       this.api = new BoardAPI(this, this.props.params.name);
+      this.api.start();
       this.state = {model: this.api.model};
     }
 
-    init_board(name) {
-      this.api = new BoardAPI(this, this.name);
-      this.state = {model: this.api.model};
+    componentWillUnmount() {
+      this.api.stop();
+    }
+
+    componentWillMount() {
+      this.api.start();
     }
 
     componentWillReceiveProps(nextProps) {
       if (nextProps.params.name !== this.props.params.name) {
+        this.api.stop();
         this.api = new BoardAPI(this, nextProps.params.name);
+        this.api.start();
         this.setState({model: this.api.model});
       }
     }

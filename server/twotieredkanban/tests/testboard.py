@@ -1,6 +1,8 @@
 import json
 import mock
 import unittest
+import ZODB
+from ZODB.utils import u64
 
 from ..apiutil import Encoder
 from .var import Var, Vars
@@ -15,11 +17,13 @@ class BoardTests(unittest.TestCase):
 
     def setUp(self):
         from ..site import Site
-        self.site = Site()
+        self.conn = ZODB.connection(None)
+        self.conn.root.site = self.site = Site()
         self.site.add_board('dev', 'Development', 'Development projects')
         self.board = self.site.boards['dev']
         self.board_generation = self.board.generation
         self.vars = Vars()
+        self.conn.transaction_manager.commit()
 
     def test_initial_data(self):
         self.assertEqual(
@@ -27,6 +31,7 @@ class BoardTests(unittest.TestCase):
                  states=dict(adds=Var(self, 'states')),
                  board=self.board,
                  site=self.site,
+                 zoid = str(u64(self.board.changes._p_oid)),
                  ),
             self.board.updates(0))
 
@@ -38,7 +43,7 @@ class BoardTests(unittest.TestCase):
               'order': 1, 'task': False, 'title': 'Ready', 'working': False},
              {'complete': False, 'explode': True, 'id': 'Development',
               'order': 2, 'task': False, 'title': 'Development',
-              'working': False},
+              'working': True},
              {'complete': False, 'explode': False, 'id': 'ready',
               'order': 3, 'task': True, 'title': 'Ready', 'working': False},
              {'complete': False, 'explode': False, 'id': 'Doing',
@@ -52,10 +57,10 @@ class BoardTests(unittest.TestCase):
               'order': 7, 'task': True, 'title': 'Done', 'working': False},
              {'complete': False, 'explode': False, 'id': 'Acceptance',
               'order': 8, 'task': False, 'title': 'Acceptance',
-              'working': False},
+              'working': True},
              {'complete': False, 'explode': False, 'id': 'Deploying',
               'order': 9, 'task': False, 'title': 'Deploying',
-              'working': False},
+              'working': True},
              {'complete': False, 'explode': False, 'id': 'Deployed',
               'order': 10, 'task': False, 'title': 'Deployed',
               'working': False}],

@@ -133,5 +133,6 @@ class EmailPWTests(setupstack.TestCase):
                       'email': 'e@example.com',
                       'id': vars.id,
                       'name': 'name',
-                      'nick': 'nick'}}},
+                      'nick': 'nick'},
+             'zoid': vars.zoid}},
             r.json)

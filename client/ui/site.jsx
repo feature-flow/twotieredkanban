@@ -10,7 +10,16 @@ module.exports = class extends React.Component {
   constructor(props) {
     super(props);
     this.api = new SiteAPI(this);
+    this.api.start();
     this.state = {model: this.api.model};
+  }
+
+  componentWillUnmount() {
+    this.api.stop();
+  }
+
+  componentWillMount() {
+    this.api.start();
   }
 
   render() {

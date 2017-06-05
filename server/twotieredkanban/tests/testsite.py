@@ -1,4 +1,6 @@
 import unittest
+import ZODB
+from ZODB.utils import u64
 
 from .var import Var
 
@@ -9,6 +11,9 @@ class SiteTests(unittest.TestCase):
     def setUp(self):
         from ..site import Site
         self.site = Site()
+        self.conn = ZODB.connection(None)
+        self.conn.root.site = self.site
+        self.conn.transaction_manager.commit()
 
     def test_new_site(self):
         self.assertEqual(self.site.users, ())
@@ -53,3 +58,12 @@ class SiteTests(unittest.TestCase):
                               description='Yup, the first')]),
             self.site.json_reduce(),
             )
+
+    def test_site_updates(self):
+        self.site.add_board('first', 'The first one', 'Yup, the first')
+        self.site.update_users(users)
+
+        self.assertEqual(
+            {'generation': Var(),
+             'site': self.site, 'zoid': str(u64(self.site.changes._p_oid))},
+            self.site.updates(0))

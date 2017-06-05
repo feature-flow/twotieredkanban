@@ -6,6 +6,7 @@ import re
 import time
 import uuid
 import zc.generationalset
+from ZODB.utils import u64
 
 class Board(persistent.Persistent):
 
@@ -63,6 +64,8 @@ class Board(persistent.Persistent):
                 else:
                     name = add.pop('id')
                     updates[name] = add
+            if generation == 0:
+                updates['zoid'] = str(u64(self.changes._p_oid))
             return updates
         else:
             return None

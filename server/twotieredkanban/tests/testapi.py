@@ -87,6 +87,7 @@ class APITests(setupstack.TestCase):
                       site=dict(users=[],
                                 boards=[]),
                       user=users[0],
+                      zoid=self.vars.zoid,
                       ),
                  ),
             self.get('/site/poll').json)

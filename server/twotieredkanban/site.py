@@ -1,5 +1,7 @@
+import BTrees.OOBTree
 import persistent
 import zc.generationalset
+from ZODB.utils import u64
 
 from .board import Board
 
@@ -13,8 +15,7 @@ class Site(persistent.Persistent):
     users = ()
 
     def __init__(self):
-        from BTrees.OOBTree import BTree
-        self.boards = BTree()
+        self.boards = BTrees.OOBTree.BTree()
         self.changes = changes = zc.generationalset.GSet()
         self.changes.add(self)
 
@@ -43,7 +44,13 @@ class Site(persistent.Persistent):
         updates = self.changes.generational_updates(generation)
         if len(updates) > 1:
             [site] = updates['adds']
-            return dict(site=site, generation=updates['generation'])
+            updates = dict(
+                site=site,
+                generation=updates['generation'],
+                )
+        if generation == 0:
+            updates['zoid'] = str(u64(self.changes._p_oid))
+
         return updates
 
     @property

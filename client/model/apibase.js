@@ -12,7 +12,18 @@ module.exports = class {
       responseType: 'json',
       headers: {'x-generation': this.generation}
     };
-    this.poll();
+    this.poll_route = 'poll';
+  }
+
+  start() {
+    if (! this.active) {
+      this.active = true;
+      this.poll();
+    }
+  }
+
+  stop() {
+    this.active = false;
   }
 
   transform_response(data) {
@@ -21,6 +32,9 @@ module.exports = class {
       if (updates.generation > this.generation) {
         this.model.update(updates);
         this.config.headers['x-generation'] = updates.generation;
+        if (updates.zoid) {
+          this.config.headers['x-generation-zoid'] = updates.zoid;
+        }
         this.generation = updates.generation;
         this.view.setState({model: this.model});
       }
@@ -37,21 +51,33 @@ module.exports = class {
   }
 
   get(url, data) {
-    axios.get(this.base + url, this.config).catch((e) => this.handle_error(e));
+    return axios.get(this.base + url, this.config)
+      .catch((e) => this.handle_error(e));
   }
 
   poll() {
-    this.get('poll');
+    if (this.active) {
+      console.log(this.poll_route);
+      this.get(this.poll_route)
+        .then(() => {
+          this.poll_route = 'longpoll';
+          this.poll();
+        })
+        .catch((err) => {
+          console.log(this.poll_route, "failed", err);
+          setTimeout(() => this.poll(), 9999);
+        });
+    }
   }
 
   post(url, data) {
-    axios.post(url[0] == '/' ? url : this.base + url,
-               data, this.config).catch((e) => this.handle_error(e));
+    return axios.post(url[0] == '/' ? url : this.base + url, data, this.config)
+      .catch((e) => this.handle_error(e));
   }
 
   put(url, data) {
-    axios.put(url[0] == '/' ? url : this.base + url,
-               data, this.config).catch((e) => this.handle_error(e));
+    return axios.put(url[0] == '/' ? url : this.base + url, data, this.config)
+      .catch((e) => this.handle_error(e));
   }
 
 };
