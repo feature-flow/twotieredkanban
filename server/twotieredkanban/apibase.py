@@ -70,9 +70,6 @@ def initialize(database):
             from .site import Site
             conn.root.sites[''] = Site()
 
-    from .invalidate import patch_db
-    patch_db(database)
-
 def config(config):
     global auth
     auth = __import__(config['auth'], fromlist=['*'])

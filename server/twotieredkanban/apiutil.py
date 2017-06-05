@@ -3,8 +3,6 @@ import datetime
 import json
 import webob
 
-from .invalidate import wait
-
 def check(self, request, func):
     return self.check(func)
 
@@ -54,20 +52,8 @@ class Sync:
             data['updates'] = updates
         return self._response(data)
 
+    @get("/longpoll")
     @get("/poll")
     def poll(self):
         return self.response()
-
-    @get("/longpoll")
-    def longpoll(self):
-        generation = self.base.request.headers.get('x-generation', 0)
-        updates = self.context.updates(int(generation))
-        if updates:
-            return self._response(dict(updates=updates))
-
-        oid = self.context.changes._p_oid
-        self.context._p_jar.close()
-
-        wait(oid)
-        return self._response()
 
