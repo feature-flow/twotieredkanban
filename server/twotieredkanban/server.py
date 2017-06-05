@@ -40,7 +40,7 @@ def runner(app, conf, dsn, host='', port=8080):
 
                 if gen <= client_gen:
                     # Wait for updates
-                    event.wait()
+                    event.wait(300)
                 else:
                     try:
                         pollers[zoid].remove(event)
