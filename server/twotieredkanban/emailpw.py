@@ -72,7 +72,8 @@ def user(base):
     if uid is not None:
         emailpw = get_emailpw(base.site)
         if emailpw is not None:
-            return emailpw.users_by_uid.get(uid).data
+            user = emailpw.users_by_uid.get(uid)
+            return user and user.data
     return None
 
 def invite_or_reset(site, email, name, baseurl='', admin=False):
