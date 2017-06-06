@@ -28,6 +28,11 @@ def runner(app, conf, dsn, host='', port=8080):
 
     db = app.database
     def polling_app(environ, start_response):
+        # If we're sitting behind an elb providing HTTPS:
+        forwarded_proto = environ.get('HTTP_X_FORWARDED_PROTO')
+        if forwarded_proto:
+            environ['wsgi.url_scheme'] = forwarded_proto
+
         path = environ['PATH_INFO']
         if path.endswith('/longpoll'):
             client_gen = int(environ.get('HTTP_X_GENERATION', 0))
