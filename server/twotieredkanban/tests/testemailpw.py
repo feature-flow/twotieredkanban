@@ -53,8 +53,8 @@ class EmailPWTests(setupstack.TestCase):
         r = app.get('/auth/accept?token=' + token)
         self.assertTrue(token in r.text)
 
-        r.forms[0].set('password', 'secretsecret')
-        r.forms[0].set('confirm', 'secretsecret')
+        r.forms[0].set('password', ' secretsecret')
+        r.forms[0].set('confirm', 'secretsecret ')
         r2 = r.form.submit()
         print(r2.text)
         self.assertEqual(r2.status_code, 302)
@@ -74,7 +74,7 @@ class EmailPWTests(setupstack.TestCase):
 
         # Now, we can log in
         r = app.get('/auth/login')
-        r.forms[0].set('password', 'secretsecret')
+        r.forms[0].set('password', ' secretsecret ')
         r.forms[0].set('email', user.email)
         r2 = r.forms[0].submit()
         self.assertEqual(r2.status_code, 302)
