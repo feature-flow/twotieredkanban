@@ -54,7 +54,10 @@ def runner(app, conf, dsn, host='', port=8080):
 
         return app(environ, start_response)
 
-    gevent.pywsgi.WSGIServer((host, int(port)), polling_app).serve_forever()
+    gevent.pywsgi.WSGIServer(
+        (host, int(port)), polling_app,
+        log=logger, error_log=logger
+        ).serve_forever()
 
 pollers = collections.defaultdict(list) # {zoid -> [events]}
 
