@@ -2,9 +2,9 @@
 """
 import bobo
 import BTrees.OOBTree
-import hashlib
 import persistent
 import os
+import passlib.context
 import time
 import urllib.parse
 import uuid
@@ -12,8 +12,7 @@ import uuid
 from . import jwtauth
 from .apiutil import Sync, post, put
 
-def hash(salt, pw):
-    return salt + hashlib.pbkdf2_hmac('sha256', pw, salt, 100000)
+pwcontext = passlib.context.CryptContext(schemes=["pbkdf2_sha256"])
 
 class User(persistent.Persistent):
 
@@ -27,10 +26,10 @@ class User(persistent.Persistent):
         self.admin = admin
 
     def check_pw(self, pw):
-        return hash(self.pwhash[:32], pw) == self.pwhash
+        return pwcontext.verify(pw, self.pwhash)
 
     def set_pw(self, pw):
-        self.pwhash = hash(os.urandom(32), pw)
+        self.pwhash = pwcontext.hash(pw)
 
     @property
     def to(self):
@@ -264,9 +263,16 @@ def bootstrap_script(args=None):
     parser.add_argument('site')
     parser.add_argument('email')
     parser.add_argument('name', default='')
-    parser.add_argument('-b', '--base-url', default='')
+    parser.add_argument('-b', '--base-url', default='', help="""
+    Specify the base URL path. If not given, then https://<site> will
+    be used, where site is the value of the site argument.  If the
+    special value "d" is given, then http://localhost:8000 is used.
+    """)
     parser.add_argument('-A', '--non-admin', action='store_true')
     options = parser.parse_args(args)
+
+    if options.base_url == 'd':
+        options.base_url = 'http://localhost:8000'
 
     bootstrap(options.config, options.site, options.email, options.name,
               not options.non_admin, options.base_url)
