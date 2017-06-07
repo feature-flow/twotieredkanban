@@ -73,6 +73,8 @@ class EmailPW(persistent.Persistent):
         return email and self.invites.pop(email, None)
 
     def accept_invite(self, token, password, confirm):
+        password = password.strip()
+        confirm = confirm.strip()
         if password != confirm:
             raise BadPassword("Passwords don't match")
         elif len(password) > 999:
@@ -100,6 +102,8 @@ class EmailPW(persistent.Persistent):
         user = self.users_by_email.get(email)
         if not user:
             return bobo.redirect('/auth/login?message=Invalid+email.')
+
+        password = password.strip()
         if not user.check_pw(password.encode('utf-8')):
             return bobo.redirect('/auth/login?message=Invalid+password.')
 
@@ -207,7 +211,9 @@ pw_form = """<html>
 <head><link rel="stylesheet" type="text/css" href="emailpw.css"></head>
 <body><form action="accept" method="POST" class="kb-emailpw"><fieldset>
   <legend>%s</legend>
-  <p><label for-"password">Enter your password</label>
+  <p><label for-"password">
+    Enter your password (9-999 characters, with no leading or trailing spaces)
+     </label>
      <input type="password" name="password" maxlength="999"></p>
   <p><label for-"confirm">Confirm your password</label>
      <input type="password" name="confirm" maxlength="999"></p>
