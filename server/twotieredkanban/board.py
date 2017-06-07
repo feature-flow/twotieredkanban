@@ -71,12 +71,13 @@ class Board(persistent.Persistent):
             return None
 
     def new_project(self, title, order, description=''):
-        self.tasks.add(Task(title, description=description, order=order))
+        self.tasks.add(Task(self, title, description=description, order=order))
 
     def new_task(self, project_id, title, order,
                  description='', size=1, blocked=None, assigned=None,
                  ):
-        task = Task(title,
+        task = Task(self,
+                    title,
                     parent=self.tasks[project_id],
                     description=description,
                     size=size,
@@ -173,8 +174,9 @@ class Task(persistent.Persistent):
     #archive = ()
     complete = None
 
-    def __init__(self, title, order, description='',
+    def __init__(self, board, title, order, description='',
                  size=1, blocked=None, assigned=None, parent=None):
+        self.board = board # to make searching easier later
         self.id = uuid.uuid1().hex
         self.created = time.time()
         self.title = title

@@ -11,7 +11,9 @@ class TaskTests(unittest.TestCase):
             import uuid
             id = uuid.uuid1()
             with mock.patch('uuid.uuid1', return_value=id):
-                task = Task('the task', 42, 'the description')
+                task = Task(self, 'the task', 42, 'the description')
+
+            self.assertEqual(self, task.board)
 
             self.assertEqual(
                 dict(id = id.hex,
