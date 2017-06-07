@@ -1,10 +1,13 @@
 import bobo
+import logging
 import os
 import webob
 
 from .apisite import Site
 from .apiboard import Board
 from .apiutil import get
+
+logger = logging.getLogger(__name__)
 
 @bobo.subroute("", scan=True)
 class Base:
@@ -56,3 +59,8 @@ class Base:
             return router
 
         raise bobo.NotFound
+
+# bobo errors exception
+def exception(request, method, exc_info):
+    logger.error("request failed: %s", request.url, exc_info=exc_info)
+    raise exc_info[1]
