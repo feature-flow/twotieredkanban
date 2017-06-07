@@ -31,6 +31,9 @@ class Sync:
         self.base = base
         self.context = context
 
+    def check(self, func=None):
+        return self.base.check(func)
+
     def _response(self, data=None):
         response = webob.Response(content_type="application/json")
         response.text = json.dumps(data, cls=Encoder) if data else '{}'
@@ -38,7 +41,7 @@ class Sync:
         response.pragma = 'no-cache'
         return response
 
-    def response(self, send_user=False, **data):
+    def response(self, send_user=None, **data):
         generation = int(self.base.request.headers.get('x-generation', 0))
         updates = self.context.updates(generation)
         if generation == 0:

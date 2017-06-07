@@ -1,18 +1,23 @@
 import jwt
 import jwt.exceptions
+import time
 
 TOKEN='auth_token'
 
 def token(secret, **data):
     return jwt.encode(data, secret, algorithm='HS256').decode('utf-8')
 
-def decode(token, secret, key=None):
+def decode(token, secret, key=None, timeout=None):
     try:
-        token = jwt.decode(token, secret, algorithms=['HS256'])
+        data = jwt.decode(token, secret, algorithms=['HS256'])
+
+        if timeout and data['time'] + timeout < time.time():
+            return None
+
         if key:
-            return token.get(key)
-        else:
-            return token
+            data = data.get(key)
+
+        return data
     except jwt.exceptions.DecodeError:
         return None
 

@@ -4,6 +4,9 @@ import json
 import pkg_resources
 import webtest
 
+from ..site import get_site
+
+from . import auth
 from .var import Vars
 from .sample import users
 
@@ -26,8 +29,7 @@ def make_app():
             app, {},
             configuration = demo_db,
             max_connections = '4',
-            thread_transaction_manager = 'False',
-            initializer = "twotieredkanban.apibase:initialize"
+            thread_transaction_manager = 'False'
         )
 
 class APITests(setupstack.TestCase):
@@ -35,15 +37,10 @@ class APITests(setupstack.TestCase):
     maxDiff = None
 
     def setUp(self):
-        from ..apibase import config
-        config(dict(auth='twotieredkanban.tests.auth'))
-
-        @self.register
-        def clear_auth():
-            from .. import apibase
-            apibase.auth = None
-
         self._app = make_app()
+        with self._app.database.transaction() as conn:
+            get_site(conn.root, 'localhost', True).auth = auth.Admin()
+
         self.app = self._test_app()
         self.vars = Vars()
 
@@ -209,14 +206,14 @@ class APITests(setupstack.TestCase):
         # the auth plugin.
 
         # unauthenticated users can't get redirected to a login page
-        from .. import apibase
-        from . auth import BadAuth, NonAdminAuth
-        apibase.auth = BadAuth
+        with self._app.database.transaction() as conn:
+            get_site(conn.root, 'localhost').auth = auth.Bad()
         app = self._test_app()
         r = app.get('/', status=302)
         self.assertEqual(r.headers['location'], 'http://localhost/auth/login')
 
         # Non admin users can't do admin things
-        apibase.auth = NonAdminAuth
+        with self._app.database.transaction() as conn:
+            get_site(conn.root, 'localhost').auth = auth.NonAdmin()
         app = self._test_app()
         self.app.post('/site/boards', dict(boards=[]), status=403)

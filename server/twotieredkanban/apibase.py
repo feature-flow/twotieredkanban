@@ -6,8 +6,6 @@ from .apisite import Site
 from .apiboard import Board
 from .apiutil import get
 
-auth = None # plugpoint
-
 @bobo.subroute("", scan=True)
 class Base:
 
@@ -17,13 +15,14 @@ class Base:
         self.request = request
         self.connection = connection = request.environ['zodb.connection']
         self.root = root = connection.root
-        self.site = root.sites[''] # Future lookup sites by domain
+        self.site = root.sites.get(request.domain)
+        self.auth = self.site.auth
 
 
     def check(self, func=None):
-        user = auth.user(self)
+        user = self.auth.user(self.request)
         if user is None:
-            return auth.login()
+            return self.auth.login(self.request)
         self.user = user
 
     def error(self, status, body):
@@ -46,7 +45,7 @@ class Base:
 
     @bobo.subroute('/auth')
     def auth_api(self, request):
-        return auth.Subroute(self, self.site)
+        return self.auth.subroute(self)
 
     @bobo.subroute('/board/:board')
     def board(self, request, board):
@@ -57,19 +56,3 @@ class Base:
             return router
 
         raise bobo.NotFound
-
-
-def initialize(database):
-    with database.transaction() as conn:
-        if not hasattr(conn.root, 'secret'):
-            from os import urandom
-            conn.root.secret = urandom(24)
-        if not hasattr(conn.root, 'sites'):
-            from BTrees.OOBTree import BTree
-            conn.root.sites = BTree()
-            from .site import Site
-            conn.root.sites[''] = Site()
-
-def config(config):
-    global auth
-    auth = __import__(config['auth'], fromlist=['*'])

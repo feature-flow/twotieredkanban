@@ -5,6 +5,24 @@ from ZODB.utils import u64
 
 from .board import Board
 
+def get_site(root, name, create=False):
+    try:
+        sites = root.sites
+    except AttributeError:
+        if create:
+            sites = root.sites = BTrees.OOBTree.BTree()
+        else:
+            raise
+
+    try:
+        return sites[name]
+    except KeyError:
+        if create:
+            sites[name] = Site()
+            return sites[name]
+        else:
+            raise
+
 class Site(persistent.Persistent):
 
     id = 'site'
@@ -13,6 +31,7 @@ class Site(persistent.Persistent):
     # user data managed by the auth plugin.  It's assumed that the
     # number of users is limited.
     users = ()
+    auth = None
 
     def __init__(self):
         self.boards = BTrees.OOBTree.BTree()

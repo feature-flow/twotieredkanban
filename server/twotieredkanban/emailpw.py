@@ -5,6 +5,8 @@ import BTrees.OOBTree
 import hashlib
 import persistent
 import os
+import time
+import urllib.parse
 import uuid
 
 from . import jwtauth
@@ -42,64 +44,94 @@ class User(persistent.Persistent):
         return dict(id=self.id, email=self.email, name=self.name,
                     nick=self.nick, admin=self.admin)
 
+class BadPassword(Exception):
+    pass
 
 class EmailPW(persistent.Persistent):
 
-    def __init__(self):
+    def __init__(self, site, invite_timeout=86400):
+        self.site = site
+        self.invite_timeout = invite_timeout
         self.users_by_uid = BTrees.OOBTree.BTree()
         self.users_by_email = BTrees.OOBTree.BTree()
         self.disabled = BTrees.OOBTree.BTree()
         self.invites = BTrees.OOBTree.BTree()
+        self.invite_secret = os.urandom(24)
         self.secret = os.urandom(24)
 
-    def token(self, **data):
-        return jwtauth.token(self.secret, **data)
+    def invite_token(self, **data):
+        return jwtauth.token(self.invite_secret, time=time.time(), **data)
 
-    def decode(self, token, key=None):
-        return jwtauth.decode(token, self.secret, key)
+    def decode_invite(self, token, key=None):
+        return jwtauth.decode(token, self.invite_secret, key,
+                              timeout=self.invite_timeout)
 
-def get_emailpw(site, create=False):
-    try:
-        emailpw = site.emailpw
-    except AttributeError:
-        emailpw = EmailPW() # Return dummy to simplfy logic
-        if create:
-            site.emailpw = emailpw
-    return emailpw
+    def accept_email(self, token):
+        return self.decode_invite(token, 'email')
 
-def user(base):
-    uid = jwtauth.load(base.request, base.root.secret, 'uid')
-    if uid is not None:
-        emailpw = get_emailpw(base.site)
-        if emailpw is not None:
-            user = emailpw.users_by_uid.get(uid)
-            return user and user.data
-    return None
+    def accept_user(self, token):
+        email = self.decode_invite(token, 'email')
+        return email and self.invites.pop(email, None)
 
-def invite_or_reset(site, email, name, baseurl='', admin=False):
-    emailpw = get_emailpw(site, True)
-    user = emailpw.users_by_email.get(email)
-    if user is None:
-        message = invite_message
-        user = emailpw.invites.get(email)
+    def accept_invite(self, token, password, confirm):
+        if password != confirm:
+            raise BadPassword("Passwords don't match")
+        elif len(password) > 999:
+            raise BadPassword("Password is too long")
+        elif len(password) < 9:
+            raise BadPassword("Password must have at least 9 characters")
+
+        user = self.accept_user(token)
+        if not user or user.email in self.users_by_email:
+            return "Sorry, your invitation has expired"
+        user.set_pw(password.encode('utf-8'))
+        self.users_by_email[user.email] = user
+        self.users_by_uid[user.id] = user
+        self.site.update_users(user.data for user in self.users_by_uid.values())
+        return None
+
+    def user(self, request):
+        uid = jwtauth.load(request, self.secret, 'uid')
+        if uid is not None:
+            user = self.users_by_uid.get(uid)
+            return user.data
+        return None
+
+    def login_creds(self, email, password):
+        user = self.users_by_email.get(email)
+        if not user:
+            return bobo.redirect('/auth/login?message=Invalid+email.')
+        if not user.check_pw(password.encode('utf-8')):
+            return bobo.redirect('/auth/login?message=Invalid+password.')
+
+        response = bobo.redirect('/')
+        jwtauth.save(response, self.secret, uid=user.id)
+
+        return response
+
+    def invite_or_reset(self, email, name, baseurl='', admin=False):
+        user = self.users_by_email.get(email)
         if user is None:
-            user = User(email, name, admin=admin)
-            emailpw.invites[email] = user
-    else:
-        message = reset_message
+            message = invite_message
+            user = self.invites.get(email)
+            if user is None:
+                user = User(email, name, admin=admin)
+                self.invites[email] = user
+        else:
+            message = reset_message
 
-    token = emailpw.token(email=email)
-    sendmail('punt_from', user.to, message % (baseurl, token))
+        token = self.invite_token(email=email)
+        sendmail('punt_from', user.to, message % (baseurl, token))
 
-def login():
-    return bobo.redirect('/auth/login')
+    def login(self, request):
+        return bobo.redirect('/auth/login')
+
+    def subroute(self, base):
+        return Subroute(base, self.site)
+
 
 @bobo.subroute("", scan=True)
 class Subroute(Sync):
-
-    def __init__(self, base, site):
-        super().__init__(base, site)
-        self.check = base.check
 
     @bobo.get("/login")
     def get_login(self, message='Please log in'):
@@ -107,25 +139,17 @@ class Subroute(Sync):
 
     @bobo.post("/login")
     def post_login(self, email, password):
-        emailpw = get_emailpw(self.context)
-        user = emailpw.users_by_email.get(email)
-        if not user:
-            return bobo.redirect('/auth/login?message=Invalid+email.')
-        if not user.check_pw(password.encode('utf-8')):
-            return bobo.redirect('/auth/login?message=Invalid+password.')
-
-        response = bobo.redirect('/')
-        jwtauth.save(response, self.base.root.secret, uid=user.id)
-        return response
+        return self.context.auth.login_creds(email, password)
 
     @post("/invite")
     def invite(self, email, name=''):
-        invite_or_reset(self.context, email, name, self.base.request.host_url)
+        self.context.auth.invite_or_reset(
+            email, name, self.base.request.host_url)
         return self.response()
 
     @put("/user")
     def put_user(self, name=None, email=None, nick=None):
-        emailpw = get_emailpw(self.context)
+        emailpw = self.context.auth
         user = emailpw.users_by_uid.get(self.base.user['id'])
         if name is not None:
             user.name = name
@@ -133,43 +157,28 @@ class Subroute(Sync):
             user.email = email
         if nick is not None:
             user.nick = nick
-        self.context.update_users(user.data
-                                  for user in emailpw.users_by_uid.values())
+        self.context.update_users(
+            user.data for user in emailpw.users_by_uid.values())
         return self.response(send_user=user.data)
 
     @bobo.get("/accept")
     def get_accept(self, token, message='Set your password'):
-        emailpw = get_emailpw(self.context)
-        email = emailpw.decode(token, 'email')
-        if not email or not emailpw.invites.get(email):
-            return "Sorry, your invitation has expired"
+        email = self.context.auth.accept_email(token)
+        return (pw_form % (message, token) if email
+                else "Sorry, your invitation has expired")
 
         return pw_form % (message, token)
 
     @bobo.post("/accept")
     def post_accept(self, token, password, confirm):
-        if password != confirm:
+        try:
+            err_message = self.context.auth.accept_invite(
+                token, password, confirm)
+        except BadPassword as err:
             return bobo.redirect(
-                '/auth/accept?token=%s&message=Passwords+do+not+match' % token)
-        if len(password) > 999:
-            return bobo.redirect(
-                '/auth/accept?token=%s&message=Password+is+too_long' % token)
-        if len(password) < 9:
-            return bobo.redirect(
-                '/auth/accept?token=%s'
-                '&message=Password+must+have+at+least+9+characters' % token)
-
-        emailpw = get_emailpw(self.context)
-        email = emailpw.decode(token, 'email')
-        user = email and emailpw.invites.pop(email)
-        if not user or email in emailpw.users_by_email:
-            return "Sorry, your invitation has expired"
-        user.set_pw(password.encode('utf-8'))
-        emailpw.users_by_email[email] = user
-        emailpw.users_by_uid[user.id] = user
-        self.context.update_users(user.data
-                                  for user in emailpw.users_by_uid.values())
-        return bobo.redirect('/auth/login')
+                '/auth/accept?token=%s&%s' % (token,
+                                              urllib.parse.quote(str(err))))
+        return err_message or bobo.redirect('/auth/login')
 
     @bobo.query('/logout')
     def logout(self):
@@ -231,22 +240,33 @@ def config(config):
     if 'sendmail' in config:
         sendmail = __import__(config['sendmail'], fromlist=['*'])
 
-def invite_or_reset_script():
+def bootstrap(db, site_name, email, name, admin=True, base_url=''):
+
+    if isinstance(db, str):
+        import ZODB.config
+        with open(db) as f:
+            db = ZODB.config.databaseFromFile(f)
+
+    from .site import get_site
+    with db.transaction() as conn:
+        site = get_site(conn.root, site_name, True)
+        if site.auth is None:
+            site.auth = EmailPW(site)
+        site.auth.invite_or_reset(
+            email, name, base_url or 'https://' + site_name, admin)
+
+def bootstrap_script(args=None):
+    """Invite a user to use a site, and create the site, if necessary
+    """
     import argparse
-    parser = argparse.ArgumentParser("Send a reset email")
+    parser = argparse.ArgumentParser(bootstrap_script.__doc__)
     parser.add_argument('config', help='ZODB config file')
+    parser.add_argument('site')
     parser.add_argument('email')
     parser.add_argument('name', default='')
-    parser.add_argument('-s', '--site', default='')
     parser.add_argument('-b', '--base-url', default='')
-    parser.add_argument('--admin', action='store_true')
+    parser.add_argument('-A', '--non-admin', action='store_true')
+    options = parser.parse_args(args)
 
-    options = parser.parse_args()
-    import ZODB.config
-    with open(options.config) as f:
-        db = ZODB.config.databaseFromFile(f)
-    from twotieredkanban.emailpw import invite_or_reset_script
-    with db.transaction() as conn:
-        site = conn.root.sites[options.site]
-        invite_or_reset(site, options.email, options.name, options.base_url,
-                        admin=options.admin)
+    bootstrap(options.config, options.site, options.email, options.name,
+              not options.non_admin, options.base_url)

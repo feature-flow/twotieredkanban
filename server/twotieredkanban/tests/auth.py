@@ -2,22 +2,20 @@ import bobo
 
 from .sample import users
 
-def user(base):
-    return users[0]
+class NonAdmin:
 
+    def user(self, request):
+        return users[-1]
 
-class BadAuth:
+class Admin:
 
-    @classmethod
-    def user(cls_, base):
+    def user(self, request):
+        return users[0]
+
+class Bad:
+
+    def user(self, request):
         pass
 
-    @classmethod
-    def login(cls_):
+    def login(self, request):
         return bobo.redirect('/auth/login')
-
-class NonAdminAuth:
-
-    @classmethod
-    def user(cls_, base):
-        return users[-1]
