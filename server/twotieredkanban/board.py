@@ -198,7 +198,7 @@ class Task(persistent.Persistent):
     def update(self, **data):
         for name in data:
             if not isinstance(data[name], self.update_types[name]):
-                raise TypeError(name, update_types[name])
+                raise TypeError(name, self.update_types[name])
             setattr(self, name, data[name])
 
     def json_reduce(self):
