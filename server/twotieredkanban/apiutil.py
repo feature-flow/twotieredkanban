@@ -47,6 +47,8 @@ class Sync:
         if generation == 0:
             # first load, set uswer
             updates['user'] = self.base.user
+            if raven:
+                updates['raven'] = dict(url=raven, options=dict())
 
         if send_user:
             updates['user'] = send_user
@@ -60,3 +62,7 @@ class Sync:
     def poll(self):
         return self.response()
 
+raven = None
+def config(options):
+    global raven
+    raven = options.get('raven')

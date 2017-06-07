@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Raven from 'raven-js';
 
 module.exports = class {
 
@@ -26,11 +27,28 @@ module.exports = class {
     this.active = false;
   }
 
+  raven(err) {}
+
   transform_response(data) {
-    if (data.updates) {
+    if (data && data.updates) {
       const updates = data.updates;
       if (updates.generation > this.generation) {
         this.model.update(updates);
+        if (updates.user && this.ravonic) {
+            Raven.setUserContext({email: updates.user.email,
+                                  id: updates.user.id});
+        }
+        if (updates.raven) {
+          Raven
+            .config(updates.raven.url, updates.raven.options)
+            .install();
+          this.ravonic = true;
+          this.raven = (err) => Raven.captureException(err);
+          if (this.model.user) {
+            Raven.setUserContext({email: this.model.user.email,
+                                  id: this.model.user.id});
+          }
+        }
         this.config.headers['x-generation'] = updates.generation;
         if (updates.zoid) {
           this.config.headers['x-generation-zoid'] = updates.zoid;
@@ -44,6 +62,9 @@ module.exports = class {
   handle_error(err) {
     if (err.request || err.response) {
       console.log(err);
+      if (err.message != "Network Error") {
+        this.raven(err);
+      }
     }
     else {
       throw err;
