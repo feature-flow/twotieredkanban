@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dialog, Input} from 'react-toolbox';
+import {Dialog, Input, Dropdown} from 'react-toolbox';
 import RichTextEditor from 'react-rte';
 
 class Dialog_ extends React.Component {
@@ -83,6 +83,21 @@ class Editor extends React.Component {
   }
 }
 
+class Select extends React.Component {
+
+  render() {
+    const source = this.props.source.map(
+      (s) => (typeof s === 'object' ? s : {label: s, value: s})
+    );
+    
+    return (
+      <Dropdown {...this.props}
+                source={source} value={this.props.onChange()}
+         />
+    );
+  }
+}
+
 const validate_required =
         (v, name) => v ? null : "Please provide a value for " + name + ".";
 
@@ -148,8 +163,9 @@ class DialogBase extends React.Component {
 
 module.exports = {
   Dialog: Dialog_,
-  Input: Input_,
   Editor: Editor,
+  Input: Input_,
   DialogBase: DialogBase,
+  Select: Select,
   show_dialog: (dialog, state) => () => dialog.show(state)
 };

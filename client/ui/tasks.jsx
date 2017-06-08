@@ -1,9 +1,9 @@
 import React from 'react';
-import {Card, CardText, Dropdown} from 'react-toolbox';
+import {Card, CardText} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
-import {Dialog, DialogBase, Editor, Input} from './dialog';
+import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {UserAvatar, UserSelect} from './who';
 
@@ -19,12 +19,14 @@ class TaskDialog extends DialogBase {
         >
         <Input label='Title' required={true} onChange={this.required("title")}
                />
-        <Input label='Size' type="number" required={true}
-               onChange={this.val("size", 1)} />
-        <UserSelect label="Assigned" onChange={this.val("assigned")}
-                    users={this.props.board.users} />
-        <Input
-           label='Blocked' multiline={true} onChange={this.val("blocked")} />
+        <div className="kb-field-row">
+          <Select label='Size' source={[1, 2, 3, 5, 8, 13]}
+                  onChange={this.val("size", 1)} />
+          <UserSelect label="Assigned" onChange={this.val("assigned")}
+                      users={this.props.board.users} />
+          <Input label='Blocked' multiline={true} className="kb-flex-grow"
+                 onChange={this.val("blocked")} />
+        </div>
         <Editor onChange={this.val("description")} />
       </Dialog>
     );

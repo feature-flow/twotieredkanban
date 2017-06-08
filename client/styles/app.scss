@@ -78,3 +78,15 @@ td {
         margin-right: 1em;
     }
 }
+
+.kb-field-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    .kb-flex-grow {
+        flex-grow: 1;
+    }
+    > * {
+        margin-right: 2em;
+    }
+}
