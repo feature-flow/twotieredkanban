@@ -25,14 +25,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.031635",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.031635"}],
       "id": "proto",
       "order": 1,
       "title": "Prototype board"
@@ -40,14 +33,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032246",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032246"}],
       "id": "states",
       "order": 2,
       "parent": "proto",
@@ -57,14 +43,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032266",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032266"}],
       "id": "api",
       "order": 3,
       "parent": "proto",
@@ -74,14 +53,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032278",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032278"}],
       "id": "routes",
       "order": 4,
       "parent": "proto",
@@ -91,14 +63,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032300",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032300"}],
       "id": "add_board",
       "order": 5,
       "parent": "proto",
@@ -108,14 +73,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032313",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032313"}],
       "id": "layout",
       "order": 6,
       "parent": "proto",
@@ -125,14 +83,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032326",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032326"}],
       "id": "projects",
       "order": 7,
       "parent": "proto",
@@ -142,14 +93,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032338",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032338"}],
       "id": "rasks",
       "order": 8,
       "parent": "proto",
@@ -159,14 +103,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032350",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032350"}],
       "id": "expand",
       "order": 9,
       "parent": "proto",
@@ -176,14 +113,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032361",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032361"}],
       "id": "project_dnd",
       "order": 10,
       "parent": "proto",
@@ -193,14 +123,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032372",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032372"}],
       "id": "dev_mode",
       "order": 11,
       "parent": "proto",
@@ -210,14 +133,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032381",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032381"}],
       "id": "task_dnd",
       "order": 12,
       "parent": "proto",
@@ -227,14 +143,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032391",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032391"}],
       "id": "completion",
       "order": 13,
       "parent": "proto",
@@ -244,14 +153,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032407",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032407"}],
       "id": "persistence",
       "order": 14,
       "title": "Persistence"
@@ -259,14 +161,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032417",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032417"}],
       "id": "idb",
       "order": 15,
       "parent": "persistence",
@@ -276,14 +171,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032427",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032427"}],
       "id": "idbp",
       "order": 16,
       "parent": "persistence",
@@ -293,14 +181,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032434",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032434"}],
       "id": "idbm",
       "order": 17,
       "parent": "persistence",
@@ -310,14 +191,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032439",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032439"}],
       "id": "sdb",
       "order": 18,
       "parent": "persistence",
@@ -327,14 +201,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032444",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032444"}],
       "id": "sdbp",
       "order": 19,
       "parent": "persistence",
@@ -344,14 +211,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032451",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032451"}],
       "id": "sdbm",
       "order": 20,
       "parent": "persistence",
@@ -361,14 +221,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032457",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032457"}],
       "id": "auth",
       "order": 21,
       "title": "Users and authentication"
@@ -376,14 +229,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032463",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032463"}],
       "id": "demo_current",
       "order": 22,
       "parent": "auth",
@@ -393,14 +239,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032469",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032469"}],
       "id": "assignment",
       "order": 23,
       "parent": "auth",
@@ -410,14 +249,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032485",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032485"}],
       "id": "server_auth",
       "order": 24,
       "parent": "auth",
@@ -427,14 +259,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032491",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032491"}],
       "id": "pw_auth",
       "order": 25,
       "parent": "auth",
@@ -444,14 +269,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032497",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032497"}],
       "id": "switch_user",
       "order": 26,
       "parent": "auth",
@@ -461,14 +279,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032502",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032502"}],
       "id": "demo_profile",
       "order": 27,
       "parent": "auth",
@@ -478,14 +289,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032508",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032508"}],
       "id": "pw_logout",
       "order": 28,
       "parent": "auth",
@@ -495,14 +299,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032513",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032513"}],
       "id": "pw_profile",
       "order": 29,
       "parent": "auth",
@@ -512,14 +309,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032519",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032519"}],
       "id": "vel",
       "order": 30,
       "title": "Velocity"
@@ -527,14 +317,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032526",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032526"}],
       "id": "vel_model",
       "order": 31,
       "parent": "vel",
@@ -544,14 +327,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032531",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032531"}],
       "id": "vel_ex",
       "order": 32,
       "parent": "vel",
@@ -561,14 +337,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032537",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032537"}],
       "id": "vel_test",
       "order": 33,
       "parent": "vel",
@@ -578,14 +347,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032542",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032542"}],
       "id": "vel_model_pass",
       "order": 34,
       "parent": "vel",
@@ -595,14 +357,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032851",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032851"}],
       "id": "vel_server",
       "order": 35,
       "parent": "vel",
@@ -612,14 +367,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032870",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032870"}],
       "id": "vel_display_design",
       "order": 36,
       "parent": "vel",
@@ -629,14 +377,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [
-        [
-          "2017-06-04T22:29:54.032876",
-          null,
-          null,
-          null
-        ]
-      ],
+      "history": [{"start": "2017-06-04T22:29:54.032876"}],
       "id": "vel_display ",
       "order": 37,
       "parent": "vel",
