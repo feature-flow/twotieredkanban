@@ -13,7 +13,7 @@ module.exports = class extends React.Component {
     this.api.start();
     this.state = {model: this.api.model};
   }
-
+  
   componentWillUnmount() {
     this.api.stop();
   }
@@ -23,6 +23,7 @@ module.exports = class extends React.Component {
   }
 
   render() {
+    document.title = window.location.hostname || "Valuenator demo";
     const boards = this.state.model.boards;
     return (
       <div>
