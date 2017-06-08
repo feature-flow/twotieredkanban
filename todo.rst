@@ -1,8 +1,6 @@
 - Bugs
 
-  - Tasks don't update after edit
-  - Edit forms don't clear assigned
-  - Need tests for client sode server api
+  - Tasks don't update assigned in UI after edit
 
 
 - velocity / burn-down graph
@@ -25,8 +23,6 @@
     - Show admin status in user lists. (probablu just an icon)
 
     - Do we actually need nicks?
-
-- longpoll properly (threadpool for everything else)
 
 - integration with tools:
   - github
