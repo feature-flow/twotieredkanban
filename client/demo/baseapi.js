@@ -77,6 +77,9 @@ module.exports = {
       this.poll(cb);
     }
 
+    start() {}
+    stop() {}
+
     static test_reset(cb) {
       open_request.result.close();
       indexedDB.deleteDatabase(dbname).onsuccess = () => {
