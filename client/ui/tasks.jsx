@@ -17,7 +17,8 @@ class TaskDialog extends DialogBase {
          title={action + " task"} action={action} ref="dialog"
          finish={() => this.finish(this.state)} type="large"
         >
-        <Input label='Title' required={true} onChange={this.val("title")} />
+        <Input label='Title' required={true} onChange={this.required("title")}
+               />
         <Input label='Size' type="number" required={true}
                onChange={this.val("size", 1)} />
         <UserSelect label="Assigned" onChange={this.val("assigned")}

@@ -63,9 +63,11 @@ class Profile extends DialogBase {
       <Dialog
          title="Update your information" type="small" action="Update"
          finish={finish} ref="dialog">
-        <Input label='Name' required={true} onChange={this.val("name")} />
-        <Input label='Email' required={true} onChange={this.val("email")} />
-        <Input label='Nickname' required={true} onChange={this.val("nick")} />
+        <Input label='Name' required={true} onChange={this.required("name")} />
+        <Input label='Email' required={true} onChange={this.required("email")}
+               />
+        <Input label='Nickname' required={true} onChange={this.required("nick")}
+               />
       </Dialog>
     );
   }

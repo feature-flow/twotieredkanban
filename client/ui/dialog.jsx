@@ -17,9 +17,23 @@ class Dialog_ extends React.Component {
     this.setState({active: false});
   }
 
+  validate() {
+    let valid = true;
+    React.Children.forEach(this.props.children, (c) => {
+      if (c.props && c.props.onChange && c.props.onChange.validate) {
+        if (! c.props.onChange.validate(c.props.onChange)) {
+          valid = false;
+        };
+      }
+    });
+    return valid;
+  }
+
   finish() {
-    if (! this.props.finish()) {
-      this.hide();
+    if (this.validate()) {
+      if (! this.props.finish()) {
+        this.hide();
+      }
     }
   }
 
@@ -49,7 +63,10 @@ class Input_ extends React.Component {
 
   render() {
     return (
-      <Input {...this.props} value={this.props.onChange()} />
+      <Input {...this.props}
+             value={this.props.onChange()}
+             error={this.props.onChange.error()}
+             />
     );
   }
 }
@@ -66,31 +83,63 @@ class Editor extends React.Component {
   }
 }
 
+const validate_required =
+        (v, name) => v ? null : "Please provide a value for " + name + ".";
+
+
 class DialogBase extends React.Component {
+
   constructor() {
     super();
-    this.state = {};
+    this.state = {_DialogBase_validations: 0};
+    this.errors = {};
   }
 
-  val(name, default_='') {
-    return (v) => {
+  validated() {
+    this.setState(
+      {_DialogBase_validations: this.state._DialogBase_validations + 1});
+  }
+
+  val(name, default_='', validate=undefined) {
+    const onChange = (v) => {
       if (v == undefined) {
         return this.state[name] || default_;
       }
       else {
         const state = {};
         state[name] = v;
+        if (validate) {
+          this.errors[name] = validate(v);
+        }
         return this.setState(state);
       }
     };
+    
+    onChange.error = () => {
+      return this.errors[name];
+    };
+    
+    if (validate) {
+      onChange.validate = (v) => {
+        this.validated(); // force render
+        this.errors[name] = validate(onChange(), name, this);
+        return ! this.errors[name];
+      };
+    }
+    return onChange;
+  }
+
+  required(name) {
+    return this.val(name, '', validate_required);
   }
 
   show(state) {
+    this.errors = {};
+    this.state = {};
     if (state) {
       this.setState(state);
     }
     else {
-      this.state = {};
       this.setState(this.state);
     }
     this.refs.dialog.show();

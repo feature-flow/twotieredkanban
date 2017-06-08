@@ -44,7 +44,7 @@ module.exports = {
          title="New Board" action="Add" ref="dialog"
          finish={() => this.props.api.add_board(this.state.name)}
         >
-        <Input label='Name' required={true} onChange={this.val("name")} />
+        <Input label='Name' required={true} onChange={this.required("name")} />
       </Dialog>
     );
   }

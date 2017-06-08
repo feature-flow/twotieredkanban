@@ -13,7 +13,8 @@ class ProjectDialog extends DialogBase {
     return (
       <Dialog title={this.action() + " project"} action={action} ref="dialog"
               finish={() => this.finish(this.state)} type="large">
-        <Input label='Title' required={true} onChange={this.val("title")} />
+        <Input label='Title' required={true} onChange={this.required("title")}
+               />
         <Editor onChange={this.val("description")} />
       </Dialog>
     );
