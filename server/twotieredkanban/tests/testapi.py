@@ -217,3 +217,22 @@ class APITests(setupstack.TestCase):
             get_site(conn.root, 'localhost').auth = auth.NonAdmin()
         app = self._test_app()
         self.app.post('/site/boards', dict(boards=[]), status=403)
+
+    def test_no_site(self):
+        # When accessing a domain wo a site, we'll get redirected to a
+        # route with a message saying that we're not ready.
+        r = self.app.get('http://other.domain/', status=302)
+        default_url = 'http://other.domain/not-yet'
+        self.assertEqual(default_url, r.headers['location'])
+        r = self.app.get(default_url, status=200)
+        self.assertEqual("This site isn't available yet.", r.text)
+
+        # We can configure a different route
+        from ..apibase import config
+        url = 'http://example.com'
+        config(dict(no_site_url=url))
+        r = self.app.get('http://other.domain/', status=302)
+        self.assertEqual(url, r.headers['location'])
+
+        # restore default_url
+        config(dict(no_site_url=default_url))

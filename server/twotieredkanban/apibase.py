@@ -18,7 +18,7 @@ class Base:
         self.request = request
         self.connection = connection = request.environ['zodb.connection']
         self.root = root = connection.root
-        self.site = root.sites.get(request.domain)
+        self.site = root.sites.get(request.domain, NoSite)
         self.auth = self.site.auth
 
 
@@ -41,7 +41,6 @@ class Base:
 
         return response
 
-
     @bobo.subroute('/site')
     def admin_api(self, request):
         return Site(self, self.site)
@@ -60,7 +59,29 @@ class Base:
 
         raise bobo.NotFound
 
+    @bobo.get('/not-yet')
+    def not_yet(self):
+        return "This site isn't available yet."
+
 # bobo errors exception
 def exception(request, method, exc_info):
     logger.error("request failed: %s", request.url, exc_info=exc_info)
     raise exc_info[1]
+
+no_site_url = '/not-yet' # can be replaced by config
+class NoSite:
+
+    class auth:
+
+        @classmethod
+        def user(*_):
+            pass
+
+        @classmethod
+        def login(*_):
+            return bobo.redirect(no_site_url)
+
+def config(options):
+    if 'no_site_url' in options:
+        global no_site_url
+        no_site_url = options['no_site_url']
