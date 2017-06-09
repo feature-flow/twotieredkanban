@@ -521,7 +521,7 @@ describe("demo board api", () => {
 
   const promise = (f) => new Promise((complete) => f(complete));
 
-  it("Should move tasks", (done) => {
+  it("Should move tasks, maintain tasks, and track completed", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
@@ -542,6 +542,9 @@ describe("demo board api", () => {
                     description: 'do the third'
                   }, () => {
                     [t3, t2, t1] = model.all_tasks;
+                    expect(t1.count).toBe(0);
+                    expect(t1.total_size).toBe(0);
+                    expect(t1.total_completed).toBe(0);
                     cb();
                   });
               });
@@ -568,8 +571,22 @@ describe("demo board api", () => {
                 state: "Doing"
               },
             ]);
+            expect(t1.count).toBe(1);
+            expect(t1.total_size).toBe(1);
+            expect(t1.total_completed).toBe(0);
             cb();
           });
+        }))
+        .then(() => promise((cb) => {
+          // change t2's size and see it reflected in stats
+          api.update_task(
+            t2.id,
+            {title: t2.title, description: t2.description, size: 3}, () => {
+              expect(t1.count).toBe(1);
+              expect(t1.total_size).toBe(3);
+              expect(t1.total_completed).toBe(0);
+              cb();
+            }); 
         }))
         .then(() => promise((cb) => {
           // Move first project to new state.
@@ -700,6 +717,9 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Finish t2
+          expect(t1.count).toBe(1);
+          expect(t1.total_size).toBe(3);
+          expect(t1.total_completed).toBe(0);
           view.setState.restore();
           inc_date();
           api.move(t2.id, t1.id, 'Done', undefined, () => {
@@ -728,6 +748,9 @@ describe("demo board api", () => {
                 complete: true
               },
             ]);
+            expect(t1.count).toBe(1);
+            expect(t1.total_size).toBe(3);
+            expect(t1.total_completed).toBe(3);
             cb();
           });
         }))
@@ -767,10 +790,12 @@ describe("demo board api", () => {
                 state: 'Backlog'
               },
             ]);
+            expect(t1.count).toBe(0);
+            expect(t1.total_size).toBe(0);
+            expect(t1.total_completed).toBe(0);
             cb();
           });
         }))
-      // XXX tests for complete state, but need to revist complete tracking
         .then((err) => done());
     });
   });

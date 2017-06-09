@@ -40,7 +40,7 @@ class TaskContainer {
     this.subtasks().forEach((task) => {
       this.count += 1;
       this.total_size += task.size;
-      if (task.complete) {
+      if (task.history[task.history.length - 1].complete) {
         this.total_completed += task.size;
       }
     });
