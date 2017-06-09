@@ -14,13 +14,8 @@ describe("demo board api", () => {
     MockDate.set(new Date(2017, 5, 8, 6, 2, seconds, 4), -300);
   };
 
-  before("Set mock date", () => {
-    inc_date();
-  });
-
-  after("Restore date", () => MockDate.reset());
-
-  beforeEach("Add board", (done) => {
+  beforeEach("Set mock date & Add board", (done) => {
+    seconds = -1; inc_date();
     new SiteAPI({setState: () => null}, (api) => {
       api.add_board('test', () => {
         // Add another board to provide an opportunity to fail at
@@ -54,8 +49,9 @@ describe("demo board api", () => {
     });
   });
   
-  afterEach("Clean up database", (done) => {
+  afterEach("Clean up database and reset mock date", (done) => {
     BoardAPI.test_reset(done);
+    () => MockDate.reset();
   });
 
   const state = (order, props) => {
@@ -555,33 +551,65 @@ describe("demo board api", () => {
         .then(() => promise((cb) => {
           // Make second project a task
           view.setState.restore();
+          inc_date();
           api.move(t2.id, t1.id, 'Doing', undefined, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Doing');
             expect(t2.order).toBeGreaterThan(0);
-            // expect(t2.history).toEqual([
-            //   {
-            //     start: "2017-06-08T10:02:00.004",
-            //     end: "2017-06-08T10:02:00.004"
-            //   },
-            //   {
-            //     start: "2017-06-08T10:02:01.004",
-            //     state: "Doing",
-            //     working: true
-            //   },
-            // ]);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                state: "Doing"
+              },
+            ]);
             cb();
           });
         }))
         .then(() => promise((cb) => {
-          // Move first project to new state  
+          // Move first project to new state.
+          // This should cause a new event in t2
           view.setState.restore();
-          api.move(t1.id, null, 'Development', undefined, () => {
+          inc_date();
+          api.move(t1.id, null, 'Development', undefined, (err) => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
             expect(t1.order).toBeGreaterThan(t2.order);
+            expect(t1.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:02.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Development",
+                working: true
+              },
+            ]);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Doing",
+                working: true
+              },
+            ]);
             cb();
           });
         }))
@@ -593,6 +621,39 @@ describe("demo board api", () => {
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
             expect(t1.order).toBeLessThan(t3.order);
+            //////////////////////////////////////////////////////////////////
+            // same as previous:
+            expect(t1.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:02.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Development",
+                working: true
+              },
+            ]);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Doing",
+                working: true
+              },
+            ]);
+            //
+            //////////////////////////////////////////////////////////////////
             cb();
           });
         }))
@@ -638,17 +699,79 @@ describe("demo board api", () => {
           });
         }))
         .then(() => promise((cb) => {
+          // Finish t2
+          view.setState.restore();
+          inc_date();
+          api.move(t2.id, t1.id, 'Done', undefined, () => {
+            expect(t2.parent.id).toBe(t1.id);
+            expect(t2.state.id).toBe('Done');
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                end: "2017-06-08T10:02:03.004",
+                state: "Doing",
+                working: true
+              },
+              {
+                start: "2017-06-08T10:02:03.004",
+                state: 'Done',
+                complete: true
+              },
+            ]);
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
           // We can promote a task to a feature:
           view.setState.restore();
+          inc_date();
           api.move(t2.id, null, 'Backlog', undefined, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent).toBe(undefined);
             expect(t2.state.id).toBe('Backlog');
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                end: "2017-06-08T10:02:03.004",
+                state: "Doing",
+                working: true
+              },
+              {
+                start: "2017-06-08T10:02:03.004",
+                end: "2017-06-08T10:02:04.004",
+                state: 'Done',
+                complete: true
+              },
+              {
+                start: "2017-06-08T10:02:04.004",
+                state: 'Backlog'
+              },
+            ]);
             cb();
           });
         }))
       // XXX tests for complete state, but need to revist complete tracking
-        .then(() => done());
+        .then((err) => done());
     });
   });
   

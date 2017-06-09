@@ -71,20 +71,24 @@ module.exports = class extends BaseAPI {
         });
     });
   }
-  
-  _state_status(state) {
-    return state.working ? 'w': state.complete? 'c': '';
-  }
 
-  set_event_status(event, task) {
-    if (task.state.complete) {
+  set_event_status(event, task, parent_state) {
+    // Note that the task is a raw task, with state and parent ids, not objects
+    const state = this.model.states_by_id[task.state];
+    if (event.working) {
+      delete event.working;
+    }
+    if (state.complete) {
       event.complete = true;
     }
     else {
-      if (task.state.working) {
-        if (task.state.task) {
+      if (event.complete) {
+        delete event.complete;
+      }
+      if (state.working) {
+        if (state.task) {
           this.assert_(task.parent);
-          if (task.parent.state.explode) {
+          if ((parent_state || this.model.tasks[task.parent].state).explode) {
             event.working = true;
           }
         }
@@ -93,6 +97,8 @@ module.exports = class extends BaseAPI {
         }
       }
     }
+    event.state = task.state;
+    return event;
   }
 
   add_project(props, cb) {
@@ -108,13 +114,10 @@ module.exports = class extends BaseAPI {
       board: this.model.name,
       title: props.title,
       description: props.description,
-      state: state,
+      state: state_id,
       order: this.model.order(undefined, true)
     };
-    const event = {start: now(), state: state_id};
-    this.set_event_status(event, project);
-    project.state = state_id;
-    project.history = [event];
+    project.history = [this.set_event_status({start: now()}, project)];
     this.transaction('tasks', 'readwrite', (trans) => {
       this.r(trans.objectStore('tasks').add(project), () => {
         this.update(trans, {tasks: {adds: [project]}}, cb);
@@ -133,20 +136,18 @@ module.exports = class extends BaseAPI {
     const task = {
       id: uuid(),
       board: this.model.name,
-      parent: this.model.tasks[props.project_id],
+      parent: props.project_id,
       title: props.title,
       description: props.description,
       size: props.size,
       blocked: props.blocked,
       assigned: props.assigned,
       order: this.model.order(undefined, true),
-      state: state
+      state: state_id
     };
-    const event = {start: now(), state: state_id, assigned: props.assigned};
-    this.set_event_status(event, task);
-    task.state = state_id;
-    task.history = [event];
-    task.parent = props.project_id;
+    task.history = [
+      this.set_event_status({start: now(), assigned: props.assigned}, task)
+    ];
     this.transaction('tasks', 'readwrite', (trans) => {
       this.r(trans.objectStore('tasks').add(task), () => {
         this.update(trans, {tasks: {adds: [task]}}, cb);
@@ -176,23 +177,14 @@ module.exports = class extends BaseAPI {
       }, cb);
     }, cb);
   }
-
-  _move(trans, tasks, task, parent_id, state_id, before_id, cb) {
-    task.order = this.model.order(before_id);
-    task.parent = parent_id;
-    task.state = state_id;
-    this.r(tasks.put(task), () => {
-      this.update(trans, {tasks: {adds: [task]}}, cb);
-    }, cb);
-  }
   
   move(task_id, parent_id, state_id, before_id, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(task_id), (task) => {
         if (parent_id) {
-          this.r(tasks.get(parent_id), (parent) => {
-            if (parent.parent != undefined) {
+          this.r(tasks.get(parent_id), (new_parent) => {
+            if (new_parent.parent != undefined) {
               throw "can't move task into a (sub)task";
             }
             if (! task.parent) {
@@ -217,4 +209,64 @@ module.exports = class extends BaseAPI {
       }, cb);
     }, cb);
   }
+
+  _move(trans, tasks, task, parent_id, state_id, before_id, cb) {
+    const board = this.model;
+    task.order = board.order(before_id);
+    const update_subtasks_working =
+      ! parent_id &&
+      ! task.parent &&
+      state_id != task.state &&
+      board.states_by_id[task.state].explode !=
+      board.states_by_id[state_id].explode;
+    task.parent = parent_id;
+    task.state = state_id;
+    const last = task.history[task.history.length - 1];
+    const event = this.set_event_status(Object.assign({}, last), task);
+    if (event.state !== last.state ||
+        event.working !== last.working ||
+        event.complete !== last.complete) {
+      last.end = now();
+      event.start = last.end;
+      task.history.push(event);
+    }
+    this.r(tasks.put(task), () => {
+      if (update_subtasks_working) {
+        const working_subtask_ids = board.tasks[task.id].subtasks().filter(
+          (t) => t.state.working 
+        ).map(
+          (t) => t.id
+        );
+        const adds = [task];
+        this._update_subtasks_working(
+          trans, tasks, working_subtask_ids, adds,
+          {explode: board.states_by_id[state_id].explode},
+          cb);
+      }
+      else {
+        this.update(trans, {tasks: {adds: [task]}}, cb);
+      }
+    }, cb);
+  }
+
+  _update_subtasks_working(trans, tasks, subtask_ids, adds, parent_state, cb) {
+    if (subtask_ids.length > 0) {
+      this.r(tasks.get(subtask_ids.pop()), (task) => {
+        const last = task.history[task.history.length - 1];
+        const event = Object.assign({}, last);
+        last.end = now();
+        event.start = last.end;
+        this.set_event_status(event, task, parent_state);
+        task.history.push(event);
+        adds.push(task);
+        this.r(tasks.put(task),
+               () => this._update_subtasks_working(
+                 trans, tasks, subtask_ids, adds, parent_state, cb),
+               cb);
+      }, cb);
+    }
+    else {
+      this.update(trans, {tasks: {adds: adds}}, cb);
+    }
+  } 
 };
