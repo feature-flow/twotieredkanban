@@ -30,8 +30,10 @@ class AddProject extends ProjectDialog {
   }
 
   finish(data) {
-    this.props.api.add_project(
-      data.title, data.description.toString('html'));
+    this.props.api.add_project({
+      title: data.title,
+      description: data.description.toString('html')
+    });
   }
   
 }
@@ -51,8 +53,10 @@ class EditProject extends ProjectDialog {
   }
 
   finish(data) {
-    this.props.api.update_task(data.id, data.title,
-                               data.description.toString('html'));
+    this.props.api.update_task(data.id, {
+      title: data.title,
+      description: data.description.toString('html')
+    });
   }
 
 }
@@ -132,11 +136,6 @@ class Project extends React.Component {
   render () {
     const {project} = this.props;
     this.rev = project.rev;
-
-    const add_project = (data) => {
-      this.props.api.add_task(
-        data.title, data.description);
-    };
     
     return (
       <Card className="kb-project">

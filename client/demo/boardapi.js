@@ -5,6 +5,8 @@ import {Board} from '../model/board';
 import {BaseAPI, board_states} from './baseapi';
 import default_states from './model.json';
 
+const now = () => (new Date()).toJSON().replace('Z', '');
+
 module.exports = class extends BaseAPI {
 
   constructor(view, name, cb) {
@@ -69,50 +71,104 @@ module.exports = class extends BaseAPI {
         });
     });
   }
+  
+  _state_status(state) {
+    return state.working ? 'w': state.complete? 'c': '';
+  }
 
-  add_project(title, description, cb) {
+  set_event_status(event, task) {
+    if (task.state.complete) {
+      event.complete = true;
+    }
+    else {
+      if (task.state.working) {
+        if (task.state.task) {
+          this.assert_(task.parent);
+          if (task.parent.state.explode) {
+            event.working = true;
+          }
+        }
+        else {
+          event.working = true;
+        }
+      }
+    }
+  }
+
+  add_project(props, cb) {
+    let state_id = props.state_id;
+    if (! state_id) {
+      state_id = this.model.default_project_state_id;
+    }
+    let state = this.model.states_by_id[state_id];
+    this.assert_(state, 'valid state id');
+    this.assert_(! state.task, 'valid project state');
+    const project = {
+      id: uuid(),
+      board: this.model.name,
+      title: props.title,
+      description: props.description,
+      state: state,
+      order: this.model.order(undefined, true)
+    };
+    const event = {start: now(), state: state_id};
+    this.set_event_status(event, project);
+    project.state = state_id;
+    project.history = [event];
     this.transaction('tasks', 'readwrite', (trans) => {
-      const project = {
-        board: this.model.name, id: uuid(),
-        title: title,
-        description: description,
-        order: this.model.order(undefined, true)
-      };
       this.r(trans.objectStore('tasks').add(project), () => {
         this.update(trans, {tasks: {adds: [project]}}, cb);
       }, cb);
     }, cb);
   }
 
-  add_task(project_id, title, description, size, blocked, assigned, cb) {
+  add_task(props, cb) {
+    let state_id = props.state_id;
+    if (! state_id) {
+      state_id = this.model.default_task_state_id;
+    }
+    let state = this.model.states_by_id[state_id];
+    this.assert_(state, 'valid state id');
+    this.assert_(state.task, 'valid task state');
+    const task = {
+      id: uuid(),
+      board: this.model.name,
+      parent: this.model.tasks[props.project_id],
+      title: props.title,
+      description: props.description,
+      size: props.size,
+      blocked: props.blocked,
+      assigned: props.assigned,
+      order: this.model.order(undefined, true),
+      state: state
+    };
+    const event = {start: now(), state: state_id, assigned: props.assigned};
+    this.set_event_status(event, task);
+    task.state = state_id;
+    task.history = [event];
+    task.parent = props.project_id;
     this.transaction('tasks', 'readwrite', (trans) => {
-      const task = {
-        board: this.model.name, id: uuid(),
-        parent: project_id,
-        title: title, description: description,
-        size: size, blocked: blocked, assigned: assigned,
-        order: this.model.order(undefined, true)
-      };
       this.r(trans.objectStore('tasks').add(task), () => {
         this.update(trans, {tasks: {adds: [task]}}, cb);
       }, cb);
     }, cb);
   }
 
-  update_task(id, title, description, size, blocked, assigned, cb) {
+  update_task(id, props, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(id), (task) => {
-        task.title = title;
-        task.description = description;
-        if (size !== undefined) {
-          task.size = size;
+        task.title = props.title;
+        task.description = props.description;
+        if (props.size !== undefined) {
+          task.size = props.size;
         }
-        if (blocked !== undefined) {
-          task.blocked = blocked;
+        if (props.blocked !== undefined) {
+          task.blocked = props.blocked;
         }
-        if (assigned !== undefined) {
-          task.assigned = assigned;
+        if (props.assigned !== undefined) {
+          task.assigned = props.assigned;
+          task.history[task.history.length - 1].assigned = props.assigned;
         }
         this.r(tasks.put(task), () => {
           this.update(trans, {tasks: {adds: [task]}}, cb);

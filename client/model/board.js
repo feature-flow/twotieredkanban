@@ -58,20 +58,19 @@ class TaskContainer {
 
 class Task extends TaskContainer {
 
-  constructor(id, title, description, state, order, blocked, created, assigned,
-              size=0, complete=false, parent=null) {
+  constructor(id, props) {
     super();
     this.id = id;
-    this.title = title;
-    this.description = description;
-    this.state = state;
-    this.order = order;
-    this.blocked = blocked;
-    this.created = created;
-    this.assigned = assigned;
-    this.size = size;
-    this.complete = complete;
-    this.parent = parent;
+    this.title = props.title;
+    this.description = props.description;
+    this.state = props.state;
+    this.order = props.order;
+    this.blocked = props.blocked;
+    this.assigned = props.assigned;
+    this.size = props.size || 1;
+    this.complete = props.complete;
+    this.parent = props.parent;
+    this.history = props.history;
   }
 
   update(task) {
@@ -85,6 +84,7 @@ class Task extends TaskContainer {
     this.parent = task.parent;
     this.state = task.state;
     this.order = task.order;
+    this.history = task.history;
 
     // Give React a little help:
     this.rev += 1;
@@ -215,10 +215,13 @@ class Board extends TaskContainer {
         if (! task.parent) {
           this.add_task(new Task(
             task.id,
-            task.title,
-            task.description,
-            task.state ? task.state : this.default_project_state_id,
-            task.order
+            {
+              title: task.title,
+              description: task.description,
+              state: task.state ? task.state : this.default_project_state_id,
+              order: task.order,
+              history: task.history
+            }
           ));
         }
       });
@@ -231,16 +234,17 @@ class Board extends TaskContainer {
           this.add_task(
             new Task(
               task.id,
-              task.title,
-              task.description,
-              task.state ? task.state : this.default_task_state_id,
-              task.order,
-              task.blocked,
-              task.created,
-              task.assigned,
-              task.size,
-              task.complete,
-              this.tasks[task.parent]
+              {
+                title: task.title,
+                description: task.description,
+                state: task.state ? task.state : this.default_task_state_id,
+                order: task.order,
+                blocked: task.blocked,
+                assigned: task.assigned,
+                size: task.size,
+                history: task.history,
+                parent: this.tasks[task.parent]
+              }
             ));
         }
       });
