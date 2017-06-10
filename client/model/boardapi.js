@@ -7,23 +7,31 @@ module.exports = class extends APIBase {
     super(new Board(name), view, '/board/' + name + '/');
   }
 
-  add_project(title, description) {
+  add_project(props) {
     this.post('projects',
-              {title: title, description: description,
+              {title: props.title, description: props.description,
                order: this.model.order(undefined, true)});
   }
 
-  add_task(project_id, title, description, size, blocked, assigned) {
-    this.post('project/' + project_id,
-              {title: title, description: description,
-               size: size, blocked: blocked, assigned: assigned,
-               order: this.model.order(undefined, true)});
+  add_task(props) {
+    this.post('project/' + props.project_id, {
+      title: props.title,
+      description: props.description,
+      size: props.size,
+      blocked: props.blocked,
+      assigned: props.assigned,
+      order: this.model.order(undefined, true)
+    });
   }
 
-  update_task(id, title, description, size, blocked, assigned) {
-    this.put('tasks/' + id,
-             {title: title, description: description,
-              size: size, blocked: blocked, assigned: assigned});
+  update_task(id, props) {
+    this.put('tasks/' + id, {
+      title: props.title,
+      description: props.description,
+      size: props.size,
+      blocked: props.blocked,
+      assigned: props.assigned
+    });
   }
 
   move(task_id, parent_id, state_id, before_id) {

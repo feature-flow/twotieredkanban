@@ -25,7 +25,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.031635"}],
+      "history": [{"start": "2017-06-04T22:29:54.031635", "state": "Backlog"}],
       "id": "proto",
       "order": 1,
       "title": "Prototype board"
@@ -33,7 +33,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032246"}],
+      "history": [{"start": "2017-06-04T22:29:54.032246", "state": "ready"}],
       "id": "states",
       "order": 2,
       "parent": "proto",
@@ -43,7 +43,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032266"}],
+      "history": [{"start": "2017-06-04T22:29:54.032266", "state": "ready"}],
       "id": "api",
       "order": 3,
       "parent": "proto",
@@ -53,7 +53,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032278"}],
+      "history": [{"start": "2017-06-04T22:29:54.032278", "state": "ready"}],
       "id": "routes",
       "order": 4,
       "parent": "proto",
@@ -63,7 +63,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032300"}],
+      "history": [{"start": "2017-06-04T22:29:54.032300", "state": "ready"}],
       "id": "add_board",
       "order": 5,
       "parent": "proto",
@@ -73,7 +73,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032313"}],
+      "history": [{"start": "2017-06-04T22:29:54.032313", "state": "ready"}],
       "id": "layout",
       "order": 6,
       "parent": "proto",
@@ -83,7 +83,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032326"}],
+      "history": [{"start": "2017-06-04T22:29:54.032326", "state": "ready"}],
       "id": "projects",
       "order": 7,
       "parent": "proto",
@@ -93,7 +93,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032338"}],
+      "history": [{"start": "2017-06-04T22:29:54.032338", "state": "ready"}],
       "id": "rasks",
       "order": 8,
       "parent": "proto",
@@ -103,7 +103,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032350"}],
+      "history": [{"start": "2017-06-04T22:29:54.032350", "state": "ready"}],
       "id": "expand",
       "order": 9,
       "parent": "proto",
@@ -113,7 +113,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032361"}],
+      "history": [{"start": "2017-06-04T22:29:54.032361", "state": "ready"}],
       "id": "project_dnd",
       "order": 10,
       "parent": "proto",
@@ -123,7 +123,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032372"}],
+      "history": [{"start": "2017-06-04T22:29:54.032372", "state": "ready"}],
       "id": "dev_mode",
       "order": 11,
       "parent": "proto",
@@ -133,7 +133,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032381"}],
+      "history": [{"start": "2017-06-04T22:29:54.032381", "state": "ready"}],
       "id": "task_dnd",
       "order": 12,
       "parent": "proto",
@@ -143,7 +143,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032391"}],
+      "history": [{"start": "2017-06-04T22:29:54.032391", "state": "ready"}],
       "id": "completion",
       "order": 13,
       "parent": "proto",
@@ -153,7 +153,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032407"}],
+      "history": [{"start": "2017-06-04T22:29:54.032407", "state": "Backlog"}],
       "id": "persistence",
       "order": 14,
       "title": "Persistence"
@@ -161,7 +161,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032417"}],
+      "history": [{"start": "2017-06-04T22:29:54.032417", "state": "ready"}],
       "id": "idb",
       "order": 15,
       "parent": "persistence",
@@ -171,7 +171,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032427"}],
+      "history": [{"start": "2017-06-04T22:29:54.032427", "state": "ready"}],
       "id": "idbp",
       "order": 16,
       "parent": "persistence",
@@ -181,7 +181,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032434"}],
+      "history": [{"start": "2017-06-04T22:29:54.032434", "state": "ready"}],
       "id": "idbm",
       "order": 17,
       "parent": "persistence",
@@ -191,7 +191,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032439"}],
+      "history": [{"start": "2017-06-04T22:29:54.032439", "state": "ready"}],
       "id": "sdb",
       "order": 18,
       "parent": "persistence",
@@ -201,7 +201,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032444"}],
+      "history": [{"start": "2017-06-04T22:29:54.032444", "state": "ready"}],
       "id": "sdbp",
       "order": 19,
       "parent": "persistence",
@@ -211,7 +211,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032451"}],
+      "history": [{"start": "2017-06-04T22:29:54.032451", "state": "ready"}],
       "id": "sdbm",
       "order": 20,
       "parent": "persistence",
@@ -221,7 +221,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032457"}],
+      "history": [{"start": "2017-06-04T22:29:54.032457", "state": "Backlog"}],
       "id": "auth",
       "order": 21,
       "title": "Users and authentication"
@@ -229,7 +229,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032463"}],
+      "history": [{"start": "2017-06-04T22:29:54.032463", "state": "ready"}],
       "id": "demo_current",
       "order": 22,
       "parent": "auth",
@@ -239,7 +239,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032469"}],
+      "history": [{"start": "2017-06-04T22:29:54.032469", "state": "ready"}],
       "id": "assignment",
       "order": 23,
       "parent": "auth",
@@ -249,7 +249,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032485"}],
+      "history": [{"start": "2017-06-04T22:29:54.032485", "state": "ready"}],
       "id": "server_auth",
       "order": 24,
       "parent": "auth",
@@ -259,7 +259,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032491"}],
+      "history": [{"start": "2017-06-04T22:29:54.032491", "state": "ready"}],
       "id": "pw_auth",
       "order": 25,
       "parent": "auth",
@@ -269,7 +269,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032497"}],
+      "history": [{"start": "2017-06-04T22:29:54.032497", "state": "ready"}],
       "id": "switch_user",
       "order": 26,
       "parent": "auth",
@@ -279,7 +279,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032502"}],
+      "history": [{"start": "2017-06-04T22:29:54.032502", "state": "ready"}],
       "id": "demo_profile",
       "order": 27,
       "parent": "auth",
@@ -289,7 +289,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032508"}],
+      "history": [{"start": "2017-06-04T22:29:54.032508", "state": "ready"}],
       "id": "pw_logout",
       "order": 28,
       "parent": "auth",
@@ -299,7 +299,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032513"}],
+      "history": [{"start": "2017-06-04T22:29:54.032513", "state": "ready"}],
       "id": "pw_profile",
       "order": 29,
       "parent": "auth",
@@ -309,7 +309,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032519"}],
+      "history": [{"start": "2017-06-04T22:29:54.032519", "state": "Backlog"}],
       "id": "vel",
       "order": 30,
       "title": "Velocity"
@@ -317,7 +317,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032526"}],
+      "history": [{"start": "2017-06-04T22:29:54.032526", "state": "ready"}],
       "id": "vel_model",
       "order": 31,
       "parent": "vel",
@@ -327,7 +327,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032531"}],
+      "history": [{"start": "2017-06-04T22:29:54.032531", "state": "ready"}],
       "id": "vel_ex",
       "order": 32,
       "parent": "vel",
@@ -337,7 +337,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032537"}],
+      "history": [{"start": "2017-06-04T22:29:54.032537", "state": "ready"}],
       "id": "vel_test",
       "order": 33,
       "parent": "vel",
@@ -347,7 +347,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032542"}],
+      "history": [{"start": "2017-06-04T22:29:54.032542", "state": "ready"}],
       "id": "vel_model_pass",
       "order": 34,
       "parent": "vel",
@@ -357,7 +357,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032851"}],
+      "history": [{"start": "2017-06-04T22:29:54.032851", "state": "ready"}],
       "id": "vel_server",
       "order": 35,
       "parent": "vel",
@@ -367,7 +367,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032870"}],
+      "history": [{"start": "2017-06-04T22:29:54.032870", "state": "ready"}],
       "id": "vel_display_design",
       "order": 36,
       "parent": "vel",
@@ -377,7 +377,7 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032876"}],
+      "history": [{"start": "2017-06-04T22:29:54.032876", "state": "ready"}],
       "id": "vel_display ",
       "order": 37,
       "parent": "vel",

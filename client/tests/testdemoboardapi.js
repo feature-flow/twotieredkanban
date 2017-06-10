@@ -1,4 +1,5 @@
 import expect from 'expect';
+import MockDate from 'mockdate';
 
 import indexedDB from 'indexedDB';
 import BoardAPI from '../demo/boardapi';
@@ -6,7 +7,15 @@ import SiteAPI from '../demo/siteapi';
 
 describe("demo board api", () => {
 
-  beforeEach("Add board", (done) => {
+  let seconds = -1;
+
+  const inc_date = () => {
+    seconds += 1;
+    MockDate.set(new Date(2017, 5, 8, 6, 2, seconds, 4), -300);
+  };
+
+  beforeEach("Set mock date & Add board", (done) => {
+    seconds = -1; inc_date();
     new SiteAPI({setState: () => null}, (api) => {
       api.add_board('test', () => {
         // Add another board to provide an opportunity to fail at
@@ -14,22 +23,35 @@ describe("demo board api", () => {
         api.add_board('test2', () => {
           const view = {setState: expect.createSpy()};
           new BoardAPI(view, 'test2', (board_api) => {
-            board_api.add_project('Proj', 'the proj', () => {
-              let project;
-              [project] = board_api.model.all_tasks;
-              board_api.add_task(
-                project.id, 'Task', 'the task', 2, null, undefined, () => {
-                done();
-                });
-            });
+            board_api.add_project(
+              {
+                title: 'Proj',
+                description: 'the proj'
+              }, () => {
+                let project;
+                [project] = board_api.model.all_tasks;
+                board_api.add_task(
+                  {
+                    project_id: 
+                    project.id,
+                    title: 'Task',
+                    description: 'the task',
+                    size: 2,
+                    blocked: null,
+                    assigned: undefined
+                  }, () => {
+                    done();
+                  });
+              });
           });
         });
       });
     });
   });
   
-  afterEach("Clean up database", (done) => {
+  afterEach("Clean up database and reset mock date", (done) => {
     BoardAPI.test_reset(done);
+    () => MockDate.reset();
   });
 
   const state = (order, props) => {
@@ -79,19 +101,19 @@ describe("demo board api", () => {
         {name: 'test', title: '', description: ''},
         {name: 'test2', title: '', description: ''}]);
       expect(model.users).toEqual([
-           {"id": "alex", "nick": "alex", "email": "alex@example.com",
-            "name": "Alex Peeple"},
-           {"id": "cas", "nick": "cas", "email": "cas@example.com",
-            "name": "Cas Emplo"},
-           {"id": "gal", "nick": "gal", "email": "gal@example.com",
-            "name": "Gal Humana"},
-           {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-            "name": "Jaci Admi", "admin": true},
-           {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-            "name": "Kiran Persons"},
-           {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-            "name": "Ryou Bosso", "admin": true, "current": true}
-         ]);
+        {"id": "alex", "nick": "alex", "email": "alex@example.com",
+         "name": "Alex Peeple"},
+        {"id": "cas", "nick": "cas", "email": "cas@example.com",
+         "name": "Cas Emplo"},
+        {"id": "gal", "nick": "gal", "email": "gal@example.com",
+         "name": "Gal Humana"},
+        {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
+         "name": "Jaci Admi", "admin": true},
+        {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
+         "name": "Kiran Persons"},
+        {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
+         "name": "Ryou Bosso", "admin": true, "current": true}
+      ]);
       done();
     });
   });
@@ -123,7 +145,7 @@ describe("demo board api", () => {
         })))
         .toEqual([
           {title: 'Task', description: 'the task', parent: true, size: 2},
-          {title: 'Proj', description: 'the proj', parent: false, size: 0}
+          {title: 'Proj', description: 'the proj', parent: false, size: 1}
         ]);
       expect(model.boards).toEqual([
         { "description":
@@ -155,15 +177,51 @@ describe("demo board api", () => {
     new BoardAPI(view, 'test', (api) => {
       view.setState.restore();
       const model = api.model;
-      api.add_project('first', 'do the first', () => {
-        expect(view.setState).toHaveBeenCalledWith({model: model});
-        let project;
-        [project] = model.all_tasks;
-        expect(project.title).toBe('first');
-        expect(project.description).toBe('do the first');
-        expect(project.order).toBe(0);
-        done();
-      });
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          let project;
+          [project] = model.all_tasks;
+          expect(project.title).toBe('first');
+          expect(project.description).toBe('do the first');
+          expect(project.order).toBe(0);
+          expect(project.state.id).toBe('Backlog');
+          expect(project.history)
+            .toEqual([{start: "2017-06-08T10:02:00.004", state: 'Backlog'}]);
+          done();
+        });
+    });
+  });
+
+  it("Should add working projects", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test', (api) => {
+      view.setState.restore();
+      const model = api.model;
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first',
+          state_id: 'Development'
+        }, () => {
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          let project;
+          [project] = model.all_tasks;
+          expect(project.title).toBe('first');
+          expect(project.description).toBe('do the first');
+          expect(project.order).toBe(0);
+          expect(project.state.id).toBe('Development');
+          expect(project.history)
+            .toEqual([{
+              start: "2017-06-08T10:02:00.004",
+              state: 'Development',
+              working: true
+            }]);
+          done();
+        });
     });
   });
 
@@ -171,24 +229,226 @@ describe("demo board api", () => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
-      api.add_project('first', 'do the first', () => {
-        let project;
-        [project] = model.all_tasks;
-        view.setState.restore();
-        api.add_task(
-          project.id, 'a task', 'do the task', 2, null, undefined, () => {
-            expect(view.setState).toHaveBeenCalledWith({model: model});
-            let task;
-            [task] = model.all_tasks.filter((task) => task.id != project.id);
-            expect(task.title).toBe('a task');
-            expect(task.description).toBe('do the task');
-            expect(task.size).toBe(2);
-            expect(task.blocked).toBe(null);
-            expect(task.order).toBeLessThan(0);
-            expect(task.assigned).toNotExist();
-            done();
-          });
-      });
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          view.setState.restore();
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: '',
+              assigned: 'cas'
+            }, () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              expect(task.title).toBe('a task');
+              expect(task.description).toBe('do the task');
+              expect(task.size).toBe(2);
+              expect(task.blocked).toBe('');
+              expect(task.order).toBeLessThan(0);
+              expect(task.assigned).toBe('cas');
+              expect(task.state.id).toBe('ready');
+              expect(task.history)
+                .toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'ready'
+                  }]);
+              done();
+            });
+        });
+    });
+  });
+
+  it("Should add complete tasks", (done) => { // for some reason :)
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test', (api) => {
+      const model = api.model;
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          view.setState.restore();
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: '',
+              assigned: 'cas',
+              state_id: 'Done'
+            }, () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              expect(task.title).toBe('a task');
+              expect(task.description).toBe('do the task');
+              expect(task.size).toBe(2);
+              expect(task.blocked).toBe('');
+              expect(task.order).toBeLessThan(0);
+              expect(task.assigned).toBe('cas');
+              expect(task.state.id).toBe('Done');
+              expect(task.history)
+                .toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'Done',
+                    complete: true
+                  }]);
+              done();
+            });
+        });
+    });
+  });
+
+  it("Should add will be working tasks", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test', (api) => {
+      const model = api.model;
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          view.setState.restore();
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: '',
+              assigned: 'cas',
+              state_id: 'Doing'
+            }, () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              expect(task.title).toBe('a task');
+              expect(task.description).toBe('do the task');
+              expect(task.size).toBe(2);
+              expect(task.blocked).toBe('');
+              expect(task.order).toBeLessThan(0);
+              expect(task.assigned).toBe('cas');
+              expect(task.state.id).toBe('Doing');
+              expect(task.history)
+                .toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'Doing'
+                  }]);
+              done();
+            });
+        });
+    });
+  });
+
+  it("Should add working tasks", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test', (api) => {
+      const model = api.model;
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          view.setState.restore();
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: '',
+              assigned: 'cas',
+              state_id: 'Doing'
+            }, () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              expect(task.title).toBe('a task');
+              expect(task.description).toBe('do the task');
+              expect(task.size).toBe(2);
+              expect(task.blocked).toBe('');
+              expect(task.order).toBeLessThan(0);
+              expect(task.assigned).toBe('cas');
+              expect(task.state.id).toBe('Doing');
+              expect(task.history)
+                .toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'Doing'
+                  }]);
+              done();
+            });
+        });
+    });
+  });
+
+  it("Should add working tasks", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test', (api) => {
+      const model = api.model;
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first',
+          state_id: 'Development'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          view.setState.restore();
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: '',
+              assigned: 'cas',
+              state_id: 'Doing'
+            }, () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              expect(task.title).toBe('a task');
+              expect(task.description).toBe('do the task');
+              expect(task.size).toBe(2);
+              expect(task.blocked).toBe('');
+              expect(task.order).toBeLessThan(0);
+              expect(task.assigned).toBe('cas');
+              expect(task.state.id).toBe('Doing');
+              expect(task.history)
+                .toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'Doing',
+                    working: true
+                  }]);
+              done();
+            });
+        });
     });
   });
 
@@ -196,82 +456,177 @@ describe("demo board api", () => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
-      api.add_project('first', 'do the first', () => {
-        let project;
-        [project] = model.all_tasks;
-        api.add_task(
-          project.id, 'a task', 'do the task', 2, null, undefined,
-          () => {
-            expect(view.setState).toHaveBeenCalledWith({model: model});
-            let task;
-            [task] = model.all_tasks.filter((task) => task.id != project.id);
-            view.setState.restore();
-            api.update_task(
-              task.id, 'A task', 'Do the task', 3, 'waaa', 'cas', () => {
+      api.add_project(
+        {
+          title: 'first',
+          description: 'do the first'
+        }, () => {
+          let project;
+          [project] = model.all_tasks;
+          api.add_task(
+            {
+              project_id: project.id,
+              title: 'a task',
+              description: 'do the task',
+              size: 2,
+              blocked: null,
+              assigned: undefined
+            },
+            () => {
+              expect(view.setState).toHaveBeenCalledWith({model: model});
+              let task;
+              [task] = model.all_tasks.filter((task) => task.id != project.id);
+              view.setState.restore();
+              inc_date();
+              api.update_task(task.id, {
+                title: 'A task',
+                description: 'Do the task',
+                size: 3,
+                blocked: 'waaa',
+                assigned: 'cas'
+              }, () => {
                 expect(view.setState).toHaveBeenCalledWith({model: model});
                 expect(task.title).toBe('A task');
                 expect(task.description).toBe('Do the task');
                 expect(task.size).toBe(3);
                 expect(task.blocked).toBe('waaa');
                 expect(task.assigned).toBe('cas');
+                expect(task.history).toEqual([
+                  {
+                    assigned: 'cas',
+                    start: "2017-06-08T10:02:00.004",
+                    state: 'ready'
+                  },
+                ]);
 
                 // Check partial udate
                 view.setState.restore();
-                api.update_task(
-                  task.id, 'Task', 'Do the Task',
-                  undefined, undefined, undefined,
-                  () => {
-                    expect(view.setState).toHaveBeenCalledWith({model: model});
-                    expect(task.title).toBe('Task');
-                    expect(task.description).toBe('Do the Task');
-                    expect(task.size).toBe(3);
-                    expect(task.blocked).toBe('waaa');
-                    expect(task.assigned).toBe('cas');
-                    done();
-                  });
+                api.update_task(task.id, {
+                  title: 'Task',
+                  description: 'Do the Task'
+                }, () => {
+                  expect(view.setState).toHaveBeenCalledWith({model: model});
+                  expect(task.title).toBe('Task');
+                  expect(task.description).toBe('Do the Task');
+                  expect(task.size).toBe(3);
+                  expect(task.blocked).toBe('waaa');
+                  expect(task.assigned).toBe('cas');
+                  done();
+                });
               });
-          });
-      });
+            });
+        });
     });
   });
 
   const promise = (f) => new Promise((complete) => f(complete));
 
-  it("Should move tasks", (done) => {
+  it("Should move tasks, maintain tasks, and track completed", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
       let t1, t2, t3;
       promise((cb) => {
-        api.add_project('first', 'do the first', () => {
-          api.add_project('second', 'do the second', () => {
-            api.add_project('third', 'do the third', () => {
-              [t3, t2, t1] = model.all_tasks;
-              cb();
-            });
+        api.add_project(
+          {
+            title: 'first',
+            description: 'do the first'
+          }, () => {
+            api.add_project(
+              {title: 'second',
+               description: 'do the second'
+              }, () => {
+                api.add_project(
+                  {
+                    title: 'third',
+                    description: 'do the third'
+                  }, () => {
+                    [t3, t2, t1] = model.all_tasks;
+                    expect(t1.count).toBe(0);
+                    expect(t1.total_size).toBe(0);
+                    expect(t1.total_completed).toBe(0);
+                    cb();
+                  });
+              });
           });
-        });
         api.handle_error = expect.createSpy();
       })
         .then(() => promise((cb) => {
           // Make second project a task
           view.setState.restore();
+          inc_date();
           api.move(t2.id, t1.id, 'Doing', undefined, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Doing');
             expect(t2.order).toBeGreaterThan(0);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                state: "Doing"
+              },
+            ]);
+            expect(t1.count).toBe(1);
+            expect(t1.total_size).toBe(1);
+            expect(t1.total_completed).toBe(0);
             cb();
           });
         }))
         .then(() => promise((cb) => {
-          // Move first project to new state  
+          // change t2's size and see it reflected in stats
+          api.update_task(
+            t2.id,
+            {title: t2.title, description: t2.description, size: 3}, () => {
+              expect(t1.count).toBe(1);
+              expect(t1.total_size).toBe(3);
+              expect(t1.total_completed).toBe(0);
+              cb();
+            }); 
+        }))
+        .then(() => promise((cb) => {
+          // Move first project to new state.
+          // This should cause a new event in t2
           view.setState.restore();
-          api.move(t1.id, null, 'Development', undefined, () => {
+          inc_date();
+          api.move(t1.id, null, 'Development', undefined, (err) => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
-            expect(t1.parent).toBe(null);
+            expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
             expect(t1.order).toBeGreaterThan(t2.order);
+            expect(t1.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:02.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Development",
+                working: true
+              },
+            ]);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Doing",
+                working: true
+              },
+            ]);
             cb();
           });
         }))
@@ -280,9 +635,42 @@ describe("demo board api", () => {
           view.setState.restore();
           api.move(t1.id, null, 'Development', t3.id, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
-            expect(t1.parent).toBe(null);
+            expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
             expect(t1.order).toBeLessThan(t3.order);
+            //////////////////////////////////////////////////////////////////
+            // same as previous:
+            expect(t1.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:02.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Development",
+                working: true
+              },
+            ]);
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                state: "Doing",
+                working: true
+              },
+            ]);
+            //
+            //////////////////////////////////////////////////////////////////
             cb();
           });
         }))
@@ -291,7 +679,7 @@ describe("demo board api", () => {
           api.move(t3.id, t2.id, 'Doing', undefined, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith("can't move task into a (sub)task");
-            expect(t3.parent).toBe(null);        // Unchanged
+            expect(t3.parent).toBe(undefined);        // Unchanged
             expect(t3.state.id).toBe('Backlog'); // Unchanged
             cb();
           });
@@ -302,7 +690,7 @@ describe("demo board api", () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "can't demote project to task if it has children");
-            expect(t1.parent).toBe(null);        // Unchanged
+            expect(t1.parent).toBe(undefined);        // Unchanged
             expect(t1.state.id).toBe('Development'); // Unchanged
             cb();
           });
@@ -328,17 +716,87 @@ describe("demo board api", () => {
           });
         }))
         .then(() => promise((cb) => {
-          // We can promote a task to a feature:
+          // Finish t2
+          expect(t1.count).toBe(1);
+          expect(t1.total_size).toBe(3);
+          expect(t1.total_completed).toBe(0);
           view.setState.restore();
-          api.move(t2.id, null, 'Backlog', undefined, () => {
-            expect(view.setState).toHaveBeenCalledWith({model: model});
-            expect(t2.parent).toBe(null);
-            expect(t2.state.id).toBe('Backlog');
+          inc_date();
+          api.move(t2.id, t1.id, 'Done', undefined, () => {
+            expect(t2.parent.id).toBe(t1.id);
+            expect(t2.state.id).toBe('Done');
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                end: "2017-06-08T10:02:03.004",
+                state: "Doing",
+                working: true
+              },
+              {
+                start: "2017-06-08T10:02:03.004",
+                state: 'Done',
+                complete: true
+              },
+            ]);
+            expect(t1.count).toBe(1);
+            expect(t1.total_size).toBe(3);
+            expect(t1.total_completed).toBe(3);
             cb();
           });
         }))
-        // XXX tests for complete state, but need to revist complete tracking
-        .then(() => done());
+        .then(() => promise((cb) => {
+          // We can promote a task to a feature:
+          view.setState.restore();
+          inc_date();
+          api.move(t2.id, null, 'Backlog', undefined, () => {
+            expect(view.setState).toHaveBeenCalledWith({model: model});
+            expect(t2.parent).toBe(undefined);
+            expect(t2.state.id).toBe('Backlog');
+            expect(t2.history).toEqual([
+              {
+                start: "2017-06-08T10:02:00.004",
+                end: "2017-06-08T10:02:01.004",
+                state: 'Backlog'
+              },
+              {
+                start: "2017-06-08T10:02:01.004",
+                end: "2017-06-08T10:02:02.004",
+                state: "Doing"
+              },
+              {
+                start: "2017-06-08T10:02:02.004",
+                end: "2017-06-08T10:02:03.004",
+                state: "Doing",
+                working: true
+              },
+              {
+                start: "2017-06-08T10:02:03.004",
+                end: "2017-06-08T10:02:04.004",
+                state: 'Done',
+                complete: true
+              },
+              {
+                start: "2017-06-08T10:02:04.004",
+                state: 'Backlog'
+              },
+            ]);
+            expect(t1.count).toBe(0);
+            expect(t1.total_size).toBe(0);
+            expect(t1.total_completed).toBe(0);
+            cb();
+          });
+        }))
+        .then((err) => done());
     });
   });
   

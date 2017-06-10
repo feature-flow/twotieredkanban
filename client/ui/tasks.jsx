@@ -45,9 +45,14 @@ class AddTask extends TaskDialog {
   }
 
   finish(data) {
-    this.props.api.add_task(
-      this.props.project.id, data.title, data.description.toString('html'),
-      parseInt(data.size), data.blocked, data.assigned);
+    this.props.api.add_task({
+      project_id: this.props.project.id,
+      title: data.title,
+      description: data.description.toString('html'),
+      size: parseInt(data.size),
+      blocked: data.blocked,
+      assigned: data.assigned
+    });
   }  
 }
 
@@ -68,9 +73,13 @@ class EditTask extends TaskDialog {
   }
 
   finish(data) {
-    this.props.api.update_task(
-      data.id, data.title, data.description.toString('html'),
-      parseInt(data.size), data.blocked, data.assigned);
+    this.props.api.update_task(data.id, {
+      title: data.title,
+      description: data.description.toString('html'),
+      size: parseInt(data.size),
+      blocked: data.blocked,
+      assigned: data.assigned
+    });
   }
 }
 

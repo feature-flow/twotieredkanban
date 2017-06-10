@@ -28,7 +28,9 @@ function task(id, order, data) {
   const task = {
     "blocked": null, "assigned": null, "created": 1494531763.295133,
     "description": "", "complete": null, order: order,
-    "size": 1, "id": id, "state": null, "title": id, "parent": null };
+    "size": 1, "id": id, "state": null, "title": id, "parent": null,
+    history: [{}]
+  };
   if (data) {
     Object.assign(task, data);
   }
@@ -76,7 +78,7 @@ describe("Kanban Board", () => {
       ]);
   });
 
-  it("should handle tesks in states", () => {
+  it("should handle tasks in states", () => {
     const board = initialized_board();
     board.update({tasks: {adds: [
       task('t1', 1, {parent: 'p1'}),
@@ -116,6 +118,23 @@ describe("Kanban Board", () => {
     expect(board.tasks['p1'].subtasks('Done')).toEqual([]);
     expect(board.tasks['p1'].subtasks('Doing').map((t) => t.id))
       .toEqual(['p2', 't3', 't2', 't1']);
+  });
+
+  it("should compute stats on update", () => {
+    const board = initialized_board();
+    board.update({tasks: {adds: [
+      task('t1', 1, {parent: 'p1', size: 1, history: [{complete: true}]}),
+      task('t2', 2, {parent: 'p1', size: 2, history: [{complete: true}]}),
+      task('t3', 3, {parent: 'p1', size: 3}),
+      task('p1', 4),
+      task('p2', 5, {state: 'Development'})
+    ]}});
+    expect(board.tasks['p1'].count).toBe(3);
+    expect(board.tasks['p1'].total_size).toBe(6);
+    expect(board.tasks['p1'].total_completed).toBe(3);
+    expect(board.tasks['p2'].count).toBe(0);
+    expect(board.tasks['p2'].total_size).toBe(0);
+    expect(board.tasks['p2'].total_completed).toBe(0);
   });
 
 });

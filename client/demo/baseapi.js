@@ -80,6 +80,12 @@ module.exports = {
     start() {}
     stop() {}
 
+    assert_(cond, message) {
+      if (! cond) {
+        throw new Error('Assertion failed: ' + message);
+      }
+    }
+    
     static test_reset(cb) {
       open_request.result.close();
       indexedDB.deleteDatabase(dbname).onsuccess = () => {

@@ -48,6 +48,7 @@
     "karma-webpack": "^2.0.3",
     "mocha": "^3.3.0",
     "mocha-webpack": "^0.7.0",
+    "mockdate": "^2.0.1",
     "node-sass": "^4.5.2",
     "postcss-cssnext": "^2.10.0",
     "postcss-each": "^0.9.3",
