@@ -1,12 +1,14 @@
 import BTrees.OOBTree
+import datetime
 import json
 import os
 import persistent
-import re
-import time
 import uuid
 import zc.generationalset
 from ZODB.utils import u64
+
+def now():
+    return datetime.datetime.utcnow().isoformat()
 
 class Board(persistent.Persistent):
 
@@ -18,6 +20,7 @@ class Board(persistent.Persistent):
         self.changes = changes = zc.generationalset.GSet()
         self.states = zc.generationalset.GSet("states", changes)
         self.tasks = zc.generationalset.GSet("tasks", changes)
+        self.subtasks = BTrees.OOBTree.OOBTree() # {parent_id => [tasks]}
         self.update(name, title, description)
         self.archive = BTrees.OOBTree.OOBTree() # FUTURE {project_id -> subset }
 
@@ -33,6 +36,9 @@ class Board(persistent.Persistent):
                 state = dict(title=state)
             state = State(i, **state)
             self.states.add(state)
+
+        self.default_task_state = [s for s in self.states if s.task][0]
+        self.default_project_state = [s for s in self.states if not s.task][0]
 
     @property
     def generation(self):
@@ -71,7 +77,14 @@ class Board(persistent.Persistent):
             return None
 
     def new_project(self, title, order, description=''):
-        self.tasks.add(Task(self, title, description=description, order=order))
+        self.tasks.add(
+            Task(self,
+                 title,
+                 description=description,
+                 order=order,
+                 state=self.default_project_state,
+                 )
+            )
 
     def new_task(self, project_id, title, order,
                  description='', size=1, blocked=None, assigned=None,
@@ -84,8 +97,12 @@ class Board(persistent.Persistent):
                     blocked=blocked,
                     assigned=assigned,
                     order=order,
+                    state=self.default_task_state,
                     )
         self.tasks.add(task)
+        self.subtasks[project_id] = (
+            self.subtasks.get(project_id, ()) + (task,))
+
         return task
 
     def update_task(self, task_id, **data):
@@ -98,10 +115,15 @@ class Board(persistent.Persistent):
         parent = self.tasks[parent_id] if parent_id is not None else None
 
         if state_id is None:
-            if task.parent is not None and parent is not None:
-                state = task.state # Still a task, so retain state
+            if (task.parent is not None and parent is not None
+                or
+                task.parent == parent # None
+                ):
+                state = task.state # Still wharever it was
+            elif parent is None:
+                state = self.default_project_state
             else:
-                state = None
+                state = self.default_task_state
         else:
             state = self.states[state_id]
 
@@ -123,18 +145,40 @@ class Board(persistent.Persistent):
             if state is not None and state.task:
                 raise TaskValueError("Invalid task state")
 
+        update_subtasks_working = (
+            not task.parent and
+            not parent_id and
+            state_id != task.state.id and
+            state.explode != task.state.explode)
+
+        new_event = (
+            state_id != task.state.id or
+            (parent and parent.state.explode) !=
+            (task.parent and task.parent.state.explode)
+            )
+
+        if task.parent is not parent:
+            if task.parent:
+                self.subtasks[task.parent.id] = tuple(
+                    t for t in self.subtasks[task.parent.id] if t is not task)
+            if parent:
+                self.subtasks[parent.id] = (
+                    self.subtasks.get(parent.id, ()) + (task,))
+
         task.parent = parent
         task.state = state
         if order is not None:
             task.order = order
 
-        if state is not None and state.complete:
-            if not task.complete:
-                task.complete = time.time()
-        else:
-            task.complete = None
+        if new_event:
+            task._new_event()
 
         self.tasks.changed(task)
+
+        if update_subtasks_working:
+            for subtask in self.subtasks.get(task.id, ()):
+                subtask._new_event()
+                self.tasks.changed(subtask)
 
     # def archive_task(self, task_id):
     #     task = self.tasks[task_id]
@@ -172,13 +216,13 @@ class Task(persistent.Persistent):
 
     state = None
     #archive = ()
-    complete = None
+    history = ()
 
     def __init__(self, board, title, order, description='',
-                 size=1, blocked=None, assigned=None, parent=None):
+                 size=1, blocked=None, assigned=None, parent=None, state=None):
+        assert(state is not None)
         self.board = board # to make searching easier later
         self.id = uuid.uuid1().hex
-        self.created = time.time()
         self.title = title
         self.description = description
         self.order = order
@@ -186,6 +230,29 @@ class Task(persistent.Persistent):
         self.blocked = blocked
         self.assigned = assigned
         self.parent = parent
+        self.state = state
+        self._new_event()
+
+    def _new_event(self):
+        event = dict(start=now())
+        state = self.state
+        event['state'] = state.id
+        if state.complete:
+            event['complete'] = True
+        elif state.working:
+            if self.parent:
+                if self.parent.state and self.parent.state.explode:
+                    event['working'] = True
+            else:
+                event['working'] = True
+
+        if self.assigned:
+            event['assigned'] = self.assigned
+
+        if self.history:
+            self.history[-1]['end'] = event['start']
+
+        self.history += (event,)
 
     update_types = dict(
         title=str,
@@ -200,6 +267,8 @@ class Task(persistent.Persistent):
             if not isinstance(data[name], self.update_types[name]):
                 raise TypeError(name, self.update_types[name])
             setattr(self, name, data[name])
+            if name == 'assigned':
+                self.history[-1][name] = data[name]
 
     def json_reduce(self):
         return dict(id = self.id,
@@ -210,8 +279,7 @@ class Task(persistent.Persistent):
                     parent =
                     self.parent.id if self.parent is not None else None,
                     blocked = self.blocked,
-                    created = self.created,
                     assigned = self.assigned,
                     size = self.size,
-                    complete = self.complete,
+                    history = self.history,
                     )
