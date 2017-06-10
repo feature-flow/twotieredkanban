@@ -13,8 +13,8 @@ module.exports = class extends APIBase {
                order: this.model.order(undefined, true)});
   }
 
-  add_task(project_id, props) {
-    this.post('project/' + project_id, {
+  add_task(props) {
+    this.post('project/' + props.project_id, {
       title: props.title,
       description: props.description,
       size: props.size,
