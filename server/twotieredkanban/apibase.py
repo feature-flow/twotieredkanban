@@ -41,6 +41,10 @@ class Base:
 
         return response
 
+    @bobo.get("/ruok")
+    def ruok(self):
+        return 'imok'
+
     @bobo.subroute('/site')
     def admin_api(self, request):
         return Site(self, self.site)
