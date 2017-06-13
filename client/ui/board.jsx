@@ -34,6 +34,7 @@ module.exports = {
     
     render() {
       const board = this.state.model;
+      document.title = board.name;
       return (
         <div>
           <Frame
