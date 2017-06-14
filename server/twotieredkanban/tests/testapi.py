@@ -102,6 +102,21 @@ class APITests(setupstack.TestCase):
                  ),
             self.post('/site/boards', data).json)
 
+        # We can also add a board in the context of a board
+        self.app = self._test_app()
+        self.get('/board/Dev/poll') # set generation
+        data2 = dict(name='Dev2', title='Development 2',
+                    description='Let us develop things again')
+        self.assertEqual(
+            dict(updates=
+                 dict(generation=self.vars.generation2,
+                      board=data,
+                      site=dict(users=[],
+                                boards=[data, data2])
+                      )
+                 ),
+            self.post('/board/Dev/boards', data2).json)
+
     def test_add_project(self):
         self.post('/site/boards', dict(name='t', title='t', description=''))
         self.get('/board/t/poll') # set generation

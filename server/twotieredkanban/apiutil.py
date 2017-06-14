@@ -62,6 +62,14 @@ class Sync:
     def poll(self):
         return self.response()
 
+    @post('/boards')
+    def admin_post_board(self, name, title, description):
+        site = self.base.site
+        if name in site.boards:
+            self.base.error("A board with name %r already exists." % name)
+        site.add_board(name, title, description)
+        return self.response()
+
 raven = None
 def config(options):
     global raven
