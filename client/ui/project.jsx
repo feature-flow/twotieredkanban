@@ -140,8 +140,7 @@ class Project extends React.Component {
     return (
       <Card className="kb-project">
         <CardText>
-          {project.title}
-          [{project.total_completed}/{project.total_size}]
+          {project.title} [{project.total_completed}/{project.total_size}]
           {this.icons()}
         </CardText>
         {this.more()}
