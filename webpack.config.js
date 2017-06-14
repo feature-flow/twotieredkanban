@@ -54,6 +54,10 @@ module.exports = function (env) {
           test: /\.scss$/,
           use: ["style-loader", "css-loader", "sass-loader" ]
         },
+        {
+          test: /\.html$/,
+          use: ["html-loader"]
+        },
         { test: /\.json$/, use: ["json-loader"] }
       ]
     },
