@@ -59,6 +59,8 @@ td {
 }
 
 .kb-column.complete {
+    height: 100%;
+    overflow-y: scroll;
     .kb-task {
         background-color: #ddf;
     }
