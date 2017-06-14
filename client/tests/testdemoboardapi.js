@@ -172,6 +172,31 @@ describe("demo board api", () => {
     });
   });
 
+  it("should add boards with a name", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'sample', (api) => {
+      api.add_board('test9', () => {
+        view.setState.restore();
+        api.add_board('test99', () => {
+          const model = api.model;
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          expect(model.boards)
+            .toEqual([
+              { "description":
+                "This sample board provides an example board with sample" +
+                  " projects and tasks",
+                "name": "sample", "title": "Sample board" },
+              {name: 'test', title: '', description: ''},
+              {name: 'test2', title: '', description: ''},
+              {name: 'test9', title: '', description: ''},
+              {name: 'test99', title: '', description: ''}
+            ]);
+          done();
+        });
+      });
+    });
+  });
+
   it("Should add projects", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test', (api) => {

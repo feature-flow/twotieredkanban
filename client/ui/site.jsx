@@ -4,6 +4,7 @@ import {Button} from 'react-toolbox';
 import {Boards, AddBoardDialog} from './boards';
 import Frame from './frame';
 import SiteAPI from 'SiteAPI';
+import Intro from 'Intro';
 
 module.exports = class extends React.Component {
 
@@ -28,13 +29,11 @@ module.exports = class extends React.Component {
     return (
       <div>
         <Frame
-           title="Boards"
+           title="Valunator"
            model={this.state.model}
            api={this.api}
            />
-        <Boards boards={boards} />
-        <Button icon='add' floating onMouseUp={() => this.refs.add.show()} />
-          <AddBoardDialog api={this.api} ref="add" />
+        <Intro/>
       </div>
     );
   }

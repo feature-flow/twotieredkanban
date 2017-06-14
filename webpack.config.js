@@ -15,7 +15,8 @@ module.exports = function (env) {
       alias: {
         BoardAPI: path.resolve(__dirname, 'client/model/boardapi'),
         SiteAPI:  path.resolve(__dirname, 'client/model/siteapi'),
-        AuthUI:   path.resolve(__dirname, 'client/emailpw/ui')
+        AuthUI:   path.resolve(__dirname, 'client/emailpw/ui'),
+        Intro:   path.resolve(__dirname, 'client/ui/intro')
       },
       extensions: ['.js', '.jsx', '.css']
     },
@@ -54,6 +55,10 @@ module.exports = function (env) {
           test: /\.scss$/,
           use: ["style-loader", "css-loader", "sass-loader" ]
         },
+        {
+          test: /\.html$/,
+          use: ["html-loader"]
+        },
         { test: /\.json$/, use: ["json-loader"] }
       ]
     },
@@ -66,7 +71,8 @@ module.exports = function (env) {
       indexedDB: path.resolve(__dirname, 'client/demo/indexeddb'),
       BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
       SiteAPI:   path.resolve(__dirname, 'client/demo/siteapi'),
-      AuthUI:    path.resolve(__dirname, 'client/demo/ui')
+      AuthUI:    path.resolve(__dirname, 'client/demo/ui'),
+      Intro:    path.resolve(__dirname, 'client/demo/intro')
     };
   }
 

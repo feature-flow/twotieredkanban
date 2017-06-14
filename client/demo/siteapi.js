@@ -22,23 +22,4 @@ module.exports = class extends BaseAPI {
       });
     });
   }
-  
-  add_board(name, cb) {
-    this.transaction('boards', 'readwrite', (trans) => {
-      const store = trans.objectStore('boards');
-
-      this.all(store.openCursor(name), (boards) => {
-        if (boards.length > 0) {
-          this.handle_error("There is already a board with that name");
-        }
-        else {
-          this.r(store.add({name: name, title: '', description: ''}), () => {
-            this.all(store.openCursor(), (boards) => {
-              this.update(trans, {site: {boards: boards}}, cb);
-            });
-          });
-        }
-      });
-    });
-  }
 };

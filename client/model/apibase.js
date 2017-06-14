@@ -101,4 +101,7 @@ module.exports = class {
       .catch((e) => this.handle_error(e));
   }
 
+  add_board(name) {
+    this.post('boards', {name: name, title: '', description: ''});
+  }
 };

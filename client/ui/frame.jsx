@@ -1,8 +1,10 @@
 import React from 'react';
-import {AppBar, Drawer, Navigation, IconMenu, MenuItem} from 'react-toolbox';
+import {AppBar, Button, Drawer, Link, Navigation, IconMenu, MenuItem
+       } from 'react-toolbox';
 
-import {Boards} from './boards';
+import {Boards, AddBoardDialog} from './boards';
 import {Avatar} from 'AuthUI';
+import {Admin} from './admin';
 
 class Frame extends React.Component {
 
@@ -29,6 +31,14 @@ class Frame extends React.Component {
                 onOverlayClick={toggle_drawer}
                 >
           <Boards boards={model.boards} />
+          <Admin user={model.user} >
+            <Button icon='add'
+                    floating onMouseUp={() => this.refs.add.show()} />
+                    <AddBoardDialog api={this.props.api} ref="add" />
+
+          </Admin>
+          <Link icon="home" href="#/" />
+          
         </Drawer>
       </div>
       );
