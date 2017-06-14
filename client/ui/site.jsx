@@ -5,12 +5,6 @@ import {Boards, AddBoardDialog} from './boards';
 import Frame from './frame';
 import SiteAPI from 'SiteAPI';
 
-import demo_html from './demo.html';
-
-const demo_body = (new DOMParser())
-        .parseFromString(demo_html, 'text/html')
-        .getElementsByClassName("body");
-
 module.exports = class extends React.Component {
 
   constructor(props) {
@@ -29,7 +23,6 @@ module.exports = class extends React.Component {
   }
 
   render() {
-    let x = demo_html;
     const boards = this.state.model.boards;
     return (
       <div>
@@ -38,7 +31,9 @@ module.exports = class extends React.Component {
            model={this.state.model}
            api={this.api}
            />
-        <div dangerouslySetInnerHTML={{__html: demo_body}}></div>
+        <Boards boards={boards} />
+        <Button icon='add' floating onMouseUp={() => this.refs.add.show()} />
+          <AddBoardDialog api={this.api} ref="add" />
       </div>
     );
   }
