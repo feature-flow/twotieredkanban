@@ -205,7 +205,8 @@ class APITests(setupstack.TestCase):
         # auth plugin. We're just testing for proper interaction with
         # the auth plugin.
 
-        # unauthenticated users can't get redirected to a login page
+        # unauthenticated users can't do anything and get redirected
+        # to a login page
         with self._app.database.transaction() as conn:
             get_site(conn.root, 'localhost').auth = auth.Bad()
         app = self._test_app()
@@ -216,7 +217,9 @@ class APITests(setupstack.TestCase):
         with self._app.database.transaction() as conn:
             get_site(conn.root, 'localhost').auth = auth.NonAdmin()
         app = self._test_app()
-        self.app.post('/site/boards', dict(boards=[]), status=403)
+        r = self.app.post('/site/boards',
+                          dict(name='test', title='', description=''),
+                          status=403)
 
     def test_no_site(self):
         # When accessing a domain wo a site, we'll get redirected to a
