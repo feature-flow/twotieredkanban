@@ -15,7 +15,8 @@ stake holder value.
 How it works
 ============
 
-<insert figure here>
+.. image:: sample-board.png
+   :width: 40em
 
 Feature flow uses a two-level board.  At the top level, is a feature
 board, showing features in the product backlog and in in progress (or
@@ -68,7 +69,7 @@ Feature flow can be implemented in a number of ways:
 - Possibly using a `tool that supports complex workflows
   <https://leankit.com/>`_.
 
-- The :doc:`Valuenator` application.
+- The :doc:`Valuenator <valuenator>` application.
 
   The Valuenator application is an attempt to automate the practice in
   a simple and opinionated way.  There's a `demo mode

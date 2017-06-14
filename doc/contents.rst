@@ -9,5 +9,6 @@ Welcome to Feature flow's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
    index
-   valunator
+   valuenator
