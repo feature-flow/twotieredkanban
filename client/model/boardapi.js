@@ -34,8 +34,8 @@ module.exports = class extends APIBase {
     });
   }
 
-  move(task_id, parent_id, state_id, before_id) {
-    const order = this.model.order(before_id);
+  move(task_id, parent_id, state_id, before_id, front) {
+    const order = this.model.order(before_id, front);
     this.put(`move/${task_id}`,
              {state_id: state_id, parent_id: parent_id, order: order});
   }

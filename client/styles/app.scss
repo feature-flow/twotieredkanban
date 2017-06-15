@@ -50,6 +50,10 @@ td {
     height: 100%;
     display: flex;
     flex-direction: column;
+
+    .kb-task.blocked {
+        background-color: #fdd;
+    }
 }
 
 .kb-column.working {
@@ -66,8 +70,9 @@ td {
     }
 }
 
-.kb-task.blocked {
-    background-color: #fdd;
+.kb-column.kb-unordered-column.dragover {
+    /* border: 5px solid #ccff99; */
+    background-color: #ccff99;
 }
 
 .kb-scrollable {

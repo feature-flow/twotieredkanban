@@ -100,17 +100,32 @@ class TaskBoard extends React.Component {
 
     const columns = () => {
       return project.state.substates.map((state) => {
-        return (
-          <td key={state.id}>
-            <TaskColumn
-               project={project}
-               state={state}
-               tasks={project.subtasks(state.id)}
-               board={this.props.board}
-               api={this.props.api}
-               />
-          </td>
-        );
+        if (state.working || state.complete) {
+          return (
+            <td key={state.id}>
+              <UnorderedTaskColumn
+                 project={project}
+                 state={state}
+                 tasks={project.subtasks(state.id)}
+                 board={this.props.board}
+                 api={this.props.api}
+                 />
+            </td>
+          );
+        }
+        else {
+          return (
+            <td key={state.id}>
+              <TaskColumn
+                 project={project}
+                 state={state}
+                 tasks={project.subtasks(state.id)}
+                 board={this.props.board}
+                 api={this.props.api}
+                 />
+            </td>
+          );
+        }
       });
     };
 
@@ -184,6 +199,48 @@ class TaskColumn extends React.Component {
       <div className={className}>
         {this.tasks()}
       </div>
+    );
+  }
+}
+
+class UnorderedTaskColumn extends React.Component {
+
+  dropped(dt) {
+    this.props.api.move(
+      dt.getData('text/id'), // id of task to be moved
+      this.props.project.id, // id of destination project
+      this.props.state.id,   // destination state id
+      undefined, true);      // Move to front(/top)
+  } 
+
+  tasks() {
+    return this.props.tasks.map((task) => {
+      const ddata = {'text/id': task.id};
+      ddata['text/' + task.id] = task.id;
+
+      return (
+        <Draggable data={ddata} key={task.id}>
+          <Task task={task} board={this.props.board} api={this.props.api} />
+        </Draggable>
+      );
+    });
+  }
+
+  render() {
+    const className = classes(
+      'kb-column', 'kb-unordered-column',
+      {
+        working: this.props.state.working,
+        complete: this.props.state.complete
+      });
+
+    const disallowed = this.props.tasks.map((task) => task.id);
+    const dropped = (dt) => this.dropped(dt);
+
+    return (
+      <DropZone className={className} disallow={disallowed} dropped={dropped}>
+        {this.tasks()}
+      </DropZone>
     );
   }
 }

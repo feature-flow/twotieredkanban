@@ -178,7 +178,7 @@ module.exports = class extends BaseAPI {
     }, cb);
   }
   
-  move(task_id, parent_id, state_id, before_id, cb) {
+  move(task_id, parent_id, state_id, before_id, front, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(task_id), (task) => {
@@ -197,22 +197,24 @@ module.exports = class extends BaseAPI {
             if (state_id && ! this.model.states_by_id[state_id].task) {
               throw "Invalid move-to state: project state with parent task";
             }
-            this._move(trans, tasks, task, parent_id, state_id, before_id, cb);
+            this._move(trans, tasks, task, parent_id, state_id,
+                       before_id, front, cb);
           }, cb);
         }
         else {
           if (state_id && this.model.states_by_id[state_id].task) {
             throw "Invalid move-to state: task state without parent task";
           }
-          this._move(trans, tasks, task, parent_id, state_id, before_id, cb);
+          this._move(trans, tasks, task, parent_id, state_id,
+                     before_id, front, cb);
         }
       }, cb);
     }, cb);
   }
 
-  _move(trans, tasks, task, parent_id, state_id, before_id, cb) {
+  _move(trans, tasks, task, parent_id, state_id, before_id, front, cb) {
     const board = this.model;
-    task.order = board.order(before_id);
+    task.order = board.order(before_id, front);
     const update_subtasks_working =
       ! parent_id &&
       ! task.parent &&

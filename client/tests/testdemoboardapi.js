@@ -580,7 +580,7 @@ describe("demo board api", () => {
           // Make second project a task
           view.setState.restore();
           inc_date();
-          api.move(t2.id, t1.id, 'Doing', undefined, () => {
+          api.move(t2.id, t1.id, 'Doing', undefined, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Doing');
@@ -618,7 +618,7 @@ describe("demo board api", () => {
           // This should cause a new event in t2
           view.setState.restore();
           inc_date();
-          api.move(t1.id, null, 'Development', undefined, (err) => {
+          api.move(t1.id, null, 'Development', undefined, false, (err) => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
@@ -658,7 +658,7 @@ describe("demo board api", () => {
         .then(() => promise((cb) => {
           // Move t1 before t3
           view.setState.restore();
-          api.move(t1.id, null, 'Development', t3.id, () => {
+          api.move(t1.id, null, 'Development', t3.id, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
@@ -701,7 +701,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to task
-          api.move(t3.id, t2.id, 'Doing', undefined, () => {
+          api.move(t3.id, t2.id, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith("can't move task into a (sub)task");
             expect(t3.parent).toBe(undefined);        // Unchanged
@@ -711,7 +711,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't make non-empty feature a task:
-          api.move(t1.id, t3.id, 'Doing', undefined, () => {
+          api.move(t1.id, t3.id, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "can't demote project to task if it has children");
@@ -722,7 +722,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to feature with task state:
-          api.move(t3.id, null, 'Doing', undefined, () => {
+          api.move(t3.id, null, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "Invalid move-to state: task state without parent task");
@@ -732,7 +732,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to project with top-level state:
-          api.move(t3.id, t1.id, 'Backlog', undefined, () => {
+          api.move(t3.id, t1.id, 'Backlog', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "Invalid move-to state: project state with parent task");
@@ -747,7 +747,7 @@ describe("demo board api", () => {
           expect(t1.total_completed).toBe(0);
           view.setState.restore();
           inc_date();
-          api.move(t2.id, t1.id, 'Done', undefined, () => {
+          api.move(t2.id, t1.id, 'Done', undefined, false, () => {
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Done');
             expect(t2.history).toEqual([
@@ -783,7 +783,7 @@ describe("demo board api", () => {
           // We can promote a task to a feature:
           view.setState.restore();
           inc_date();
-          api.move(t2.id, null, 'Backlog', undefined, () => {
+          api.move(t2.id, null, 'Backlog', undefined, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent).toBe(undefined);
             expect(t2.state.id).toBe('Backlog');
