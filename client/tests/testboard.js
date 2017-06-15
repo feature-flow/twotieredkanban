@@ -137,4 +137,29 @@ describe("Kanban Board", () => {
     expect(board.tasks['p2'].total_completed).toBe(0);
   });
 
+  it("should update user on existing task", () => {
+    const board = initialized_board();
+    board.update(
+      {
+        tasks: {adds: [
+          task('t1', 1, {parent: 'p1', size: 1, history: [{complete: true}]}),
+          task('p1', 4),
+        ]},
+        site: {
+          users: [{"id": "gal", "nick": "gal", "email": "gal@example.com",
+                   "name": "Gal Humana"}]
+        }
+        });
+    expect(board.tasks['t1'].user).toBe(undefined);
+    board.update({tasks: {adds: [
+      task('t1', 1,
+           {assigned: 'gal',
+            parent: 'p1', size: 1, history: [{complete: true}]}),
+    ]}});
+    expect(board.tasks['t1'].user.id).toBe('gal');
+    expect(board.tasks['t1'].user.nick).toBe('gal');
+    expect(board.tasks['t1'].user.name).toBe('Gal Humana');
+    expect(board.tasks['t1'].user.email).toBe('gal@example.com');
+  });
+
 });

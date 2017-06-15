@@ -79,6 +79,7 @@ class Task extends TaskContainer {
     this.blocked = task.blocked;
     this.created = task.created;
     this.assigned = task.assigned;
+    this.user = task.user;
     this.size = task.size;
     this.complete = task.complete;
     this.parent = task.parent;
