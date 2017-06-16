@@ -1,14 +1,9 @@
-- Bugs
 
-  - Tasks don't update assigned in UI after edit
-
-
-- velocity / burn-down graph
+- archive/ browse archive
 - sample project for demo
 - export/import
-- archive
-- browse archive
 - help/feedback
+- velocity / burn-down graph
 
 - Design landing page (/):
 
