@@ -1,6 +1,8 @@
 import axios from 'axios';
 import Raven from 'raven-js';
 
+const CancelToken = axios.CancelToken;
+
 module.exports = class {
 
   constructor(model, view, base) {
@@ -13,11 +15,11 @@ module.exports = class {
       responseType: 'json',
       headers: {'x-generation': this.generation}
     };
-    this.poll_route = 'poll';
   }
 
   start() {
     if (! this.active) {
+      this.poll_route = 'poll';
       this.active = true;
       this.poll();
     }
@@ -25,6 +27,11 @@ module.exports = class {
 
   stop() {
     this.active = false;
+    if (this.cancel) {
+      this.cancel();
+      this.cancel = undefined;
+      console.log('cancel');
+    }
   }
 
   raven(err) {}
@@ -79,7 +86,23 @@ module.exports = class {
   poll() {
     if (this.active) {
       console.log(this.poll_route);
-      this.get(this.poll_route)
+      let config = this.config;
+      if (this.poll_route == 'longpoll') {
+        config = Object.assign({
+          cancelToken: new CancelToken((c) => {
+            this.cancel = c;
+          })
+        }, config);
+      }
+      axios.get(this.base + this.poll_route, config)
+        .catch((e) => {
+          if (axios.isCancel(e)) {
+            console.log('Request canceled', e.message);
+          }
+          else {
+            this.handle_error(e);
+          }
+        })
         .then(() => {
           this.poll_route = 'longpoll';
           this.poll();

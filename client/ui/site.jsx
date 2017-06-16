@@ -1,26 +1,14 @@
 import React from 'react';
-import {Button} from 'react-toolbox';
 
-import {Boards, AddBoardDialog} from './boards';
+import {Base} from './app'; 
 import Frame from './frame';
 import SiteAPI from 'SiteAPI';
 import Intro from 'Intro';
 
-module.exports = class extends React.Component {
+module.exports = class extends Base {
 
-  constructor(props) {
-    super(props);
-    this.api = new SiteAPI(this);
-    this.api.start();
-    this.state = {model: this.api.model};
-  }
-  
-  componentWillUnmount() {
-    this.api.stop();
-  }
-
-  componentWillMount() {
-    this.api.start();
+  new_api() {
+    return new SiteAPI(this);
   }
 
   render() {
