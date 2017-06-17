@@ -2,10 +2,16 @@
 Change history
 ==============
 
-0.5.1 (unreleased)
+0.5.2 (unreleased)
 =====================
 
 Nothing changed yet
+
+0.5.1 (2017-06-17)
+=====================
+
+- Include release information in sentry data and show the client
+  releas in the nav drawer.
 
 0.5.0 (2017-06-17)
 =====================
