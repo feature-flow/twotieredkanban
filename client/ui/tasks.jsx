@@ -320,7 +320,7 @@ class Task extends React.Component {
             <span>{this.props.task.title} {this.size()}</span>
             {this.avatar()}
           </div>
-          <RevealButton expanded={this.expanded}
+          <RevealButton expanded={this.state.expanded}
                         toggle={this.toggle_explanded.bind(this)}
                         />
         </CardText>
