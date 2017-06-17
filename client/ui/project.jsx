@@ -11,7 +11,7 @@ class ProjectDialog extends DialogBase {
     const action = this.props.action;
     
     return (
-      <Dialog title={this.action() + " project"} action={action} ref="dialog"
+      <Dialog title={this.action() + " feature"} action={action} ref="dialog"
               finish={() => this.finish(this.state)} type="large">
         <Input label='Title' required={true} onChange={this.required("title")}
                />
