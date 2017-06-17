@@ -1,8 +1,11 @@
 import React from 'react';
-import {Card, CardText, IconButton} from 'react-toolbox';
+import {Card, CardActions, CardText, IconButton} from 'react-toolbox';
 import RichTextEditor from 'react-rte';
 
+import {has_text} from '../model/hastext';
+
 import {Dialog, DialogBase, Input, Editor} from './dialog';
+import {RevealButton} from './revealbutton';
 import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
 
 class ProjectDialog extends DialogBase {
@@ -73,64 +76,56 @@ class Project extends React.Component {
             nextState.expanded !== this.state.expanded);
   }
 
-  add_edit() {
-    const {project, api, board} = this.props;
-    const add = () => {};
-    return (
-      <span className="icons">
-        <AddTask     ref="add" project={project} board={board} api={api} />
-        <EditProject ref="edit" project={project} api={api} />
-        <IconButton icon="add"       onMouseUp={() => this.refs.add.show() } />
-        <IconButton icon="mode_edit" onMouseUp={() => this.refs.edit.show()} />
-      </span>
-    );
+  toggle_explanded() {
+    this.setState({expanded: ! this.state.expanded});
   }
 
-  icons() {
-    if (this.props.project.state.explode) {
-      return this.add_edit();
-    }
-    else if (this.state.expanded) {
-      const contract = () => this.setState({expanded: false});
+  details() {
+    if (this.state.expanded && has_text(this.props.project.description)) {
       return (
-        <span className="icons">
-          <IconButton icon="arrow_drop_up" onMouseUp={contract} />
-        </span>
+        <CardText
+           dangerouslySetInnerHTML={{__html: this.props.project.description}}
+          />
       );
     }
-    else {
-      const expand = () => this.setState({expanded: true});
+    return null;
+  }
+
+  actions() {
+    if (this.state.expanded) {
+      const {project, api, board} = this.props;
       return (
-        <span className="icons">
-          <IconButton icon="arrow_drop_down" onMouseUp={expand} />
-        </span>
+        <CardActions>
+          <AddTask     ref="add" project={project} board={board} api={api} />
+          <EditProject ref="edit" project={project} api={api} />
+          <IconButton icon="add"
+                      onMouseUp={() => this.refs.add.show() } />
+            <IconButton icon="mode_edit"
+                        onMouseUp={() => this.refs.edit.show()} />
+        </CardActions>
       );
     }
+    return null;
   }
   
-  more() {
+  tasks() {
     const {api, board, project} = this.props;
     
     if (this.props.project.state.explode) {
       return <TaskBoard project={project} board={board} api={api} />;
     }
-    else if (this.state.expanded) {
+    if (this.state.expanded) {
       return (
-        <div>
-          <TaskColumn
-               project={project}
-               state={{}}
-               tasks={project.subtasks()}
-               board={board}
-               api={api}
-             />
-          {this.add_edit()}
-        </div>
+        <TaskColumn
+           project={project}
+           state={{}}
+           tasks={project.subtasks()}
+           board={board}
+           api={api}
+           />
       );
     }
-    else {
-      return null;
-    }
+    return null;
   }
   
   render () {
@@ -139,11 +134,18 @@ class Project extends React.Component {
     
     return (
       <Card className="kb-project">
-        <CardText>
-          {project.title} [{project.total_completed}/{project.total_size}]
-          {this.icons()}
+        <CardText className="kb-w-right-thing">
+          <span>
+            {project.title} [{project.total_completed}/{project.total_size}]
+          </span>
+          <RevealButton
+             expanded={this.state.expanded}
+             toggle={this.toggle_explanded.bind(this)}
+             />
         </CardText>
-        {this.more()}
+        {this.details()}
+        {this.tasks()}
+        {this.actions()}
       </Card>);
   }
 

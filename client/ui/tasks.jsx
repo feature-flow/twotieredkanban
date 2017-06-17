@@ -3,6 +3,8 @@ import {Card, CardActions, CardText, IconButton} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
+import {has_text} from '../model/hastext';
+
 import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {RevealButton} from './revealbutton';
@@ -268,8 +270,7 @@ class Task extends React.Component {
   }
 
   details() {
-    console.log('wtf', this);
-    if (this.state.expanded) {
+    if (this.state.expanded && has_text(this.props.task.description)) {
       return (
         <CardText
            dangerouslySetInnerHTML={{__html: this.props.task.description}}
