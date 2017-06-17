@@ -19,7 +19,8 @@ class Board(Sync):
 
     @put("/move/:task_id")
     def move(self, task_id, state_id=None, order=None, parent_id=None):
-        self.context.move(task_id, parent_id, state_id, order)
+        self.context.move(task_id, parent_id, state_id, order,
+                          user_id=self.base.user['id'])
         return self.response()
 
     @post("/project/:id")

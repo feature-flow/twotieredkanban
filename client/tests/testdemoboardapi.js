@@ -593,6 +593,7 @@ describe("demo board api", () => {
               },
               {
                 start: "2017-06-08T10:02:01.004",
+                assigned: "ryou", // Because we went to a working state
                 state: "Doing"
               },
             ]);
@@ -644,11 +645,13 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
             ]);
@@ -686,11 +689,13 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
             ]);
@@ -759,17 +764,20 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 end: "2017-06-08T10:02:03.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
               {
                 start: "2017-06-08T10:02:03.004",
                 state: 'Done',
+                assigned: "ryou",
                 complete: true
               },
             ]);
@@ -796,18 +804,21 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 end: "2017-06-08T10:02:03.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
               {
                 start: "2017-06-08T10:02:03.004",
                 end: "2017-06-08T10:02:04.004",
                 state: 'Done',
+                assigned: "ryou",
                 complete: true
               },
               {

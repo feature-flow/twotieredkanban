@@ -211,7 +211,8 @@ class BoardTests(unittest.TestCase):
 
         # Make second project a task
         now.return_value = '2017-06-08T10:02:01.004'
-        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'), 1)
+        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'), 1,
+                        user_id='test')
         self.assertEqual(dict(generation=vars.gen4, tasks=dict(adds=[vars.t2])),
                          self.board.updates(vars.gen3))
         self.assertTrue(vars.gen4 > vars.gen3)
@@ -228,14 +229,16 @@ class BoardTests(unittest.TestCase):
                 },
              {
                  'start': "2017-06-08T10:02:01.004",
-                 'state': "Doing"
+                 'state': "Doing",
+                 'assigned': 'test'
                  },
              ),
             vars.t2.history)
 
         # Move first project to new state
         now.return_value = '2017-06-08T10:02:02.004'
-        self.board.move(vars.t1.id, None, self._state_id('Development'), 2)
+        self.board.move(vars.t1.id, None, self._state_id('Development'), 2,
+                        user_id='test')
         self.assertEqual(dict(generation=vars.gen5,
                               tasks=dict(adds=[vars.t1, vars.t2])),
                          self.board.updates(vars.gen4))
@@ -261,21 +264,25 @@ class BoardTests(unittest.TestCase):
                 'start': "2017-06-08T10:02:00.004",
                 'end': "2017-06-08T10:02:01.004",
                 'state': 'Backlog'
+
               },
               {
                 'start': "2017-06-08T10:02:01.004",
                 'end': "2017-06-08T10:02:02.004",
-                'state': "Doing"
+                'state': "Doing",
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:02.004",
                 'state': "Doing",
-                'working': True
+                'working': True,
+                'assigned': 'test'
               },
             ), vars.t2.history)
 
         # Change order of first
-        self.board.move(vars.t1.id, None, self._state_id('Development'), 3)
+        self.board.move(vars.t1.id, None, self._state_id('Development'), 3,
+                        user_id='test')
         self.assertEqual(dict(generation=vars.gen6, tasks=dict(adds=[vars.t1])),
                          self.board.updates(vars.gen5))
         self.assertTrue(vars.gen6 > vars.gen5)
@@ -307,12 +314,14 @@ class BoardTests(unittest.TestCase):
               {
                 'start': "2017-06-08T10:02:01.004",
                 'end': "2017-06-08T10:02:02.004",
-                'state': "Doing"
+                'state': "Doing",
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:02.004",
                 'state': "Doing",
-                'working': True
+                'working': True,
+                'assigned': 'test'
               },
             ), vars.t2.history)
         #
@@ -322,15 +331,18 @@ class BoardTests(unittest.TestCase):
 
         # Can't move to task:
         with self.assertRaises(Exception):
-            self.board.move(vars.t3.id, vars.t2.id, self._state_id('Doing'), 4)
+            self.board.move(vars.t3.id, vars.t2.id, self._state_id('Doing'), 4,
+                        user_id='test')
 
         # Can't make non-empty feature a task:
         with self.assertRaises(Exception):
-            self.board.move(vars.t1.id, vars.t3.id, self._state_id('Doing'), 4)
+            self.board.move(vars.t1.id, vars.t3.id, self._state_id('Doing'), 4,
+                        user_id='test')
 
         # Can't move to feature with task state:
         with self.assertRaises(Exception):
-            self.board.move(vars.t3.id, None, self._state_id('Doing'), 4)
+            self.board.move(vars.t3.id, None, self._state_id('Doing'), 4,
+                        user_id='test')
 
         # Can't move to project with to-level state:
         with self.assertRaises(Exception):
@@ -339,7 +351,8 @@ class BoardTests(unittest.TestCase):
 
         # finish t2
         now.return_value = '2017-06-08T10:02:03.004'
-        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Done'), 1)
+        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Done'), 1,
+                        user_id='test')
         self.assertEqual((
               {
                 'start': "2017-06-08T10:02:00.004",
@@ -349,24 +362,28 @@ class BoardTests(unittest.TestCase):
               {
                 'start': "2017-06-08T10:02:01.004",
                 'end':   "2017-06-08T10:02:02.004",
-                'state': "Doing"
+                'state': "Doing",
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:02.004",
                 'end':   "2017-06-08T10:02:03.004",
                 'state': "Doing",
-                'working': True
+                'working': True,
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:03.004",
                 'state': "Done",
-                'complete': True
+                'complete': True,
+                'assigned': 'test'
               },
             ), vars.t2.history)
 
         # We can promote a task to a project:
         now.return_value = '2017-06-08T10:02:04.004'
-        self.board.move(vars.t2.id, None, self._state_id('Backlog'), 5)
+        self.board.move(vars.t2.id, None, self._state_id('Backlog'), 5,
+                        user_id='test')
         self.assertEqual(dict(generation=vars.gen7, tasks=dict(adds=[vars.t2])),
                          self.board.updates(vars.gen6))
         self.assertTrue(vars.gen7 > vars.gen6)
@@ -383,19 +400,22 @@ class BoardTests(unittest.TestCase):
               {
                 'start': "2017-06-08T10:02:01.004",
                 'end':   "2017-06-08T10:02:02.004",
-                'state': "Doing"
+                'state': "Doing",
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:02.004",
                 'end':   "2017-06-08T10:02:03.004",
                 'state': "Doing",
-                'working': True
+                'working': True,
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:03.004",
                 'end':   "2017-06-08T10:02:04.004",
                 'state': "Done",
-                'complete': True
+                'complete': True,
+                'assigned': 'test'
               },
               {
                 'start': "2017-06-08T10:02:04.004",
@@ -420,23 +440,29 @@ class BoardTests(unittest.TestCase):
         self.assertTrue(vars.gen3 > vars.gen2)
 
         # Make second project a task
-        self.board.move(vars.t2.id, vars.t1.id)
+        self.board.move(vars.t2.id, vars.t1.id,
+                        user_id='test')
         self.assertEqual(vars.t1.id, vars.t2.parent.id)
         self.assertEqual('ready', vars.t2.state.id)
         self.assertEqual(43, vars.t2.order)
 
         # Move t2 to an actual state:
-        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'))
+        self.board.move(vars.t2.id, vars.t1.id, self._state_id('Doing'),
+                        user_id='test')
 
         # Move t2 to t3, and state and order are preserved:
-        self.board.move(vars.t2.id, vars.t3.id)
+        self.board.move(vars.t2.id, vars.t3.id,
+                        user_id='test')
         self.assertEqual(vars.t3.id, vars.t2.parent.id)
         self.assertEqual(self._state_id('Doing'), vars.t2.state.id)
         self.assertEqual(43, vars.t2.order)
 
         # Move t1 to new state then move to p3 and state is lost:
-        self.board.move(vars.t1.id, state_id=self._state_id('Development'))
-        self.board.move(vars.t1.id, vars.t3.id)
+        self.board.move(vars.t1.id, state_id=self._state_id('Development'),
+                        user_id='test')
+        self.board.move(vars.t1.id, vars.t3.id,
+                        user_id='test')
         self.assertEqual(vars.t3.id, vars.t1.parent.id)
         self.assertEqual('ready', vars.t1.state.id)
         self.assertEqual(42, vars.t1.order)
+

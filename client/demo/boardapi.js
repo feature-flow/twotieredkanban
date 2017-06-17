@@ -225,6 +225,18 @@ module.exports = class extends BaseAPI {
     task.state = state_id;
     const last = task.history[task.history.length - 1];
     const event = this.set_event_status(Object.assign({}, last), task);
+    const state = board.states_by_id[state_id];
+    if (state.task) {
+      if (state.working) {
+        task.assigned = this.model.user.id;
+        event.assigned = task.assigned;
+      }
+    }
+    else {
+      if (event.assigned) {
+        delete event.assigned;
+      }
+    }
     if (event.state !== last.state ||
         event.working !== last.working ||
         event.complete !== last.complete) {

@@ -215,6 +215,30 @@ class APITests(setupstack.TestCase):
         self.assertEqual(t1['order'], task['order'])
         self.assertEqual(p2id, task['parent'])
 
+    def test_move_task_to_new_working_state_gets_assigned(self):
+        states = self.get_states()
+        r = self.post('/board/t/projects',
+                      dict(title='p1', description='', order=1))
+        p1id = r.json['updates']['tasks']['adds'][0]['id']
+        r = self.post('/board/t/project/' + p1id,
+                      dict(title='t1', description='', order=2))
+        t1 = r.json['updates']['tasks']['adds'][0]
+        self.assertEqual(
+            dict(updates=
+                 dict(generation=self.vars.generation,
+                      tasks=dict(adds=[self.vars.task])
+                      )
+                 ),
+            self.put('/board/t/move/' + t1['id'],
+                     dict(parent_id=p1id, state_id='Doing')
+                     ).json)
+        task = self.vars.task
+        self.assertEqual(t1['id'], task['id'])
+        self.assertEqual('Doing', task['state'])
+        self.assertEqual(t1['order'], task['order'])
+        self.assertEqual(p1id, task['parent'])
+        self.assertEqual('jaci', task['assigned'])
+
     def test_auth(self):
         # Note that this test, like the ones above use a very dump
         # auth plugin. We're just testing for proper interaction with

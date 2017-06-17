@@ -22,7 +22,9 @@ class Board(persistent.Persistent):
         self.tasks = zc.generationalset.GSet("tasks", changes)
         self.subtasks = BTrees.OOBTree.OOBTree() # {parent_id => [tasks]}
         self.update(name, title, description)
-        self.archive = BTrees.OOBTree.OOBTree() # FUTURE {project_id -> subset }
+
+        # FUTURE {project_id -> subset }
+        self.archive = BTrees.OOBTree.OOBTree()
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -110,7 +112,8 @@ class Board(persistent.Persistent):
         task.update(**data)
         self.tasks.changed(task)
 
-    def move(self, task_id, parent_id=None, state_id=None, order=None):
+    def move(self, task_id, parent_id=None, state_id=None, order=None,
+             user_id=None):
         task = self.tasks[task_id]
         parent = self.tasks[parent_id] if parent_id is not None else None
 
@@ -169,6 +172,12 @@ class Board(persistent.Persistent):
         task.state = state
         if order is not None:
             task.order = order
+
+        if state.task:
+            if (state.working):
+                task.assigned = user_id
+        else:
+            task.assigned = None
 
         if new_event:
             task._new_event()
