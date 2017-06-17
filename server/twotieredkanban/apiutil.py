@@ -48,7 +48,10 @@ class Sync:
             # first load, set uswer
             updates['user'] = self.base.user
             if raven:
-                updates['raven'] = dict(url=raven, options=dict())
+                updates['raven'] = dict(
+                    url=raven,
+                    options=dict(tags=dict(server_release=release))
+                    )
 
         if send_user:
             updates['user'] = send_user
@@ -70,7 +73,8 @@ class Sync:
         site.add_board(name, title, description)
         return self.response()
 
-raven = None
+raven = release = None
 def config(options):
-    global raven
+    global raven, release
     raven = options.get('raven')
+    release = options.get('release')

@@ -1,6 +1,8 @@
 import axios from 'axios';
 import Raven from 'raven-js';
 
+import version from '../version.js';
+
 const CancelToken = axios.CancelToken;
 
 module.exports = class {
@@ -46,6 +48,7 @@ module.exports = class {
                                   id: updates.user.id});
         }
         if (updates.raven) {
+          updates.raven.options.release = version;
           Raven
             .config(updates.raven.url, updates.raven.options)
             .install();
