@@ -31,4 +31,5 @@ with open('CHANGES.rst', 'w') as f:
 
 if not os.system("git commit -am 'Releasing %s'" % version):
     if not os.system("git tag '%s'" % version):
-        os.system("git push")
+        if not os.system("git push"):
+            os.system("git push --tags")
