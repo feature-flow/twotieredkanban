@@ -22,7 +22,7 @@ Nothing changed yet
                     ) + after
 
 with open('release.cfg', 'w') as f:
-    f.write("[buildout]\nrelease = %r\n" % version)
+    f.write("[buildout]\nrelease = %s\n" % version)
 with open('client/version.js', 'w') as f:
     f.write("module.exports = %r;\n" % version)
 
