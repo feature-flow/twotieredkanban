@@ -1,10 +1,11 @@
 import React from 'react';
-import {Card, CardText} from 'react-toolbox';
+import {Card, CardActions, CardText, IconButton} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
 import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
+import {RevealButton} from './revealbutton';
 import {UserAvatar, UserSelect} from './who';
 
 class TaskDialog extends DialogBase {
@@ -248,12 +249,60 @@ class UnorderedTaskColumn extends React.Component {
 
 class Task extends React.Component {
 
+  constructor (props) {
+    super(props);
+    this.state = {};
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
-    return (nextProps.task.rev !== this.rev);
+    return (nextProps.task.rev !== this.rev ||
+            nextState.expanded !== this.state.expanded);
+  }
+
+  toggle_explanded() {
+    this.setState({expanded: ! this.state.expanded});
   }
 
   size() {
     return this.props.task.size > 1 ? '[' + this.props.task.size + ']' : '';
+  }
+
+  details() {
+    console.log('wtf', this);
+    if (this.state.expanded) {
+      return (
+        <CardText
+           dangerouslySetInnerHTML={{__html: this.props.task.description}}
+          />
+      );
+    }
+    return null;
+  }
+
+  actions() {
+    if (this.state.expanded) {
+      return (
+        <CardActions>
+          <IconButton icon="mode_edit"
+                      onMouseUp={() => this.refs.edit.show()} />
+        </CardActions>
+      );
+    }
+    return null;
+  }
+
+  avatar() {
+    const {task} = this.props;
+    if (task.assigned) {
+      return (
+        <UserAvatar
+           email={task.user.email}
+           title={task.user.name}
+           size="20"
+           />
+      );
+    }
+    return null;
   }
   
   render() {
@@ -262,20 +311,21 @@ class Task extends React.Component {
 
     const className = classes('kb-task', {blocked: !! task.blocked});
 
-    const avatar = () =>
-            task.assigned ?
-            <UserAvatar
-              email={task.user.email}
-              title={task.user.name}
-              size="20"
-              />
-      : null;
+    const expand = () => this.setState({expanded: ! this.state.expanded});
 
     return (
-      <Card className={className} onClick={() => this.refs.edit.show()}>
-        <CardText>
-          {this.props.task.title} {this.size()} {avatar()}
+      <Card className={className}>
+        <CardText className="kb-w-right-thing">
+          <div className="kb-w-right-thing">
+            <span>{this.props.task.title} {this.size()}</span>
+            {this.avatar()}
+          </div>
+          <RevealButton expanded={this.expanded}
+                        toggle={this.toggle_explanded.bind(this)}
+                        />
         </CardText>
+        {this.details()}
+        {this.actions()}
         <EditTask ref="edit" task={task} board={board} api={api} />
       </Card>
     );

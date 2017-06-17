@@ -111,3 +111,12 @@ td {
     width: 100%;
     text-align: center;
 }
+
+.kb-w-right-thing {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    :first-child {
+        flex-grow: 1;
+    }
+}
