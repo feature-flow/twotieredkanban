@@ -21,6 +21,7 @@ class TaskDialog extends DialogBase {
                />
         <div className="kb-field-row">
           <Select label='Size' source={[1, 2, 3, 5, 8, 13]}
+                  className="kb-task-size"
                   onChange={this.val("size", 1)} />
           <UserSelect label="Assigned" onChange={this.val("assigned")}
                       users={this.props.board.users} />

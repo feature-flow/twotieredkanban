@@ -89,7 +89,7 @@ td {
 
 .kb-field-row {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     flex-wrap: wrap;
     .kb-flex-grow {
         flex-grow: 1;
@@ -97,4 +97,14 @@ td {
     > * {
         margin-right: 2em;
     }
+}
+
+.kb-assigned {
+    min-width: 20em;
+    /* height: 11ex; */
+}
+
+.kb-task-size {
+    width: 5em;
+    /* height: 11ex; */
 }

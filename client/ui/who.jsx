@@ -29,11 +29,19 @@ const User = (props) => (
   </div>
 );
 
-const user_select_template = (user) => <User user={user} />;
+const user_select_template = (user) => {
+  if (user.value) {
+    return <User user={user} />;
+  }
+  else {
+    return <div>{user.title}</div>;
+  }
+};
 
 const UserSelect = (props) => {
   const users = props.users.map(
     (u) => Object.assign({value: u.id}, u));
+  users.unshift({value: '', title: 'Unassigned'});
   
   return (<Dropdown className="kb-assigned"
           auto={false}
