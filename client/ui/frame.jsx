@@ -2,6 +2,8 @@ import React from 'react';
 import {AppBar, Button, Drawer, Link, Navigation, IconMenu, MenuItem
        } from 'react-toolbox';
 
+import version from '../version';
+
 import {Boards, AddBoardDialog} from './boards';
 import {Avatar} from 'AuthUI';
 import {Admin} from './admin';
@@ -38,7 +40,7 @@ class Frame extends React.Component {
 
           </Admin>
           <Link icon="home" href="#/" />
-          
+          <div className="kb-version">{version}</div>
         </Drawer>
       </div>
       );
