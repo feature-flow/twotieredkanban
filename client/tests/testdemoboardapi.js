@@ -848,6 +848,8 @@ describe("demo board api", () => {
       expect(feature1.title).toBe("Proj");
       expect(task1.title).toBe("Task");
       promise((cb) => {
+        // Add some more tasks to make sure we don't archive everything
+        inc_date();
         api.add_project({title: 'f1', description: ''}, () => {
           api.add_task({title: 't1', description: ''}, () => {
             api.add_task({title: 't2', description: ''}, () => {
@@ -856,10 +858,19 @@ describe("demo board api", () => {
           });
         });
       })
-        .then(() => promise((cb) => { // We get the right updates
-          view.setState.restore();
+        .then(() => promise((cb) => {
+          // Move the feature of interest to a different state, to make sure
+          // the state is restored correctly
+          inc_date();
+          api.move(
+            feature1.id, undefined, 'Development', undefined, false,
+            () => {
+              cb();
+            });
+        }))
+        .then(() => promise((cb) => {
+          inc_date();
 
-          // Add some more tasks to make sure we don't 
           api.archive(feature1.id, (api, updates) => {
             expect(updates)
               .toEqual({
@@ -881,11 +892,25 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // We can restore an archived feature
+          inc_date();
           api.restore(feature1.id, (api, updates) => {
             expect(updates.board).toEqual({archive_count: 0});
             expect(updates.tasks.removals).toBe(undefined);
             expect(updates.tasks.adds.map((t) => t.id))
               .toEqual([task1.id, feature1.id]);
+            const feature = updates.tasks.adds[1];
+            expect(feature.history[feature.history.length-1]).toEqual({
+              start: "2017-06-08T10:02:04.004",
+              state: "Development",
+              working: true
+            });
+            expect(feature.history[feature.history.length-2]).toEqual({
+              start: "2017-06-08T10:02:03.004",
+              end: "2017-06-08T10:02:04.004",
+              state: "Development",
+              working: true,
+              archived: true
+            });
             cb();
           }, cb);
         }))
@@ -896,6 +921,80 @@ describe("demo board api", () => {
             expect(model.all_tasks.map((t) => t.title))
               .toEqual(['t2', 't1', 'f1', 'Task', 'Proj']);
             expect(model.archive_count).toBe(0);
+            cb();
+          });
+        }))
+        .then(() => done());
+    });
+  });
+
+  it("should search archived features", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test2', (api) => {
+      const model = api.model;
+      promise((cb) => {
+        // Add a bunch of features...
+        api.add_project({title: 'f1', description: 'foo'}, () => {
+          api.add_project({title: 'f2', description: 'bar baz'}, () => {
+            api.add_project({title: 'f3', description: 'bar bug'}, () => {
+              api.add_project({title: 'f4', description: ''}, () => {
+                api.add_project({title: 'f5', description: 'x bar'}, () => {
+                  api.add_project({title: 'f6', description: ''}, () => {
+                    api.add_project({title: 'f7', description: ''}, () => {
+                      api.add_task(
+                        { title: 't1', description: 'task bar',
+                          project_id: task_for_title(model, 'f7').id
+                        }, () => {
+                          cb();
+                        });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      })
+        .then(() => promise((cb) => {
+          // Now archive them:
+          inc_date();
+          api.archive(task_for_title(model, 'f1').id, () => {
+            inc_date();
+            api.archive(task_for_title(model, 'f2').id, () => {
+              inc_date();
+              api.archive(task_for_title(model, 'f3').id, () => {
+                inc_date();
+                api.archive(task_for_title(model, 'f4').id, () => {
+                  inc_date();
+                  api.archive(task_for_title(model, 'f5').id, () => {
+                    inc_date();
+                    api.archive(task_for_title(model, 'f6').id, () => {
+                      inc_date();
+                      api.archive(task_for_title(model, 'f7').id, () => {
+                        cb();
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        }))
+        .then(() => promise((cb) => {
+          // Get the 5 most recently archived
+          api.get_archived(5, undefined, (features) => {
+            expect(features.map((f) => f.title))
+              .toEqual(['f7', 'f6', 'f5', 'f4', 'f3']);
+            expect(features[0].tasks.map((t) => t.title))
+              .toEqual(['t1']); // tasks are included
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // get bar features
+          api.get_archived(5, 'bar', (features) => {
+            expect(features.map((f) => f.title))
+              .toEqual(['f7', 'f5', 'f3', 'f2']);
             cb();
           });
         }))

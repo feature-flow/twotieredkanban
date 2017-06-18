@@ -11,6 +11,7 @@ module.exports = class extends BaseAPI {
 
   constructor(view, name, cb) {
     super(new Board(name), view, cb);
+    this.name = name;
   }
 
   add_all(store, objects, cb) {
@@ -300,8 +301,14 @@ module.exports = class extends BaseAPI {
     this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
       const tasks_store = trans.objectStore('tasks');
       this.r(tasks_store.get(feature_id), (feature) => {
-        this.all(tasks_store.index('board').openCursor(
-          feature.board), (tasks) => {
+        const last = feature.history[feature.history.length - 1];
+        const event = Object.assign({}, last);
+        last.end = now();
+        event.start = last.end;
+        event.archived = true;
+        feature.history.push(event);
+        this.all(
+          tasks_store.index('board').openCursor(this.name), (tasks) => {
             feature.tasks = tasks.filter((t) => t.parent === feature_id);
             const archive = trans.objectStore('archive');
             this.r(archive.add(feature), () => {
@@ -310,7 +317,7 @@ module.exports = class extends BaseAPI {
               this.remove_all(tasks_store, removals, () => {
                 this.r(archive.count(), (count) => {
                   const boards = trans.objectStore('boards');
-                  this.r(boards.get(feature.board), (board) => {
+                  this.r(boards.get(this.name), (board) => {
                     board.archive_count = count;
                     this.r(boards.put(board), () => {
                       this.update(trans, {
@@ -331,6 +338,12 @@ module.exports = class extends BaseAPI {
     this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
       const archive = trans.objectStore('archive');
       this.r(archive.get(feature_id), (feature) => {
+        const last = feature.history[feature.history.length - 1];
+        const event = Object.assign({}, last);
+        last.end = now();
+        event.start = last.end;
+        delete event.archived;
+        feature.history.push(event);
         this.r(archive.delete(feature_id), () => {
           const tasks_store = trans.objectStore('tasks');
           const tasks = feature.tasks;
@@ -339,7 +352,7 @@ module.exports = class extends BaseAPI {
           this.add_all(tasks_store, tasks, () => {
             this.r(archive.count(), (count) => {
               const boards = trans.objectStore('boards');
-              this.r(boards.get(feature.board), (board) => {
+              this.r(boards.get(this.name), (board) => {
                 board.archive_count = count;
                 this.r(boards.put(board), () => {
                   this.update(trans, {
@@ -353,5 +366,38 @@ module.exports = class extends BaseAPI {
         }, cb);
       }, cb);
     }, cb);
+  }
+
+  cmp_modified(t1, t2) {
+    t1 = t1.history[t1.history.length-1].start;
+    t2 = t2.history[t2.history.length-1].start;
+    return t1 > t2 ? -1 : (t1 < t2 ? 1 : 0);
+  }
+
+  feature_text_search(f, search) {
+    if (f.title.indexOf(search) >= 0) { return true; }
+    if (f.description.indexOf(search) >= 0) { return true; }
+    return f.tasks.some((t) => {
+      return t.title.indexOf(search) >= 0 || t.description.indexOf(search) >= 0;
+    });
+  }
+  
+  get_archived(limit, search, f, cb) {
+    this.transaction('archive', 'readonly', (trans) => {
+      this.all(
+        trans.objectStore('archive').index('board').openCursor(this.name),
+        (features) => {
+          features.sort(this.cmp_modified);
+          if (search) {
+            features =
+              features.filter((f) => this.feature_text_search(f, search));
+          }
+          if (limit) {
+            features = features.slice(0, limit);
+          }
+          f(features);
+        }, cb);
+    }, cb);
+    
   }
 };
