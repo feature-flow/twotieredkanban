@@ -71,8 +71,9 @@ module.exports = {
       this.view = view;
       this.opened = opened;
       opened.catch(
-        (code) => this.handle_error("Couldn't open feature-flow local database",
-                                    code)
+        (code) => this.handle_error(
+          "Couldn't open feature-flow local database",
+          code)
       );
       this.poll(cb);
     }
