@@ -1,3 +1,4 @@
+import bleach
 import BTrees.OOBTree
 import datetime
 import json
@@ -233,7 +234,7 @@ class Task(persistent.Persistent):
         self.board = board # to make searching easier later
         self.id = uuid.uuid1().hex
         self.title = title
-        self.description = description
+        self.description = sanitize(description)
         self.order = order
         self.size = size
         self.blocked = blocked
@@ -278,6 +279,8 @@ class Task(persistent.Persistent):
             setattr(self, name, data[name])
             if name == 'assigned':
                 self.history[-1][name] = data[name]
+            if name == 'description':
+                self.description = sanitize(self.description)
 
     def json_reduce(self):
         return dict(id = self.id,
@@ -292,3 +295,10 @@ class Task(persistent.Persistent):
                     size = self.size,
                     history = self.history,
                     )
+
+allowed_tags = ['a', 'blockquote', 'br', 'code', 'del', 'em',
+                'h1', 'h2', 'h3', 'ins', 'li', 'ol', 'p',
+                'pre', 'strong', 'ul']
+
+def sanitize(html):
+    return bleach.linkify(bleach.clean(html, allowed_tags))

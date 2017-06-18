@@ -466,3 +466,76 @@ class BoardTests(unittest.TestCase):
         self.assertEqual('ready', vars.t1.state.id)
         self.assertEqual(42, vars.t1.order)
 
+    def test_sanitize(self):
+        self.board.new_project('first', 42, sample_description)
+        self.assertEqual(
+            dict(generation=self.vars.board_generation,
+                 tasks=dict(adds=[self.vars.project])),
+            self.board.updates(self.board_generation))
+
+        self.assertEqual(sample_description_cleaned,
+                         self.vars.project.description)
+
+        self.board.new_task(
+            self.vars.project.id, 'a sub', 43, sample_description)
+        self.assertEqual(
+            dict(generation=self.vars.generation,
+                 tasks=dict(adds=[self.vars.task])),
+            self.board.updates(self.vars.board_generation))
+        self.assertTrue(self.vars.generation > self.vars.board_generation)
+
+        self.assertEqual(sample_description_cleaned,
+                         self.vars.task.description)
+
+        self.board.update_task(self.vars.task.id, description='')
+        self.assertEqual('', self.vars.task.description)
+        self.board.update_task(self.vars.task.id,
+                               description=sample_description)
+        self.assertEqual(sample_description_cleaned,
+                         self.vars.task.description)
+
+
+
+sample_description = """
+<h1>Heading large</h1>
+<h2>Heading medium</h2>
+<h3>Heading small</h3>
+<p><strong>Bold</strong> <em>italic</em>
+   <del>strikethrough</del> <code>code</code> <ins>underline</ins></p>
+<ul>
+  <li>this</li>
+  <li>that</li>
+</ul>
+<ol>
+  <li>first</li>
+  <li>second</li>
+</ol>
+<blockquote>Blockquote</blockquote>
+<p><a href="http://valuenator.com">link</a></p>
+<pre><code>import this</code></pre>
+<p>See http://valuenator.com.</p>
+<script>evil()</script>
+<p><br></p>
+"""
+
+sample_description_cleaned = """
+<h1>Heading large</h1>
+<h2>Heading medium</h2>
+<h3>Heading small</h3>
+<p><strong>Bold</strong> <em>italic</em>
+   <del>strikethrough</del> <code>code</code> <ins>underline</ins></p>
+<ul>
+  <li>this</li>
+  <li>that</li>
+</ul>
+<ol>
+  <li>first</li>
+  <li>second</li>
+</ol>
+<blockquote>Blockquote</blockquote>
+<p><a href="http://valuenator.com" rel="nofollow">link</a></p>
+<pre><code>import this</code></pre>
+<p>See <a href="http://valuenator.com" rel="nofollow">http://valuenator.com</a>.</p>
+&lt;script&gt;evil()&lt;/script&gt;
+<p><br></p>
+"""

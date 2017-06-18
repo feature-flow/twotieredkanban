@@ -1,6 +1,7 @@
 name, version = 'twotieredkanban', '0'
 
 install_requires = [
+    'bleach',
     'bobo',
     'gevent', 'psycogreen',
     'PyJWT',
