@@ -162,4 +162,31 @@ describe("Kanban Board", () => {
     expect(board.tasks['t1'].user.email).toBe('gal@example.com');
   });
 
+  it("should handle removals", () => {
+    const board = initialized_board();
+    board.update({tasks: {adds: [
+      task('t1', 1, {parent: 'p1'}),
+      task('t2', 2, {parent: 'p1', state: 'ready'}),
+      task('t3', 3, {parent: 'p1', state: 'Doing'}),
+      task('p1', 4),
+      task('p2', 5, {state: 'Development'})
+    ]}});
+
+    board.update({tasks: {removals: ['t1', 't2']}});
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['t3', 'p1', 'p2']);
+    expect(board.tasks['p1'].subtasks('ready').map((t) => t.id)).toEqual([]);
+    expect(board.tasks['p1'].count).toBe(1);
+
+    board.update({tasks: {removals: ['t3', 'p1']}});
+    expect(board.subtasks('Backlog').map((t) => t.id)).toEqual([]);
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['p2']);
+  });
+
+  it("should have an archive count", () => {
+    const board = initialized_board();
+    expect(board.archive_count).toBe(0);
+    board.update({board: {archive_count: 1}});
+    expect(board.archive_count).toBe(1);
+  });
+  
 });

@@ -835,5 +835,72 @@ describe("demo board api", () => {
         .then((err) => done());
     });
   });
+
+  const task_for_title = (model, title) => {
+    return model.all_tasks.filter((t) => t.title === title)[0];
+  };
+
+  it("should archive and restore features", (done) => {
+    const view = {setState: expect.createSpy()};
+    let feature1, task1, x;
+    new BoardAPI(view, 'test2', (api) => {
+      [task1, feature1] = api.model.all_tasks;
+      expect(feature1.title).toBe("Proj");
+      expect(task1.title).toBe("Task");
+      promise((cb) => {
+        api.add_project({title: 'f1', description: ''}, () => {
+          api.add_task({title: 't1', description: ''}, () => {
+            api.add_task({title: 't2', description: ''}, () => {
+              cb();
+            });
+          });
+        });
+      })
+        .then(() => promise((cb) => { // We get the right updates
+          view.setState.restore();
+
+          // Add some more tasks to make sure we don't 
+          api.archive(feature1.id, (api, updates) => {
+            expect(updates)
+              .toEqual({
+                board: {archive_count: 1},
+                tasks: {removals: [task1.id, feature1.id]}
+              });
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // We get the right data when we create a new api
+          new BoardAPI(view, 'test2', (api2) => {
+            const model = api2.model;
+            expect(model.all_tasks.map((t) => t.title))
+              .toEqual(['t2', 't1', 'f1']);
+            expect(model.archive_count).toBe(1);
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // We can restore an archived feature
+          api.restore(feature1.id, (api, updates) => {
+            expect(updates.board).toEqual({archive_count: 0});
+            expect(updates.tasks.removals).toBe(undefined);
+            expect(updates.tasks.adds.map((t) => t.id))
+              .toEqual([task1.id, feature1.id]);
+            cb();
+          }, cb);
+        }))
+        .then(() => promise((cb) => {
+          // We get the right data when we create a new api
+          new BoardAPI(view, 'test2', (api2) => {
+            const model = api2.model;
+            expect(model.all_tasks.map((t) => t.title))
+              .toEqual(['t2', 't1', 'f1', 'Task', 'Proj']);
+            expect(model.archive_count).toBe(0);
+            cb();
+          });
+        }))
+        .then(() => done());
+    });
+  });
   
 });

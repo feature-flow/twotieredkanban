@@ -8,7 +8,7 @@
   "description": "simple react app",
   "main": "index.js",
   "scripts": {
-    "test": "mocha-webpack --webpack-config webpack.config-test.js \"client/tests/test*.js\""
+    "test": "mocha-webpack --webpack-config webpack.config-test.js \"client/tests/test*.js\" --require source-map-support/register"
   },
   "author": "Jim Fulton",
   "license": "MIT",

@@ -24,6 +24,17 @@ module.exports = class extends BaseAPI {
     }
   }
 
+  remove_all(store, objects, cb) {
+    if (objects.length == 0) {
+      cb(); // all done
+    }
+    else {
+      this.r(store.delete(objects[0]), () => {
+        this.remove_all(store, objects.slice(1), cb);
+      });
+    }
+  }
+
   poll(cb) {
     super.poll().then((db) => {
       this.transaction(
@@ -50,20 +61,21 @@ module.exports = class extends BaseAPI {
                              });
                          }
                          else {
-                           this.all(trans.objectStore('tasks')
-                                    .index('board').openCursor(this.model.name),
-                                    (tasks) => {
-                                      this.update(
-                                        trans,
-                                        {
-                                          board: board,
-                                          site: site,
-                                          user: user,
-                                          states: {adds: states},
-                                          tasks: {adds: tasks}
-                                        },
-                                        cb);
-                                    });
+                           this.all(
+                             trans.objectStore('tasks')
+                               .index('board').openCursor(this.model.name),
+                             (tasks) => {
+                               this.update(
+                                 trans,
+                                 {
+                                   board: board,
+                                   site: site,
+                                   user: user,
+                                   states: {adds: states},
+                                   tasks: {adds: tasks}
+                                 },
+                                 cb);
+                             });
                          }
                        });
             });
@@ -282,5 +294,64 @@ module.exports = class extends BaseAPI {
     else {
       this.update(trans, {tasks: {adds: adds}}, cb);
     }
-  } 
+  }
+
+  archive(feature_id, cb) {
+    this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
+      const tasks_store = trans.objectStore('tasks');
+      this.r(tasks_store.get(feature_id), (feature) => {
+        this.all(tasks_store.index('board').openCursor(
+          feature.board), (tasks) => {
+            feature.tasks = tasks.filter((t) => t.parent === feature_id);
+            const archive = trans.objectStore('archive');
+            this.r(archive.add(feature), () => {
+              const removals = feature.tasks.map((t) => t.id);
+              removals.push(feature_id);
+              this.remove_all(tasks_store, removals, () => {
+                this.r(archive.count(), (count) => {
+                  const boards = trans.objectStore('boards');
+                  this.r(boards.get(feature.board), (board) => {
+                    board.archive_count = count;
+                    this.r(boards.put(board), () => {
+                      this.update(trans, {
+                        board: {archive_count: count},
+                        tasks: {removals: removals}
+                      }, cb);
+                    }, cb);
+                  }, cb);
+                }, cb);
+              }, cb);
+            }, cb);
+          }, cb);
+      }, cb);
+    }, cb);
+  }
+
+  restore(feature_id, cb) {
+    this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
+      const archive = trans.objectStore('archive');
+      this.r(archive.get(feature_id), (feature) => {
+        this.r(archive.delete(feature_id), () => {
+          const tasks_store = trans.objectStore('tasks');
+          const tasks = feature.tasks;
+          delete feature.tasks;
+          tasks.push(feature);
+          this.add_all(tasks_store, tasks, () => {
+            this.r(archive.count(), (count) => {
+              const boards = trans.objectStore('boards');
+              this.r(boards.get(feature.board), (board) => {
+                board.archive_count = count;
+                this.r(boards.put(board), () => {
+                  this.update(trans, {
+                    board: {archive_count: count},
+                    tasks: {adds: tasks}
+                  }, cb);
+                }, cb);
+              }, cb);
+            }, cb);
+          }, cb);
+        }, cb);
+      }, cb);
+    }, cb);
+  }
 };

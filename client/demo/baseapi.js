@@ -29,27 +29,35 @@ const populate_store = (store, data) => {
 };
 
 let open_database = () => {
-  open_request = indexedDB.open(dbname, 1);
+  open_request = indexedDB.open(dbname, 2);
   open_request.onupgradeneeded = (ev) => {
     const db = ev.target.result;
-    const boards = db.createObjectStore('boards', {keyPath: 'name' });
-    db.createObjectStore('users',  {keyPath: 'id' });
-    db.createObjectStore('states', {keyPath: 'key' })
-      .createIndex('board', 'board', {unique: false});
+    if (ev.oldVersion < 1) {
+      const boards = db.createObjectStore('boards', {keyPath: 'name' });
+      db.createObjectStore('users',  {keyPath: 'id' });
+      db.createObjectStore('states', {keyPath: 'key' })
+        .createIndex('board', 'board', {unique: false});
 
-    db.createObjectStore('tasks',  {keyPath: 'id' })
-      .createIndex('board', 'board', {unique: false});
+      db.createObjectStore('tasks',  {keyPath: 'id' })
+        .createIndex('board', 'board', {unique: false});
 
-    boards.transaction.oncomplete = () => {
-      const trans = db.transaction(['boards', 'users', 'states', 'tasks'],
-                                   'readwrite');
-      populate_store(trans.objectStore('users'), sample.users);
-      populate_store(trans.objectStore('boards'), sample.boards);
-      sample.boards.forEach((board) => {
-        populate_store(trans.objectStore('states'), board_states(board.name));
-      });
-      populate_store(trans.objectStore('tasks'), sample.tasks);
-    };
+      boards.transaction.oncomplete = () => {
+        const trans = db.transaction(['boards', 'users', 'states', 'tasks'],
+                                     'readwrite');
+        populate_store(trans.objectStore('users'), sample.users);
+        populate_store(trans.objectStore('boards'), sample.boards);
+        sample.boards.forEach((board) => {
+          populate_store(trans.objectStore('states'),
+                         board_states(board.name));
+        });
+        populate_store(trans.objectStore('tasks'), sample.tasks);
+      };
+    }
+    if (ev.oldVersion < 2) {
+      db.createObjectStore('archive', {keyPath: 'id' })
+          .createIndex('board', 'board', {unique: false});
+
+    }
   };
   
   opened = new Promise((resolve, reject) => {
