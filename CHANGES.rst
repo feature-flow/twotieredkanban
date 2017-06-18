@@ -5,7 +5,10 @@ Change history
 0.5.2 (unreleased)
 =====================
 
-Nothing changed yet
+Improved the display of features and tasks. Both now always have
+reveal functionality, which, allows descriptions to be viewed without
+editing.  For projects, this makes the (unexpanded) development view a
+little cleaner.
 
 0.5.1 (2017-06-17)
 =====================
