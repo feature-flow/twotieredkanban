@@ -2,7 +2,7 @@
 Change history
 ==============
 
-0.5.2 (unreleased)
+0.6.0 (unreleased)
 =====================
 
 Improved the display of features and tasks. Both now always have
