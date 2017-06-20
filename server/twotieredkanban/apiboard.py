@@ -5,7 +5,7 @@ import logging
 import time
 import webob
 
-from .apiutil import Sync, get, post, put
+from .apiutil import Sync, delete, get, post, put
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,12 @@ class Board(Sync):
         self.context.update_task(task_id, **bobo_request.json)
         return self.response()
 
-    # @delete("/tasks/:task_id")
-    # def delete_task(self, request, task_id):
-    #     self.context.archive_task(task_id)
-    #     return self.response()
+    @post("/archive/:feature_id")
+    def archive_feature(self, feature_id):
+        self.context.archive_feature(feature_id)
+        return self.response()
+
+    @delete("/archive/:feature_id")
+    def restore_feature(self, request, feature_id):
+        self.context.restore_feature(feature_id)
+        return self.response()

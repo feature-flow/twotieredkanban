@@ -110,7 +110,7 @@ class APITests(setupstack.TestCase):
         self.assertEqual(
             dict(updates=
                  dict(generation=self.vars.generation2,
-                      board=data,
+                      board=dict(data, archive_count=0),
                       site=dict(users=[],
                                 boards=[data, data2])
                       )
@@ -278,3 +278,34 @@ class APITests(setupstack.TestCase):
 
         # restore default_url
         config(dict(no_site_url=default_url))
+
+    def test_archive_and_restore(self):
+        vars = Vars()
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('test', '', '')
+            board = site.boards['test']
+            board.new_project('p1', 0)
+            [p1] = board.tasks
+            board.new_task(p1.id, 't1', 1)
+            board.new_task(p1.id, 't2', 2)
+            task_ids = sorted(t.id for t in board.tasks)
+            board.new_project('p2', 3)
+
+        self.get('/board/test/poll') # set generation
+
+        r = self.app.post('/board/test/archive/' + p1.id)
+        updates = r.json['updates']
+        self.assertEqual(dict(archive_count=1,
+                              description='', name='test', title=''),
+                         updates['board'])
+        self.assertEqual(dict(removals=vars.removals), updates['tasks'])
+        self.assertEqual(sorted(vars.removals), task_ids)
+
+        r = self.app.delete('/board/test/archive/' + p1.id)
+        updates = r.json['updates']
+        self.assertEqual(dict(archive_count=0,
+                              description='', name='test', title=''),
+                         updates['board'])
+        self.assertEqual(dict(adds=vars.restores), updates['tasks'])
+        self.assertEqual(sorted(t['id'] for t in vars.restores), task_ids)

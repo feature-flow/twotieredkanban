@@ -1,4 +1,5 @@
 import bleach
+import BTrees.Length
 import BTrees.OOBTree
 import datetime
 import json
@@ -24,8 +25,9 @@ class Board(persistent.Persistent):
         self.subtasks = BTrees.OOBTree.OOBTree() # {parent_id => [tasks]}
         self.update(name, title, description)
 
-        # FUTURE {project_id -> subset }
+        # {feature_id -> feature }
         self.archive = BTrees.OOBTree.OOBTree()
+        #self._archive_count = BTrees.Length()
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -61,6 +63,7 @@ class Board(persistent.Persistent):
             name=self.name,
             title=self.title,
             description=self.description,
+            archive_count=self.archive_count,
             )
 
     def updates(self, generation):
@@ -190,13 +193,53 @@ class Board(persistent.Persistent):
                 subtask._new_event()
                 self.tasks.changed(subtask)
 
-    # def archive_task(self, task_id):
-    #     task = self.tasks[task_id]
-    #     self.tasks.remove(task)
-    #     if task.parent:
-    #         task.parent.archive += (task,)
-    #     else:
-    #         self.archive[task.id] = task
+    @property
+    def archive_count(self):
+        try:
+            return self._archive_count.value
+        except AttributeError:
+            return 0
+
+    @archive_count.setter
+    def archive_count(self, v):
+        try:
+            self._archive_count.value = v
+        except AttributeError:
+            self._archive_count = BTrees.Length.Length(v)
+        self.changes.add(self)
+
+    def archive_feature(self, feature_id):
+        feature = self.tasks[feature_id]
+        if feature.parent:
+            raise TaskValueError("Can't archive a task")
+        assert(feature.id == feature_id)
+        self.tasks.remove(feature)
+        feature.tasks = self.subtasks.pop(feature_id)
+        for task in feature.tasks:
+            self.tasks.remove(task)
+        self.archive[feature_id] = feature
+        self.archive_count += 1
+        last = feature.history[-1]
+        event = dict(last)
+        last['end'] = now()
+        event['start'] = last['end']
+        event['archived'] = True
+        feature.history += (event,)
+
+    def restore_feature(self, feature_id):
+        feature = self.archive.pop(feature_id)
+        self.tasks.add(feature)
+        self.subtasks[feature_id] = feature.tasks
+        for task in feature.tasks:
+            self.tasks.add(task)
+        del feature.tasks
+        self.archive_count -= 1
+        last = feature.history[-1]
+        event = dict(last)
+        last['end'] = now()
+        event['start'] = last['end']
+        del event['archived']
+        feature.history += (event,)
 
 class TaskTypeError(TypeError):
     """Tried to perform not applicable to task type (project vs task)

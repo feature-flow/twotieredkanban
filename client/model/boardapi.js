@@ -39,4 +39,12 @@ module.exports = class extends APIBase {
     this.put(`move/${task_id}`,
              {state_id: state_id, parent_id: parent_id, order: order});
   }
+
+  archive(feature_id) {
+    this.post('archive/' + feature_id, {});
+  }
+
+  restore(feature_id) {
+    this.delete('archive/' + feature_id);
+  }
 };
