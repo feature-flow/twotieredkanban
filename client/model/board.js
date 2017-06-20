@@ -213,8 +213,7 @@ class Board extends TaskContainer {
     }
 
     if (updates.tasks) {
-      // TODO: only handling new and updates
-      // projects
+      // TODO: updates.tasks.contents
       if (updates.tasks.adds) {
         updates.tasks.adds.forEach((task) => {
           if (! task.parent) {
