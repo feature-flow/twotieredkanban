@@ -167,7 +167,7 @@ class TaskColumn extends React.Component {
 
       result.push(
         <DropZone className="kb-divider" key={"above-" + task.id}
-                  disallow={[task.id]} dropped={dropped} />
+                  disallow={['children', task.id]} dropped={dropped} />
       );
       result.push(
         <Draggable data={ddata} key={task.id}>
