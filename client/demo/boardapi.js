@@ -382,22 +382,19 @@ module.exports = class extends BaseAPI {
     });
   }
   
-  get_archived(limit, search, f, cb) {
+  get_archived(search, start, size, f, cb) {
     this.transaction('archive', 'readonly', (trans) => {
       this.all(
         trans.objectStore('archive').index('board').openCursor(this.name),
         (features) => {
-          features.sort(this.cmp_modified);
           if (search) {
             features =
               features.filter((f) => this.feature_text_search(f, search));
           }
-          if (limit) {
-            features = features.slice(0, limit);
-          }
+          features.sort(this.cmp_modified);
+          features = features.slice(start, start + size);
           f(features);
         }, cb);
     }, cb);
-    
   }
 };
