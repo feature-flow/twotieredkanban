@@ -128,6 +128,26 @@ td {
   margin-left: 3em;
   border-radius: 1em;
   border-style: double;
+
+  .kb-archived-feature {
+      padding-left: 1em;
+      .kb-archived-task {
+          padding-left: 1em;
+      }
+  }
+
+  h1 {
+      font-size: 120%;
+  }
+
+  h2 {
+      font-size: 100%;
+      text-decoration: underline;
+  }
+
+  h3 {
+      text-decoration: none;
+  }
 }
 .kb-the-bag.dragover {
     border: 5px solid #ccff99;
