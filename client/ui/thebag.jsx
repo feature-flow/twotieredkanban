@@ -18,9 +18,12 @@ class TheBag extends Revealable {
 
   search() {
     console.log("searching");
-    this.props.api.get_archived(this.state.search, 0, 9, (features) => {
+    this.props.api.get_archived(
+      this.state.search, this.state.start || 0, 9,
+      ({features, count}) => {
       this.setState({
         features: features,
+        count: count,
         archive_count: this.props.board.archive_count
       });
     });

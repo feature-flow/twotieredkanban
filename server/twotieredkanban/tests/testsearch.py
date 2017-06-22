@@ -110,6 +110,7 @@ class SearchTests(TestCase):
                 board.archive_feature(feature_id)
 
         r = self.app.get('/board/test/archive', dict(size=2))
+        self.assertEqual(4, r.json['count'])
         fvel, fauth = r.json['features']
         self.assertEqual('Velocity', fvel['title'])
         from pprint import pprint
@@ -124,10 +125,12 @@ class SearchTests(TestCase):
         self.assertEqual('Users and authentication', fauth['title'])
 
         r = self.app.get('/board/test/archive', dict(start=2, size=2))
+        self.assertEqual(4, r.json['count'])
         fproto, fper = r.json['features']
         self.assertEqual('Persistence', fper['title'])
         self.assertEqual('Prototype board', fproto['title'])
 
         r = self.app.get('/board/test/archive', dict(size=2, text='api'))
+        self.assertEqual(3, r.json['count'])
         self.assertEqual(['Persistence', 'Prototype board'],
                          [t['title'] for t in r.json['features']])

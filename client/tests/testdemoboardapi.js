@@ -982,7 +982,8 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Get the 5 most recently archived
-          api.get_archived('', 0, 5, (features) => {
+          api.get_archived('', 0, 5, ({features, count}) => {
+            expect(count).toBe(7);
             expect(features.map((f) => f.title))
               .toEqual(['f7', 'f6', 'f5', 'f4', 'f3']);
             expect(features[0].tasks.map((t) => t.title))
@@ -992,7 +993,8 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Get the second batch of 3 most recently archived
-          api.get_archived('', 3, 3, (features) => {
+          api.get_archived('', 3, 3, ({features, count}) => {
+            expect(count).toBe(7);
             expect(features.map((f) => f.title))
               .toEqual(['f4', 'f3', 'f2']);
             cb();
@@ -1000,7 +1002,8 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // get bar features
-          api.get_archived('bar', 0, 99, (features) => {
+          api.get_archived('bar', 0, 99, ({features, count}) => {
+            expect(count).toBe(4);
             expect(features.map((f) => f.title))
               .toEqual(['f7', 'f5', 'f3', 'f2']);
             cb();

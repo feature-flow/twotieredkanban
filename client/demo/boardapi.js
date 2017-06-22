@@ -392,8 +392,10 @@ module.exports = class extends BaseAPI {
               features.filter((f) => this.feature_text_search(f, search));
           }
           features.sort(this.cmp_modified);
-          features = features.slice(start, start + size);
-          f(features);
+          f({
+            features: features.slice(start, start + size),
+            count: features.length
+          });
         }, cb);
     }, cb);
   }

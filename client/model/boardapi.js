@@ -51,7 +51,7 @@ module.exports = class extends APIBase {
   get_archived(search, start, size, f) {
     search = search ? '&search=' + encodeURIComponent(search) : '';
     this.get('archive?start=' + start + '&size=' + size + search).then((r) => {
-      f(r.data.features);
+      f(r.data);
     });
   }    
 

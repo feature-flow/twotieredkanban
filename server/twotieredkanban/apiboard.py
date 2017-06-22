@@ -54,15 +54,15 @@ class Board(Sync):
     @get("/archive")
     def search_archived(self, text=None, start=0, size=None):
         conn = self.context._p_jar
-        return self.response(
-            features=(
-                newt.db.search.where_batch(
-                    conn, archive_where(conn, text), (), int(start), int(size)
-                    )[1]
-                if size else
-                newt.db.search.where(conn, archive_where(conn, text))
+
+        if size:
+            count, features = newt.db.search.where_batch(
+                conn, archive_where(conn, text), (), int(start), int(size))
+            return self.response(count=count, features=features)
+        else:
+            return self.response(
+                features=newt.db.search.where(conn, archive_where(conn, text))
                 )
-            )
 
 def archive_where(context, text=None):
     q = dict(archived='true')
