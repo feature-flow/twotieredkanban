@@ -3,6 +3,7 @@ import {Button} from 'react-toolbox';
 
 import {AddProject} from './project';
 import ProjectColumn from './projectcolumn';
+import {TheBag} from './thebag';
 
 module.exports = class extends React.Component {
 
@@ -42,18 +43,20 @@ module.exports = class extends React.Component {
           <tbody><tr>{columns()}</tr></tbody>
         </table>
 
-        <div>
-          <h4>{states[0].title}</h4>
-          <ProjectColumn
-             state={states[0]}
-             projects={board.subtasks(states[0].id)}
-             board={board}
-             api={this.props.api}
-             />
-          <Button icon='add' floating
-                  onMouseUp={() => this.refs.add.show()}
-                  />
-          <AddProject ref="add" api={this.props.api} />
+        <div className="kb-w-right-thing">
+          <div className='kb-backlog'>
+            <h4>{states[0].title}</h4>
+            <ProjectColumn
+               state={states[0]}
+               projects={board.subtasks(states[0].id)}
+               board={board}
+               api={this.props.api}
+               />
+            <Button
+               icon='add' floating onMouseUp={() => this.refs.add.show()} />
+              <AddProject ref="add" api={this.props.api} />
+          </div>
+          <TheBag board={board} api={this.props.api} />
         </div>
       </div>
     ); 

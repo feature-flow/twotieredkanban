@@ -114,9 +114,21 @@ td {
 
 .kb-w-right-thing {
     display: flex;
-    align-items: flex-start;
+    align-items: baseline;
     flex-wrap: wrap;
     :first-child {
         flex-grow: 1;
     }
+}
+
+.kb-the-bag {
+  background-color: #FFDF00;
+  padding: 1em;
+  margin-top: 1em;
+  margin-left: 3em;
+  border-radius: 1em;
+  border-style: double;
+}
+.kb-the-bag.dragover {
+    border: 5px solid #ccff99;
 }

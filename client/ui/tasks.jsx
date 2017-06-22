@@ -162,7 +162,7 @@ class TaskColumn extends React.Component {
 
       const dropped = (dt) => this.dropped(dt, task.id);
 
-      const ddata = {'text/id': task.id};
+      const ddata = {'text/id': task.id, 'text/task': task.id};
       ddata['text/' + task.id] = task.id;
 
       result.push(
@@ -219,7 +219,7 @@ class UnorderedTaskColumn extends React.Component {
 
   tasks() {
     return this.props.tasks.map((task) => {
-      const ddata = {'text/id': task.id};
+      const ddata = {'text/id': task.id, 'text/task': task.id};
       ddata['text/' + task.id] = task.id;
 
       return (
