@@ -17,7 +17,7 @@ demo_db = '''
 </zodb>
 '''
 
-def make_app():
+def make_app(config=demo_db):
     app = bobo.Application(
         bobo_resources="""
                        twotieredkanban.apibase
@@ -27,7 +27,7 @@ def make_app():
     return pkg_resources.load_entry_point(
         'zc.zodbwsgi', 'paste.filter_app_factory', 'main')(
             app, {},
-            configuration = demo_db,
+            configuration = config,
             max_connections = '4',
             thread_transaction_manager = 'False'
         )

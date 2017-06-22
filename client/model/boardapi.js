@@ -47,4 +47,12 @@ module.exports = class extends APIBase {
   restore(feature_id) {
     this.delete('archive/' + feature_id);
   }
+
+  get_archived(search, start, size, f) {
+    search = search ? '&search=' + encodeURIComponent(search) : '';
+    this.get('archive?start=' + start + '&size=' + size + search).then((r) => {
+      f(r.data.features);
+    });
+  }    
+
 };

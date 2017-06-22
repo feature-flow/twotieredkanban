@@ -215,6 +215,8 @@ class Board(persistent.Persistent):
         assert(feature.id == feature_id)
         self.tasks.remove(feature)
         feature.tasks = self.subtasks.pop(feature_id)
+        feature.task_texts = [dict(title=t.title, description=t.description)
+                              for t in feature.tasks]
         for task in feature.tasks:
             self.tasks.remove(task)
         self.archive[feature_id] = feature
@@ -233,6 +235,7 @@ class Board(persistent.Persistent):
         for task in feature.tasks:
             self.tasks.add(task)
         del feature.tasks
+        del feature.task_texts
         self.archive_count -= 1
         last = feature.history[-1]
         event = dict(last)
@@ -326,18 +329,22 @@ class Task(persistent.Persistent):
                 self.description = sanitize(self.description)
 
     def json_reduce(self):
-        return dict(id = self.id,
-                    title = self.title,
-                    description = self.description,
-                    order = self.order,
-                    state = self.state.id if self.state else None,
-                    parent =
-                    self.parent.id if self.parent is not None else None,
-                    blocked = self.blocked,
-                    assigned = self.assigned,
-                    size = self.size,
-                    history = self.history,
-                    )
+        result = dict(id = self.id,
+                      title = self.title,
+                      description = self.description,
+                      order = self.order,
+                      state = self.state.id if self.state else None,
+                      parent =
+                      self.parent.id if self.parent is not None else None,
+                      blocked = self.blocked,
+                      assigned = self.assigned,
+                      size = self.size,
+                      history = self.history,
+                      )
+        tasks = getattr(self, 'tasks', None)
+        if tasks:
+            result['tasks'] = tasks
+        return result
 
 allowed_tags = ['a', 'blockquote', 'br', 'code', 'del', 'em',
                 'h1', 'h2', 'h3', 'ins', 'li', 'ol', 'p',
