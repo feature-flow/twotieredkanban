@@ -49,10 +49,11 @@ module.exports = class extends APIBase {
   }
 
   get_archived(search, start, size, f) {
-    search = search ? '&search=' + encodeURIComponent(search) : '';
+    search = search ? '&text=' + encodeURIComponent(search) : '';
     this.get('archive?start=' + start + '&size=' + size + search).then((r) => {
+      r.data.start = start;
       this.model.update({search: {archive: r.data}});
+      this.view.setState({model: this.model});
     });
-  }    
-
+  }
 };
