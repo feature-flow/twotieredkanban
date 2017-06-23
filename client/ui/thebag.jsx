@@ -3,6 +3,7 @@ import {Input} from 'react-toolbox';
 
 import {has_text} from '../model/hastext';
 
+import {Batch} from './search';
 import {DropZone} from './dnd';
 import {Reveal, Revealable, RevealButton} from './revealbutton';
 import {TooltipIconButton} from './util';
@@ -13,7 +14,6 @@ class TheBag extends Revealable {
 
   constructor(props) {
     super(props);
-    this.state.start = 0;
     this.state.search = '';
   }
   
@@ -25,10 +25,9 @@ class TheBag extends Revealable {
     this.props.api.archive(dt.getData('text/id'));
   }
 
-  search() {
+  search(start=0) {
     console.log("searching");
-    this.props.api.get_archived(
-      this.state.search, this.state.start, SEARCH_BATCH_SIZE);
+    this.props.api.get_archived(this.state.search, start, SEARCH_BATCH_SIZE);
   }
   
   features () {
@@ -57,9 +56,12 @@ class TheBag extends Revealable {
              onChange={(v) => this.search_input(v)}
              />
             {features}
+            <Batch start={results.start}
+                   size={SEARCH_BATCH_SIZE}
+                   count={results.count}
+                   go={(pos) => this.search(pos)}
+                   />
         </div>
-        
-
       );
     }
     this.state.features = null; // Clear search
@@ -97,12 +99,9 @@ class TheBag extends Revealable {
                         />
         </div>
         {this.features()}
-        
       </DropZone>
     );
-
   }
-  
 }
 
 class ArchivedFeature extends Revealable {
