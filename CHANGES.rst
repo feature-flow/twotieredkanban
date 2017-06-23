@@ -5,7 +5,7 @@ Change history
 0.7.1 (unreleased)
 =====================
 
-Nothing changed yet
+Fixed: Archived-feature didn't qualify search by board.
 
 0.7.0 (2017-06-23)
 =====================

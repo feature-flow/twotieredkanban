@@ -69,11 +69,13 @@ class SearchTests(TestCase):
         with self._app.database.transaction() as conn:
             site = get_site(conn.root, 'localhost')
             self.assertEqual(
-                b"((state -> 'history' -> -1 ->> 'archived') = 'true')\n"
+                b"((state -> 'history' -> -1 ->> 'archived') = 'true') AND\n"
+                b"  (((state -> 'board' ->> '::=>')::bigint) = 2)\n"
                 b"ORDER BY (state -> 'history' -> -1 ->> 'start') DESC",
                 archive_where(site))
             self.assertEqual(
                 b"((state -> 'history' -> -1 ->> 'archived') = 'true') AND\n"
+                b"  (((state -> 'board' ->> '::=>')::bigint) = 2) AND\n"
                 b"  extract_text(class_name, state) @@"
                 b" to_tsquery('english', 'test')\n"
                 b"ORDER BY ts_rank_cd(array[0.1, 0.2, 0.4, 1],"
@@ -134,3 +136,32 @@ class SearchTests(TestCase):
         self.assertEqual(3, r.json['count'])
         self.assertEqual(['Persistence', 'Prototype board'],
                          [t['title'] for t in r.json['features']])
+
+    def test_archive_search_isolation(self):
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('test', '', '')
+            board = site.boards['test']
+            board.new_project('test', 0)
+            board.archive_feature(list(board.tasks)[0].id)
+
+            site.add_board('other', '', '')
+            board = site.boards['other']
+            board.new_project('test other board', 0)
+            [p] = board.tasks
+            board.archive_feature(list(board.tasks)[0].id)
+
+            site = get_site(conn.root, 'other', True)
+            site.add_board('test', '', '')
+            board = site.boards['test']
+            board.new_project('test other site', 0)
+            board.archive_feature(list(board.tasks)[0].id)
+
+        r = self.app.get('/board/test/archive', dict(size=99))
+        self.assertEqual(1, r.json['count'])
+        [f] = r.json['features']
+        self.assertEqual('test', f['title'])
+
+        r = self.app.get('/board/test/archive', dict(text='test'))
+        [f] = r.json['features']
+        self.assertEqual('test', f['title'])

@@ -6,6 +6,7 @@ import logging
 import newt.db.search
 import time
 import webob
+from ZODB.utils import u64
 
 from . import sql
 from .apiutil import Sync, delete, get, post, put
@@ -53,22 +54,26 @@ class Board(Sync):
 
     @get("/archive")
     def search_archived(self, text=None, start=0, size=None):
-        conn = self.context._p_jar
+        board = self.context
 
         if size:
             count, features = newt.db.search.where_batch(
-                conn, archive_where(conn, text), (), int(start), int(size))
+                board._p_jar,
+                archive_where(board, text), (), int(start), int(size))
             return self.response(count=count, features=features)
         else:
             return self.response(
-                features=newt.db.search.where(conn, archive_where(conn, text))
+                features=newt.db.search.where(
+                    board._p_jar,
+                    archive_where(board, text))
                 )
 
-def archive_where(context, text=None):
-    q = dict(archived='true')
+def archive_where(board, text=None):
+    conn = board._p_jar
+    q = dict(archived='true', board=u64(board._p_oid))
     if text:
         q['text'] = text
         order_by = ('text', True)
     else:
         order_by = ('modified', True)
-    return sql.qbe.sql(context, q, order_by=(order_by,))
+    return sql.qbe.sql(conn, q, order_by=(order_by,))
