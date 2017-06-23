@@ -271,7 +271,6 @@ class State(persistent.Persistent):
 class Task(persistent.Persistent):
 
     state = None
-    #archive = ()
     history = ()
 
     def __init__(self, board, title, order, description='',
@@ -342,7 +341,7 @@ class Task(persistent.Persistent):
                       history = self.history,
                       )
         tasks = getattr(self, 'tasks', None)
-        if tasks:
+        if tasks is not None:
             result['tasks'] = tasks
         return result
 
