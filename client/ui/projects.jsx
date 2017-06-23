@@ -56,7 +56,8 @@ module.exports = class extends React.Component {
                icon='add' floating onMouseUp={() => this.refs.add.show()} />
               <AddProject ref="add" api={this.props.api} />
           </div>
-          <TheBag board={board} api={this.props.api} />
+          <TheBag board={board} api={this.props.api}
+                  search_results={board.search.archive} />
         </div>
       </div>
     ); 

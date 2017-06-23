@@ -1,13 +1,22 @@
 import React from 'react';
-import {TooltipIconButton} from './util';
+import {Input} from 'react-toolbox';
 
 import {has_text} from '../model/hastext';
 
 import {DropZone} from './dnd';
 import {Reveal, Revealable, RevealButton} from './revealbutton';
+import {TooltipIconButton} from './util';
+
+const SEARCH_BATCH_SIZE = 9;
 
 class TheBag extends Revealable {
 
+  constructor(props) {
+    super(props);
+    this.state.start = 0;
+    this.state.search = '';
+  }
+  
   size() {
     return '(' + this.props.board.archive_count + ')';
   }
@@ -19,28 +28,19 @@ class TheBag extends Revealable {
   search() {
     console.log("searching");
     this.props.api.get_archived(
-      this.state.search, this.state.start || 0, 9,
-      ({features, count}) => {
-      this.setState({
-        features: features,
-        count: count,
-        archive_count: this.props.board.archive_count
-      });
-    });
+      this.state.search, this.state.start, SEARCH_BATCH_SIZE);
   }
   
   features () {
     if (this.state.expanded) {
-      if (! this.state.features ||
-          this.props.board.archive_count !== this.state.archive_count) {
+      const results = this.props.search_results;
+      
+      if (! results) {
         this.search();
+        return null;
       }
 
-      if (! this.state.features || this.state.features.length < 1) {
-        return <div>Nothing in the bag.</div>;
-      }
-
-      return this.state.features.map((feature) => {
+      const features = results.features.map((feature) => {
         return (
           <ArchivedFeature
              feature={feature} key={feature.id}
@@ -48,9 +48,41 @@ class TheBag extends Revealable {
              />
         );
       });
+      return (
+        <div>
+          <Input
+             label="Search"
+             icon="search"
+             value={this.state.search}
+             onChange={(v) => this.search_input(v)}
+             />
+            {features}
+        </div>
+        
+
+      );
     }
     this.state.features = null; // Clear search
     return null;
+  }
+
+  clear_search_timeout() {
+    if (this.search_timeout) {
+      clearTimeout(this.search_timeout);
+      this.search_timeout = undefined;
+    }
+  }
+  
+  search_input(v) {
+    this.clear_search_timeout();
+    this.setState({search: v});
+    const timeout = setTimeout(() => {
+      if (timeout === this.search_timeout) {
+        this.search();
+        this.search_timeout = undefined;
+      }
+    }, 500);
+    this.search_timeout = timeout;
   }
 
   render() {
@@ -64,7 +96,7 @@ class TheBag extends Revealable {
                         toggle={this.toggle_explanded.bind(this)}
                         />
         </div>
-        <div className="kb-archived-features">{this.features()}</div>
+        {this.features()}
         
       </DropZone>
     );

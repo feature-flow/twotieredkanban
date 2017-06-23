@@ -382,7 +382,7 @@ module.exports = class extends BaseAPI {
     });
   }
   
-  get_archived(search, start, size, f, cb) {
+  get_archived(search, start, size, cb) {
     this.transaction('archive', 'readonly', (trans) => {
       this.all(
         trans.objectStore('archive').index('board').openCursor(this.name),
@@ -392,10 +392,12 @@ module.exports = class extends BaseAPI {
               features.filter((f) => this.feature_text_search(f, search));
           }
           features.sort(this.cmp_modified);
-          f({
-            features: features.slice(start, start + size),
-            count: features.length
-          });
+          this.update(trans, {
+            search: {archive: {
+              search: search, start: start, size: size,
+              features: features.slice(start, start + size),
+              count: features.length
+            }}}, cb);
         }, cb);
     }, cb);
   }

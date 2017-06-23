@@ -115,6 +115,8 @@ class Board extends TaskContainer {
     this.task_states = [];
     this.states_by_id = {}; // {id -> state
     this.archive_count = 0;
+
+    this.search = {}; // Search results
   }
 
   add_task(task) {
@@ -175,6 +177,7 @@ class Board extends TaskContainer {
       }
       if (updates.board.archive_count != undefined) {
         this.archive_count = updates.board.archive_count;
+        delete this.search.archive; // Clear search results
       }
     }
 
@@ -264,7 +267,11 @@ class Board extends TaskContainer {
           this.ar_remove(this.all_tasks, task);
         });
       }
+    }
 
+    if (updates.search) {
+      // Search results flow much like data changes
+      Object.assign(this.search, updates.search);
     }
   }
 
