@@ -67,6 +67,7 @@ module.exports = class {
         this.view.setState({model: this.model});
       }
     }
+    return data;
   }
 
   handle_error(err) {
