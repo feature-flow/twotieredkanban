@@ -214,7 +214,7 @@ class Board(persistent.Persistent):
             raise TaskValueError("Can't archive a task")
         assert(feature.id == feature_id)
         self.tasks.remove(feature)
-        feature.tasks = self.subtasks.pop(feature_id)
+        feature.tasks = self.subtasks.pop(feature_id, [])
         feature.task_texts = [dict(title=t.title, description=t.description)
                               for t in feature.tasks]
         for task in feature.tasks:

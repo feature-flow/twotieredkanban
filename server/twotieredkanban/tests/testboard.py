@@ -593,6 +593,76 @@ class BoardTests(unittest.TestCase):
                               state="Development", working=True, archived=True,
                               ), vars.p1.history[-2])
 
+    @mock.patch('twotieredkanban.board.now')
+    def test_archive_and_restore_empty_feature(self, now):
+        now.return_value = '2017-06-08T10:02:00.004'
+        board, updates = self.board, self.updates
+        vars = Vars()
+
+        # Make an empty feature:
+        board.new_project('p1' , 42, '')
+        self.assertEqual([vars.p1], updates()['tasks']['adds'])
+
+        # Now, archive p1:
+        self.assertEqual(0, board.archive_count)
+        now.return_value = '2017-06-08T10:02:01.004'
+        board.archive_feature(vars.p1.id)
+        self.assertEqual(
+            dict(board=board, site=board.site,
+                 tasks=dict(removals=[vars.p1.id])),
+            updates())
+        self.assertEqual(1, board.archive_count)
+
+        # If we asked for all updates, we'd see the expected data:
+        self.assertEqual(
+            dict(board=board, site=board.site,
+                 states=vars.states,
+                 tasks={},
+                 generation=vars.generation,
+                 zoid=vars.zoid,
+                 ),
+            board.updates(0))
+
+        # p1, which is now archived, has it's tasks in it's tasks attr:
+        self.assertEqual([], vars.p1.tasks)
+
+        # History has the archival event:
+        self.assertEqual(dict(start='2017-06-08T10:02:01.004',
+                              state="Backlog", archived=True,
+                              ), vars.p1.history[-1])
+        self.assertEqual(dict(start='2017-06-08T10:02:00.004',
+                              end  ='2017-06-08T10:02:01.004',
+                              state="Backlog",
+                              ), vars.p1.history[-2])
+
+        # OK, now let's retore:
+        now.return_value = '2017-06-08T10:02:02.004'
+        board.restore_feature(vars.p1.id)
+        self.assertEqual(
+            dict(board=board, site=board.site,
+                 tasks=dict(adds=[vars.p1])),
+            updates())
+        self.assertEqual(0, board.archive_count)
+
+        # If we asked for all updates, we'd see the expected data:
+        self.assertEqual(
+            dict(board=board, site=board.site,
+                 states=vars.states,
+                 tasks=dict(adds=[vars.p1]),
+                 generation=vars.generationr,
+                 zoid=vars.zoid,
+                 ),
+            board.updates(0))
+
+        # History has the archival event:
+        self.assertEqual(dict(start='2017-06-08T10:02:02.004',
+                              state="Backlog",
+                              ), vars.p1.history[-1])
+        self.assertEqual(dict(start='2017-06-08T10:02:01.004',
+                              end  ='2017-06-08T10:02:02.004',
+                              state="Backlog", archived=True,
+                              ), vars.p1.history[-2])
+
 
 sample_description = """
 <h1>Heading large</h1>
