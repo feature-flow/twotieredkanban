@@ -138,6 +138,7 @@ td {
 
   h1 {
       font-size: 120%;
+      text-align: center;
   }
 
   h2 {
@@ -151,4 +152,16 @@ td {
 }
 .kb-the-bag.dragover {
     border: 5px solid #ccff99;
+}
+
+.kb-batch {
+    text-align: center;
+    .kb-batch-position {
+        font-weight: bold;
+        vertical-align: -20%;
+    }
+}
+
+body {
+    font-family: Roboto;
 }
