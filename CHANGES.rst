@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.7.0 (unreleased)
+0.7.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.7.0 (2017-06-23)
 =====================
 
 Implemented "The Bag" to hold old (generally finished) features.
