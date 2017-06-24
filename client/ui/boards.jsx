@@ -3,8 +3,6 @@ import React from 'react';
 import {List, ListItem, ListSubHeader} from 'react-toolbox';
 import {Dialog, Input, DialogBase} from './dialog';
 
-import Projects from './projects';
-
 module.exports = {
   Boards: (props) => {
     const goto_board = (board) => {
