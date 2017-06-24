@@ -17,6 +17,9 @@ class Board extends Base {
     
     render() {
       const board = this.state.model;
+      if (board.NotFound) {
+        window.location.hash = '#/';
+      }
       document.title = board.name;
       return (
         <div>

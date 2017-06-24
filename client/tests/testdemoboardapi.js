@@ -73,6 +73,7 @@ describe("demo board api", () => {
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
       expect(view.setState).toHaveBeenCalledWith({model: model});
+      expect(model.NotFound).toBe(undefined);
       expect(model.name).toEqual('test');
       expect(model.title).toEqual('');
       expect(model.description).toEqual('');
@@ -1015,5 +1016,13 @@ describe("demo board api", () => {
         .then(() => done());
     });
   });
-  
+
+  it("It should set NotFound on missing boards", () => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, '-------------', (api) => {
+      const model = api.model;
+      expect(view.setState).toHaveBeenCalledWith({model: model});
+      expect(model.NotFound).toBe(true);
+    });
+  });
 });

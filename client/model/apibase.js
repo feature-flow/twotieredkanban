@@ -77,9 +77,7 @@ module.exports = class {
         this.raven(err);
       }
     }
-    else {
-      throw err;
-    }
+    throw err;
   }
 
   get(url, data) {
@@ -114,6 +112,10 @@ module.exports = class {
         .catch((err) => {
           console.log(this.poll_route, "failed", err);
           setTimeout(() => this.poll(), 9999);
+          if (err.response && err.response.status === 404) {
+            this.model.NotFound = true;
+            this.view.setState({model: this.model});
+          }
         });
     }
   }

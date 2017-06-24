@@ -184,10 +184,15 @@ module.exports = {
 
     update(trans, data, cb) {
       trans.oncomplete = () => {
-        if (data.user) {
-          this.user = data.user;
+        if (data) {
+          if (data.user) {
+            this.user = data.user;
+          }
+          this.model.update(data);
         }
-        this.model.update(data);
+        else {
+          this.model.NotFound = true;
+        }
         this.view.setState({model: this.model});
         if (cb) {
           cb(this, data);

@@ -44,6 +44,10 @@ module.exports = class extends BaseAPI {
             this.users(trans, (users, user) => {
               const board = Object.assign({}, boards.filter(
                 (board) => board.name == this.model.name)[0]);
+              if (! board.name) {
+                this.update(trans, null, cb);
+                return;
+              }
               const site = {boards: boards, users: users};
               this.all(trans.objectStore('states')
                        .index('board').openCursor(this.model.name),
