@@ -42,8 +42,8 @@ class Frame extends React.Component {
           <div className="kb-button-row">
             <Admin user={model.user} >
               <TooltipIconButton
-                 icon='add' floating
-                 onMouseUp={() => this.refs.add.show()}
+                icon='add'
+                onMouseUp={() => this.refs.add.show()}
                 tooltip="Add another board." tooltipPosition="right"
                 />
                 <AddBoardDialog api={this.props.api} ref="add" />
