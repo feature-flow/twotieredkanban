@@ -7,6 +7,7 @@ import version from '../version';
 import {Boards, AddBoardDialog} from './boards';
 import {Avatar} from 'AuthUI';
 import {Admin} from './admin';
+import {TooltipButton, TooltipIconButton} from './util';
 
 class Frame extends React.Component {
 
@@ -15,6 +16,10 @@ class Frame extends React.Component {
     this.state = { show_drawer: false };
   }
 
+  go_home() {
+    window.location.hash = '#/';
+  }
+  
   render() {
     const {title, model, api} = this.props;
     
@@ -33,13 +38,21 @@ class Frame extends React.Component {
                 onOverlayClick={toggle_drawer}
                 >
           <Boards boards={model.boards} />
-          <Admin user={model.user} >
-            <Button icon='add'
-                    floating onMouseUp={() => this.refs.add.show()} />
-                    <AddBoardDialog api={this.props.api} ref="add" />
 
-          </Admin>
-          <Link icon="home" href="#/" />
+          <div className="kb-button-row">
+            <Admin user={model.user} >
+              <TooltipIconButton
+                 icon='add' floating
+                 onMouseUp={() => this.refs.add.show()}
+                tooltip="Add another board." tooltipPosition="right"
+                />
+                <AddBoardDialog api={this.props.api} ref="add" />
+            </Admin>
+            <TooltipIconButton
+               icon="home" onMouseUp={this.go_home} tooltipPosition="right"
+               tooltip="View welcome message."
+               />
+          </div>
           <div className="kb-version">{version}</div>
         </Drawer>
       </div>

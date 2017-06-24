@@ -107,10 +107,6 @@ td {
     width: 5em;
 }
 
-.kb-version {
-    width: 100%;
-    text-align: center;
-}
 
 .kb-w-right-thing {
     display: flex;
@@ -164,4 +160,14 @@ td {
 
 body {
     font-family: Roboto;
+}
+
+.kb-button-row {
+    display: flex;
+    justify-content: center;
+}
+
+.kb-version {
+    width: 100%;
+    text-align: center;
 }

@@ -1,6 +1,7 @@
 import React from 'react';
-import {IconButton, Tooltip} from 'react-toolbox';
+import {Button, IconButton, Link, Tooltip} from 'react-toolbox';
 
 module.exports = {
+  TooltipButton: Tooltip(Button),
   TooltipIconButton: Tooltip(IconButton)
 };

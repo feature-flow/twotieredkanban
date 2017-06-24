@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card, CardActions, CardText, IconButton} from 'react-toolbox';
+import {Card, CardActions, CardText} from 'react-toolbox';
 import RichTextEditor from 'react-rte';
 
 import {has_text} from '../model/hastext';
@@ -7,6 +7,7 @@ import {has_text} from '../model/hastext';
 import {Dialog, DialogBase, Input, Editor} from './dialog';
 import {RevealButton} from './revealbutton';
 import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
+import {TooltipIconButton} from './util';
 
 class ProjectDialog extends DialogBase {
   
@@ -75,7 +76,6 @@ class Project extends React.Component {
     return (nextProps.project.rev !== this.rev ||
             nextState.expanded !== this.state.expanded);
   }
-
   toggle_explanded() {
     this.setState({expanded: ! this.state.expanded});
   }
@@ -98,10 +98,16 @@ class Project extends React.Component {
         <CardActions>
           <AddTask     ref="add" project={project} board={board} api={api} />
           <EditProject ref="edit" project={project} api={api} />
-          <IconButton icon="add"
-                      onMouseUp={() => this.refs.add.show() } />
-            <IconButton icon="mode_edit"
-                        onMouseUp={() => this.refs.edit.show()} />
+          <TooltipIconButton
+             icon="add"
+             onMouseUp={() => this.refs.add.show() }
+             tooltip="Add a task to this feature." tooltipPosition="right"
+            />
+          <TooltipIconButton
+            icon="mode_edit"
+            onMouseUp={() => this.refs.edit.show()}
+            tooltip="Edit this feature." tooltipPosition="right"
+            />
         </CardActions>
       );
     }

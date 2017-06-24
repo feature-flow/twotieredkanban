@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card, CardActions, CardText, IconButton} from 'react-toolbox';
+import {Card, CardActions, CardText} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
 
@@ -8,6 +8,7 @@ import {has_text} from '../model/hastext';
 import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {RevealButton} from './revealbutton';
+import {TooltipIconButton} from './util';
 import {UserAvatar, UserSelect} from './who';
 
 class TaskDialog extends DialogBase {
@@ -285,8 +286,11 @@ class Task extends React.Component {
     if (this.state.expanded) {
       return (
         <CardActions>
-          <IconButton icon="mode_edit"
-                      onMouseUp={() => this.refs.edit.show()} />
+          <TooltipIconButton
+             icon="mode_edit"
+             onMouseUp={() => this.refs.edit.show()}
+             tooltip="Edit this task." tooltipPosition="right"
+             />
         </CardActions>
       );
     }
