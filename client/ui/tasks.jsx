@@ -27,7 +27,8 @@ class TaskDialog extends DialogBase {
                   className="kb-task-size"
                   onChange={this.val("size", 1)} />
           <UserSelect label="Assigned" onChange={this.val("assigned")}
-                      users={this.props.board.users} />
+                      users={this.props.board.users} none="Unassigned"
+                      />
           <Input label='Blocked' multiline={true} className="kb-flex-grow"
                  onChange={this.val("blocked")} />
         </div>
