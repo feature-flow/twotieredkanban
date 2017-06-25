@@ -44,9 +44,11 @@ class APITests(setupstack.TestCase):
         self.app = self._test_app()
         self.vars = Vars()
 
-    def _test_app(self):
+    def _test_app(self, url=None):
         app = webtest.TestApp(self._app)
         app.extra_environ['HTTP_X_GENERATION'] = '0'
+        if url:
+            self.update_app(app, app.get(url))
         return app
 
     def update_app(self, app, resp):
@@ -116,6 +118,23 @@ class APITests(setupstack.TestCase):
                       )
                  ),
             self.post('/board/Dev/boards', data2).json)
+
+    def test_update_board(self):
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('t')
+            site.add_board('tt')
+        self.get('/board/t/poll')
+        site_app = self._test_app('/site/poll')
+        tt_app = self._test_app('/site/poll')
+        r = self.put('/board/t', dict(name='t2'))
+        vars = Vars()
+        self.assertEqual(dict(board=vars.board, site=vars.site,
+                              generation=vars.g),
+                         r.json['updates'])
+        self.assertEqual(['t2', 'tt'],
+                         [b['name'] for b in vars.site['boards']])
+        self.assertEqual('t2', vars.board['name'])
 
     def test_add_project(self):
         self.post('/site/boards', dict(name='t', title='t', description=''))

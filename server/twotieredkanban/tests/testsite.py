@@ -11,9 +11,15 @@ class SiteTests(unittest.TestCase):
     def setUp(self):
         from ..site import Site
         self.site = Site()
+        self.generation = self.site.generation
         self.conn = ZODB.connection(None)
         self.conn.root.site = self.site
         self.conn.transaction_manager.commit()
+
+    def updates(self):
+        updates = self.site.updates(self.generation)
+        self.generation = updates.pop('generation')
+        return updates
 
     def test_new_site(self):
         self.assertEqual(self.site.users, ())
@@ -37,6 +43,24 @@ class SiteTests(unittest.TestCase):
 
         # The original board was updated:
         self.assertTrue(self.board.generation > generation)
+
+    def test_rename_board(self):
+        self.site.add_board('first', '', '')
+        board = self.site.boards['first']
+        board_generation = board.generation
+        self.updates()
+
+        # renaming to same name is a noop:
+        self.site.rename('first', 'first')
+        self.assertEqual({}, self.updates())
+        self.assertEqual(board_generation, board.generation)
+
+        self.site.rename('first', 'fist')
+        self.assertEqual(self.site, self.updates()['site'])
+        self.assertEqual([dict(name='fist', title='', description='')],
+                         self.site.json_reduce()['boards'])
+        self.assertEqual(board, board.updates(board_generation)['board'])
+        self.assertEqual('fist', board.name)
 
     def test_update_users(self):
         self.site.add_board('first', 'The first one', 'Yup, the first')

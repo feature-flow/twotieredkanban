@@ -47,17 +47,30 @@ class Site(persistent.Persistent):
                     for board in self.boards.values()],
             )
 
-    def update_users(self, users):
-        self.users = list(users)
+    def _changed(self):
         self.changes.add(self)
         for board in self.boards.values():
             board.site_changed()
 
-    def add_board(self, name, title, description):
-        for board in self.boards.values():
-            board.site_changed()
+    def update_users(self, users):
+        self.users = list(users)
+        self._changed()
+
+    def add_board(self, name, title='', description=''):
+        if name in self.boards:
+            raise KeyError(name)
         self.boards[name] = Board(self, name, title, description)
-        self.changes.add(self)
+        self._changed()
+
+    def rename(self, old, name):
+        if old == name:
+            return
+        if name in self.boards:
+            raise KeyError(name)
+        board = self.boards.pop(old)
+        board.name = name
+        self.boards[name] = board
+        self._changed()
 
     def updates(self, generation):
         updates = self.changes.generational_updates(generation)
