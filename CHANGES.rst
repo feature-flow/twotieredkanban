@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.8.0 (unreleased)
+0.8.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.8.0 (2017-06-25)
 =====================
 
 Boards can now be renamed.
