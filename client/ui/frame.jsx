@@ -21,16 +21,17 @@ class Frame extends React.Component {
   }
   
   render() {
-    const {title, model, api} = this.props;
+    const {title, model, api, extra_nav} = this.props;
     
     const toggle_drawer = () => {
       this.setState({show_drawer: ! this.state.show_drawer});
     };
     
     return (
-      <div>
+      <div className='kb-frame'>
         <AppBar title={title} leftIcon='menu' onLeftIconClick={toggle_drawer}>
-          <Navigation type='horizontal'>
+          <Navigation type='horizontal' className="kb-frame-nav">
+            {extra_nav}
             <Avatar model={model} api={this.props.api} />
           </Navigation>
         </AppBar>

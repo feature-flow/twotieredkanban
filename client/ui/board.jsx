@@ -3,34 +3,70 @@ import React from 'react';
 import {AddProject} from './project';
 import {Base} from './app'; 
 import BoardAPI from 'BoardAPI';
+import {Dialog, DialogBase, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import Frame from './frame';
 import {TheBag} from './thebag';
-import {TooltipButton} from './util';
+import {TooltipButton, TooltipIconButton} from './util';
 import {Project} from './project';
 
 class Board extends Base {
 
-    new_api(props) {
-      return new BoardAPI(this, props.params.name);
+  new_api(props) {
+    return new BoardAPI(this, props.params.name);
+  }
+
+  show_rename() {
+    const name = this.state.model.name;
+    this.refs.rename.show({old_name: name, name: name});
+  }
+  
+  render() {
+    const board = this.state.model;
+    if (board.NotFound) {
+      window.location.hash = '#/';
     }
+    if (this.props.params.name != board.name) {
+      window.location.hash = '#/board/' + encodeURIComponent(board.name);
+    }
+    document.title = board.name;
+
+    const extra_nav = (
+      <TooltipIconButton
+         icon="mode_edit" tooltip="Rename board"
+         onMouseUp={() => this.show_rename()}
+        />
+    );
     
-    render() {
-      const board = this.state.model;
-      if (board.NotFound) {
-        window.location.hash = '#/';
-      }
-      document.title = board.name;
-      return (
-        <div>
-          <Frame
-             title={this.props.params.name}
-             model={board}
-             api={this.api}
-             />
-          <Projects board={board} api={this.api} />
-        </div>);
-    }
+    return (
+      <div>
+        <Frame
+           title={this.props.params.name}
+           model={board}
+           api={this.api}
+           extra_nav={extra_nav}
+           />
+        <Projects board={board} api={this.api} />
+        <Rename ref="rename" rename={(name) => this.api.rename(name)} />
+      </div>);
+  }
+}
+
+class Rename extends DialogBase {
+  
+  render() {
+    
+    return (
+      <Dialog title={"Rename board " + this.state.old_name}
+              action="Rename" ref="dialog" type="small"
+              finish={() => this.props.rename(this.state.name)}>
+        <Input label='Title' required={true} onChange={this.required("name")}
+               />
+      </Dialog>
+    );
+  }
+
+
 }
 
 
