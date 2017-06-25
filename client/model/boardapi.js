@@ -7,6 +7,10 @@ module.exports = class extends APIBase {
     super(new Board(name), view, '/board/' + name + '/');
   }
 
+  rename(name) {
+    this.put('', {name: name});
+  }
+
   add_project(props) {
     this.post('projects',
               {title: props.title, description: props.description,
