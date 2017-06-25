@@ -158,7 +158,9 @@ module.exports = {
 
     chain(funcs, cb) {
       if (funcs.length == 0) {
-        cb(); // done
+        if (cb) {
+          cb(); // done
+        }
       }
       else {
         funcs[0](() => {
