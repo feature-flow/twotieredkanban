@@ -2,8 +2,17 @@
 Change history
 ==============
 
-0.7.1 (unreleased)
+0.8.0 (unreleased)
 =====================
+
+When dragging an empty feature to exploded state, add an empty task.
+
+When visiting invalid routes (e.g. incorrent board name), the user is
+is redirected to the welcome screen.
+
+Added tooltips for several icon buttons.
+
+Fixed: "Unassigned" was an option for user switching in demo.
 
 Fixed: Archived-feature didn't qualify search by board.
 
