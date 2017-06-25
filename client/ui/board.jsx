@@ -100,12 +100,20 @@ class Projects extends React.Component {
 class ProjectColumn extends React.Component {
 
   dropped(dt, before_id) {
-    this.props.api.move(
-      dt.getData('text/id'), // id of project to be moved
+    const {api, board, state} = this.props;
+    const feature_id = dt.getData('text/id');
+    api.move(
+      feature_id,
       undefined,             // id of destination project
       this.props.state.id,   // destination state id
       before_id);            // move before project with before_id (optional)
-    console.log(before_id, dt.getData('text/id'));
+
+    if (state.explode) {
+      const feature = board.tasks[feature_id];
+      if (feature.subtasks().length == 0) {
+        api.add_task({project_id: feature_id, title: '', size: 1});
+      }
+    }
   } 
 
   projects() {
