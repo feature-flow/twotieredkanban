@@ -5,6 +5,8 @@ Change history
 0.8.0 (unreleased)
 =====================
 
+Boards can now be renamed.
+
 When dragging an empty feature to exploded state, add an empty task.
 
 When visiting invalid routes (e.g. incorrent board name), the user is
