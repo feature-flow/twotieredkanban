@@ -119,7 +119,7 @@ class APITests(setupstack.TestCase):
                  ),
             self.post('/board/Dev/boards', data2).json)
 
-    def test_update_board(self):
+    def test_rename_board(self):
         with self._app.database.transaction() as conn:
             site = get_site(conn.root, 'localhost')
             site.add_board('t')
@@ -127,7 +127,7 @@ class APITests(setupstack.TestCase):
         self.get('/board/t/poll')
         site_app = self._test_app('/site/poll')
         tt_app = self._test_app('/site/poll')
-        r = self.put('/board/t', dict(name='t2'))
+        r = self.put('/board/t/', dict(name='t2'))
         vars = Vars()
         self.assertEqual(dict(board=vars.board, site=vars.site,
                               generation=vars.g),

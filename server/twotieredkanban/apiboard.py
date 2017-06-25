@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @bobo.scan_class
 class Board(Sync):
 
-    @put("")
+    @put("/")
     def post_board(self, name):
         self.base.site.rename(self.context.name, name)
         return self.response()
