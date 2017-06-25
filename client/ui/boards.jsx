@@ -14,10 +14,10 @@ module.exports = {
       if (boards.length > 0) {
         return boards.map((board) => {
           return (
-              <ListItem
-                caption={board.name}
-                onClick={() => goto_board(board)}
-                key={board.name}
+            <ListItem
+               caption={board.name}
+               onClick={() => goto_board(board)}
+              key={board.name}
               />
           );
         });
@@ -36,16 +36,17 @@ module.exports = {
     
   },
   AddBoardDialog: class extends DialogBase {
-  render() {
-    return (
-      <Dialog
-         title="New Board" action="Add" ref="dialog"
-         finish={() => this.props.api.add_board(this.state.name)}
-        >
-        <Input label='Name' required={true} onChange={this.required("name")} />
-      </Dialog>
-    );
+    render() {
+      return (
+        <Dialog
+           title="New Board" action="Add" ref="dialog"
+           finish={() => this.props.api.add_board(this.state.name)}
+          >
+          <Input label='Name' required={true}
+                 onChange={this.required("name")} />
+        </Dialog>
+      );
+    }
   }
-}
 
 };
