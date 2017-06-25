@@ -1017,12 +1017,44 @@ describe("demo board api", () => {
     });
   });
 
-  it("It should set NotFound on missing boards", () => {
+  it("should set NotFound on missing boards", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, '-------------', (api) => {
       const model = api.model;
       expect(view.setState).toHaveBeenCalledWith({model: model});
       expect(model.NotFound).toBe(true);
+      done();
+    });
+  });
+
+  it("should rename boards", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'sample', (api) => {
+      view.setState.restore();
+      api.rename('test99', () => {
+        const model = api.model;
+        expect(model.name).toBe('test99');
+        expect(api.name).toBe('test99');
+        expect(model.boards.map((b) => b.name))
+          .toEqual(['test', 'test2', 'test99']);
+        expect(view.setState).toHaveBeenCalledWith({model: model});
+
+        // Make sure we get all of the data back:
+        const view2 = {setState: expect.createSpy()};
+        new BoardAPI(view2, 'test99', (api2) => {
+          const model2 = api2.model;
+          const cmpids = (l1, l2) => {
+            l1 = l1.map((o) => o.id);
+            l1.sort();
+            l2 = l2.map((o) => o.id);
+            l2.sort();
+            expect(l1).toEqual(l2);
+          };
+          cmpids(model.states, model2.states);
+          cmpids(model.all_tasks, model2.all_tasks);
+          done();
+        });
+      });
     });
   });
 });

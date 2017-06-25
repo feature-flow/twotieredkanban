@@ -156,6 +156,17 @@ module.exports = {
       };
     }
 
+    chain(funcs, cb) {
+      if (funcs.length == 0) {
+        cb(); // done
+      }
+      else {
+        funcs[0](() => {
+          this.chain(funcs.splice(1), cb);
+        });
+      }
+    }
+
     poll() {
       return this.opened.then((db) => {
         this.db = db;

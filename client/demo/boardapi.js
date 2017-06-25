@@ -14,26 +14,27 @@ module.exports = class extends BaseAPI {
     this.name = name;
   }
 
-  add_all(store, objects, cb) {
+  op_all(store, op, objects, cb) {
     if (objects.length == 0) {
       cb(); // all done
     }
     else {
-      this.r(store.add(objects[0]), () => {
-        this.add_all(store, objects.slice(1), cb);
+      this.r(store[op](objects[0]), () => {
+        this.op_all(store, op, objects.slice(1), cb);
       });
     }
   }
 
+  add_all(store, objects, cb) {
+    this.op_all(store, 'add', objects, cb);
+  }
+
+  put_all(store, objects, cb) {
+    this.op_all(store, 'put', objects, cb);
+  }
+
   remove_all(store, objects, cb) {
-    if (objects.length == 0) {
-      cb(); // all done
-    }
-    else {
-      this.r(store.delete(objects[0]), () => {
-        this.remove_all(store, objects.slice(1), cb);
-      });
-    }
+    this.op_all(store, 'delete', objects, cb);
   }
 
   poll(cb) {
@@ -87,6 +88,62 @@ module.exports = class extends BaseAPI {
           });
         });
     });
+  }
+
+  update(trans, data, cb) {
+    super.update(trans, data, () => {
+      if (data && data.board && data.board.name) {
+        this.name = data.board.name;
+      }
+      if (cb) {
+        cb(this, data);
+      }
+    });
+  }
+
+  _rename_board(trans, store_name, old, name, cb) {
+    const store = trans.objectStore(store_name);
+    this.all(store.index('board').openCursor(old), (obs) => {
+      obs.forEach((ob) => {
+        ob.board = name;
+      });
+      this.put_all(store, obs, cb);
+    }, cb);
+  }
+
+  rename(name, cb) {
+    this.transaction(
+      ['boards', 'states', 'tasks', 'archive'], 'readwrite', (trans) => {
+        const boards_store = trans.objectStore('boards');
+        this.all(boards_store.openCursor(name), (ex) => {
+          if (ex.length > 0) {
+            this.handle_error("There is already a board named " + name);
+          }
+          else {
+            this.chain([
+              (cb) => {
+                this.r(boards_store.get(this.name), (board) => {
+                  board.name = name;
+                  this.r(boards_store.put(board), () => {
+                    this.r(boards_store.delete(this.name), cb);
+                  }, cb);
+                }, cb);
+              },
+              (cb) => this._rename_board(trans, 'states', this.name, name, cb),
+              (cb) => this._rename_board(trans, 'tasks', this.name, name, cb),
+              (cb) => this._rename_board(trans, 'archive', this.name, name, cb),
+              (cb) => {
+                this.all(boards_store.openCursor(), (boards) => {
+                  this.update(trans, {
+                    board: {name: name},
+                    site: {boards: boards}
+                  }, cb);
+                }, cb);
+              }
+            ], cb);
+          }
+        }, cb);
+      }, cb);
   }
 
   set_event_status(event, task, parent_state) {

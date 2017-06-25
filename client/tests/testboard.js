@@ -57,7 +57,7 @@ describe("Kanban Board", () => {
 
   it("Should handle its own data", () => {
     const board = initialized_board();
-    expect(board.name).toBe("test");
+    expect(board.name).toBe("dev");
     expect(board.title).toBe("Test");
     expect(board.description).toBe("test board");
     expect(board.boards).toEqual(boards);

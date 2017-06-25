@@ -169,6 +169,9 @@ class Board extends TaskContainer {
 
   update(updates) {
     if (updates.board) {
+      if (updates.board.name != undefined) {
+        this.name = updates.board.name;
+      }
       if (updates.board.title != undefined) {
         this.title = updates.board.title;
       }
