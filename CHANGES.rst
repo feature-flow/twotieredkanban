@@ -5,6 +5,8 @@ Change history
 0.8.1 (unreleased)
 =====================
 
+In dialogs with text input, automatically give the first text input focus.
+
 Fixed: pressing the escape key didn't cancel dialogs.
 
 0.8.0 (2017-06-25)

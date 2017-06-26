@@ -61,7 +61,7 @@ class Rename extends DialogBase {
               action="Rename" ref="dialog" type="small"
               finish={() => this.props.rename(this.state.name)}>
         <Input label='Title' required={true} onChange={this.required("name")}
-               />
+               ref="focus" />
       </Dialog>
     );
   }

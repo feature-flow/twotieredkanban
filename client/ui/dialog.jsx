@@ -61,12 +61,16 @@ class Dialog_ extends React.Component {
 
 class Input_ extends React.Component {
 
+  focus() {
+    this.input.focus();
+  }
+
   render() {
     return (
       <Input {...this.props}
              value={this.props.onChange()}
              error={this.props.onChange.error()}
-             />
+             innerRef={(c) => {this.input = c;}} />
     );
   }
 }
@@ -149,6 +153,7 @@ class DialogBase extends React.Component {
   }
 
   show(state) {
+    this.should_focus = true;
     this.errors = {};
     this.state = {};
     if (state) {
@@ -159,6 +164,14 @@ class DialogBase extends React.Component {
     }
     this.refs.dialog.show();
   }
+  
+  componentDidUpdate() {
+    if (this.refs.focus && this.should_focus) {
+      this.refs.focus.focus();
+      this.should_focus = false;
+    }
+  }
+
 }
 
 module.exports = {

@@ -18,11 +18,12 @@ class ProjectDialog extends DialogBase {
       <Dialog title={this.action() + " feature"} action={action} ref="dialog"
               finish={() => this.finish(this.state)} type="large">
         <Input label='Title' required={true} onChange={this.required("title")}
-               />
+               ref="focus" />
         <Editor onChange={this.val("description")} />
       </Dialog>
     );
   }
+
 }
 
 class AddProject extends ProjectDialog {

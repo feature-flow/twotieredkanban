@@ -22,7 +22,7 @@ class TaskDialog extends DialogBase {
          finish={() => this.finish(this.state)} type="large"
         >
         <Input label='Title' required={true} onChange={this.required("title")}
-               />
+               ref="focus" />
         <div className="kb-field-row">
           <Select label='Size' source={[1, 2, 3, 5, 8, 13]}
                   className="kb-task-size"
