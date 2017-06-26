@@ -8,23 +8,47 @@ import {has_text} from '../model/hastext';
 import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {RevealButton} from './revealbutton';
-import {TooltipIconButton} from './util';
+import {TooltipIconButton, TooltipInput} from './util';
 import {UserAvatar, UserSelect} from './who';
 
+const sized = /\s*\[(\d+)\]\s*$/;
+
 class TaskDialog extends DialogBase {
+
+  finish() {
+    const match = sized.exec(this.state.title);
+    if (match) {
+      this.state.title = this.state.title.slice(0, match.index);
+      this.state.size = +(match[1]);
+    }
+    this.save(this.state);
+  }
   
   render() {
     const action = this.action();
+
+    const source = [1, 2, 3, 5, 8, 13];
+    if (source.indexOf(this.state.size) < 0) {
+      source.push(this.state.size);
+      source.sort((a, b) => a < b ? -1 : (a > b ? 1: 0));
+    }
     
     return (
       <Dialog
          title={action + " task"} action={action} ref="dialog"
-         finish={() => this.finish(this.state)} type="large"
+         finish={() => this.finish()} type="large"
         >
-        <Input label='Title' required={true} onChange={this.required("title")}
-               ref="focus" />
+        <Input
+           label='Title' required={true} onChange={this.required("title")}
+           ref="focus"
+           onEnter={() => this.on_enter()}
+          />
+          <span className="kb-input-tip">
+            Pressing enter in the title field {this.enter_action()}.
+            Ending with a number in square braces sets the size.
+          </span>
         <div className="kb-field-row">
-          <Select label='Size' source={[1, 2, 3, 5, 8, 13]}
+          <Select label='Size' source={source}
                   className="kb-task-size"
                   onChange={this.val("size", 1)} />
           <UserSelect label="Assigned" onChange={this.val("assigned")}
@@ -52,7 +76,17 @@ class AddTask extends TaskDialog {
     });
   }
 
-  finish(data) {
+  on_enter() {
+    this.refs.dialog.hide();
+    this.finish(this.state);
+    this.show();
+  }
+
+  enter_action() {
+    return "saves input and adds another";
+  }
+
+  save(data) {
     this.props.api.add_task({
       project_id: this.props.project.id,
       title: data.title,
@@ -80,7 +114,20 @@ class EditTask extends TaskDialog {
                });
   }
 
-  finish(data) {
+  on_enter() {
+    this.refs.dialog.hide();
+    this.finish(this.state);
+  }
+
+  enter_tooltip() {
+    return "Press enter to save";
+  }
+
+  enter_action() {
+    return "saves changes.";
+  }
+
+  save(data) {
     this.props.api.update_task(data.id, {
       title: data.title,
       description: data.description.toString('html'),

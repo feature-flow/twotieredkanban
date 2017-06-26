@@ -65,12 +65,23 @@ class Input_ extends React.Component {
     this.input.focus();
   }
 
+  on_key_press(ev) {
+    if (ev.key == "Enter" && this.props.onEnter) {
+      this.props.onEnter();
+    }
+  }
+
   render() {
+    const props = Object.assign({}, this.props);
+    delete props.onEnter;
+    
     return (
-      <Input {...this.props}
+      <Input {...props}
              value={this.props.onChange()}
              error={this.props.onChange.error()}
-             innerRef={(c) => {this.input = c;}} />
+             innerRef={(c) => {this.input = c;}}
+             onKeyPress={(ev) => this.on_key_press(ev)}
+        />
     );
   }
 }
@@ -171,7 +182,6 @@ class DialogBase extends React.Component {
       this.should_focus = false;
     }
   }
-
 }
 
 module.exports = {
