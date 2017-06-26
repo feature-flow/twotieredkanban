@@ -47,7 +47,7 @@ class Dialog_ extends React.Component {
       <Dialog
          actions={actions}
          active={this.state.active}
-         onEscDown={cancel}
+         onEscKeyDown={cancel}
          onOverlayClick={cancel}
          title={this.props.title}
          type={this.props.type || "normal"}
