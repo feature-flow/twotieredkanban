@@ -65,8 +65,25 @@ module.exports = function (env) {
     devtool: 'cheap-module-eval-source-map'
   };
 
+  if (env && env.prod) {
+    config.devtool = 'source-map';
+    config.plugins = [
+      new webpack.DefinePlugin({
+        'process.env': {
+          NODE_ENV: JSON.stringify('production')
+        }
+      }),
+      new webpack.optimize.UglifyJsPlugin({sourceMap: true})
+    ];
+  }
+
   if (env && env.demo) {
-    config.output.filename = './demo/static/bundle.js';
+    if (env.prod) {
+      config.output.filename = './prod/bundle.js';
+    }
+    else {
+      config.output.filename = './demo/static/bundle.js';
+    }
     config.resolve.alias = {
       indexedDB: path.resolve(__dirname, 'client/demo/indexeddb'),
       BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
