@@ -1,5 +1,7 @@
 import React from 'react';
-import {Avatar, Dropdown, Tooltip} from 'react-toolbox';
+import Avatar from 'react-toolbox/lib/avatar';
+import Dropdown from 'react-toolbox/lib/dropdown';
+import Tooltip from 'react-toolbox/lib/tooltip';
 import md5 from 'md5';
 
 import {Dialog, DialogBase, Input} from './dialog';

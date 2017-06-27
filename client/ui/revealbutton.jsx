@@ -1,5 +1,5 @@
 import React from 'react';
-import {IconButton} from 'react-toolbox';
+import {IconButton} from 'react-toolbox/lib/button';
 
 module.exports = {
   RevealButton: (props) => {

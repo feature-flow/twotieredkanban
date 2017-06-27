@@ -1,5 +1,7 @@
 import React from 'react';
-import {Dialog, Input, Dropdown} from 'react-toolbox';
+import Dialog from 'react-toolbox/lib/dialog';
+import Dropdown from 'react-toolbox/lib/dropdown';
+import Input from 'react-toolbox/lib/input';
 import RichTextEditor from 'react-rte';
 
 class Dialog_ extends React.Component {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card, CardActions, CardText} from 'react-toolbox';
+import {Card, CardActions, CardText} from 'react-toolbox/lib/card';
 import RichTextEditor from 'react-rte';
 
 import {has_text} from '../model/hastext';

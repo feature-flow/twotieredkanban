@@ -1,5 +1,5 @@
 import React from 'react';
-import {Input} from 'react-toolbox';
+import Input from 'react-toolbox/lib/input';
 
 import {has_text} from '../model/hastext';
 

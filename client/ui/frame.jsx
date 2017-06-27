@@ -1,6 +1,11 @@
 import React from 'react';
-import {AppBar, Button, Drawer, Link, Navigation, IconMenu, MenuItem
-       } from 'react-toolbox';
+
+import AppBar from 'react-toolbox/lib/app_bar';
+import {Button} from 'react-toolbox/lib/button';
+import Drawer from 'react-toolbox/lib/drawer';
+import Link from 'react-toolbox/lib/link';
+import Navigation from 'react-toolbox/lib/navigation';
+import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
 
 import version from '../version';
 

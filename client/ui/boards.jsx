@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {List, ListItem, ListSubHeader} from 'react-toolbox';
+import {List, ListItem, ListSubHeader} from 'react-toolbox/lib/list';
 import {Dialog, Input, DialogBase} from './dialog';
 
 module.exports = {
