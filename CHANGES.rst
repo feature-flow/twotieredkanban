@@ -2,18 +2,26 @@
 Change history
 ==============
 
-0.8.1 (unreleased)
+0.9.0 (unreleased)
 =====================
 
 When adding or editing tasks, you can press the enter/return key in
 the title field to save the task.
 
-When adding or entering tasks, if the title ends with a number in
-square braces, it will be used as the size when the task is saved.
-
 When adding tasks, if enter is pressed in the title field to save the
 new task, the dialog is redisplayed to add another task.  When you're
 done adding tasks, you can press the escape key to cancel the form.
+
+When adding tasks, there's a new "Add and add another" button to add a
+task and then add another one.  This is eqiovalent to pressing "enter"
+in the title fields.
+
+When adding another task (by pressing enter in the title field or
+clicking "Add and add another"), a message pops up from the bottom of
+the screen confirming that the add was done.
+
+When adding or entering tasks, if the title ends with a number in
+square braces, it will be used as the size when the task is saved.
 
 Pressing the escape key in dialogs is equivalent to clicking the
 cancel button.
