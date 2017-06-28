@@ -110,7 +110,7 @@ class Projects extends React.Component {
 
         <div className="kb-w-right-thing">
           <div className='kb-backlog'>
-            <h4>{states[0].title}</h4>
+            <h1>{states[0].title}</h1>
             <ProjectColumn
                state={states[0]}
                projects={board.subtasks(states[0].id)}
