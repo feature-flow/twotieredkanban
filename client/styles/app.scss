@@ -117,13 +117,24 @@ td {
     }
 }
 
+.kb-backlog {
+    margin: 1em;
+    h1 {
+        font-size: 120%;
+    }
+    h1::after {
+        content: ":"
+    }
+}
+
 .kb-the-bag {
   background-color: #FFDF00;
   padding: 1em;
   margin-top: 1em;
   margin-left: 3em;
+  margin-right: 1em;
   border-radius: 1em;
-  border-style: double;
+  border-style: solid;
 
   .kb-archived-feature {
       padding-left: 1em;
@@ -160,6 +171,7 @@ td {
 
 body {
     font-family: Roboto;
+    margin: 0;
 }
 
 .kb-button-row {
