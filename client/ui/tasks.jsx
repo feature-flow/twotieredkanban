@@ -23,6 +23,10 @@ class TaskDialog extends DialogBase {
     }
     this.save(this.state);
   }
+
+  extra_actions() {
+    return null;
+  }
   
   render() {
     const action = this.action();
@@ -37,6 +41,7 @@ class TaskDialog extends DialogBase {
       <Dialog
          title={action + " task"} action={action} ref="dialog"
          finish={() => this.finish()} type="large"
+         extra_actions={this.extra_actions()}
         >
         <Input
            label='Title' required={true} onChange={this.required("title")}
@@ -77,7 +82,6 @@ class AddTask extends TaskDialog {
   }
 
   on_enter() {
-    this.refs.dialog.hide();
     this.finish(this.state);
     this.show();
   }
@@ -95,7 +99,13 @@ class AddTask extends TaskDialog {
       blocked: data.blocked,
       assigned: data.assigned
     });
-  }  
+  }
+  
+  extra_actions() {
+    return [{label: "Add and add another",
+             onClick: () => this.on_enter()}];
+  }
+
 }
 
 class EditTask extends TaskDialog {
