@@ -40,22 +40,25 @@ class Dialog_ extends React.Component {
   }
 
   render() {
+    const {action, extra_actions, children, title, type} = this.props;
     const cancel = () => this.hide();
-    const actions = [{label: "Cancel", onClick: cancel},
-                     {label: this.props.action || "Ok",
+    const actions = [{label: "Cancel (esc)", onClick: cancel},
+                     {label: action || "Ok",
                       onClick: () => this.finish()
-                     }];
+                     }]
+            .concat(extra_actions || []);
+    
     return (
       <Dialog
          actions={actions}
          active={this.state.active}
          onEscKeyDown={cancel}
          onOverlayClick={cancel}
-         title={this.props.title}
-         type={this.props.type || "normal"}
+         title={title}
+         type={type || "normal"}
          className="kb-scrollable"
          >
-        {this.props.children}
+        {children}
       </Dialog>
     );
   }
