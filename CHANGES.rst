@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.9.0 (unreleased)
+0.9.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.9.0 (2017-06-28)
 =====================
 
 When adding or editing tasks, you can press the enter/return key in
