@@ -1,7 +1,8 @@
 import React from 'react';
-import {Card, CardActions, CardText} from 'react-toolbox/lib/card';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
+import {Card, CardActions, CardText} from 'react-toolbox/lib/card';
+import Snackbar from 'react-toolbox/lib/snackbar';
 
 import {has_text} from '../model/hastext';
 
@@ -63,6 +64,13 @@ class TaskDialog extends DialogBase {
                  onChange={this.val("blocked")} />
         </div>
         <Editor onChange={this.val("description")} />
+        <Snackbar
+           label={this.state.snackbar_label}
+           ref='snackbar'
+           active={this.state.snackbar_active || false}
+           timeout={3333}
+           onTimeout={() => this.setState({snackbar_active: false})}
+        />
       </Dialog>
     );
   }
@@ -99,13 +107,14 @@ class AddTask extends TaskDialog {
       blocked: data.blocked,
       assigned: data.assigned
     });
+    this.setState({snackbar_active: true,
+                   snackbar_label: 'Added: ' + data.title});
   }
   
   extra_actions() {
     return [{label: "Add and add another",
              onClick: () => this.on_enter()}];
   }
-
 }
 
 class EditTask extends TaskDialog {
