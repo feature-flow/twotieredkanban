@@ -20,10 +20,10 @@ How it works
 
 Feature flow uses a two-level board.  At the top level, is a feature
 board, showing features in the product backlog and in in progress (or
-ready). The feature board provides a high-level view so stake holder
+ready). The feature board provides a high-level view so stakeholder
 can see what's in progress and prioritize the backlog.
 
-When a feature enters development, a task board is displayed for the
+When a feature enters development, a task board is used for the
 feature.  This is the low-level view.
 
 At any point in time, there's feature board and 0 or more task boards,
@@ -52,7 +52,7 @@ Task
   tasks.
 
   When a feature enters a development state, a task board for the
-  feature is displayed, allowing the team to coordinate effort to
+  feature is used, allowing the team to coordinate effort to
   drive the feature to completion.
 
 How its implemented
@@ -60,21 +60,24 @@ How its implemented
 
 Feature flow can be implemented in a number of ways:
 
-- You can implement this with a collection is task boards, either
-  using a tool or sticky-notes on physical boards.
+- You can implement this with a feature board and a collection of task
+  boards, either using a tool or sticky-notes on physical boards.
 
-- You cab use a single board with big cards for features and sticky
-  notes for tasks.
+- You can use a single board with big cards for features and sticky
+  notes for tasks.  When a feature enters a development state, you can
+  move the stickies between development task states.
 
 - Possibly using a `tool that supports complex workflows
   <https://leankit.com/>`_.
 
 - The :doc:`Valuenator <valuenator>` application.
 
-  The Valuenator application is an attempt to automate the practice in
-  a simple and opinionated way.  There's a `demo mode
-  <http://valunator.com/demo>`_ version you can try without signing up
-  for anything to get a feel for the mechanics of the practice.
+  The Valuenator `open source application
+  <https://github.com/feature-flow/twotieredkanban>`_ is an attempt to
+  automate the practice in a simple and opinionated way.  There's a
+  `demo version <http://valunator.com/demo>`_ you can try without
+  installing or signing up for anything to get a feel for the
+  mechanics of the practice.
 
 However it's implemented, it's important that the implementation makes
 it easy to see everything relevant to a team at once.  This is one
@@ -85,9 +88,10 @@ How it fits in with other agile practices
 =========================================
 
 Like any other agile practice, feature-flow is a part of a larger
-agile process that teams should tailor to their needs and experience.
-Just as software should be built incrementally, so should you evolve
-your agile processes incrementally.  Feature-flow is one part.
+agile process that teams should tailor to their needs and experience
+through a process of "inspect and adapt".  Just as software should be
+built incrementally, so should you evolve your agile processes
+incrementally.  Feature-flow is one part.
 
 Feature-flow is an alternative to Scrum sprints. Rather than
 organizing work into fixed time increments, feature-flow organizes
@@ -110,7 +114,8 @@ Organizing around value rather than time has a number of advantages:
 - Team improvement can be considered at any time, rather than at
   sprint boundaries, because there's less emphasis on deadlines.
 
-Feature flow can be seen as an instance of `continuous flow
+Feature flow isn't new. Feature flow can be seen as an instance of
+`continuous flow
 <https://sites.google.com/a/scrumplop.org/published-patterns/product-organization-pattern-language/development-team/swarming--one-piece-continuous-flow>`_,
 in that there's team focus on individual backlog items.
 
