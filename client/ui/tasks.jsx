@@ -368,6 +368,7 @@ class Task extends React.Component {
     if (task.assigned) {
       return (
         <UserAvatar
+           className="kb-assigned-avatar"
            email={task.user.email}
            title={task.user.name}
            size="20"
@@ -385,11 +386,18 @@ class Task extends React.Component {
 
     const expand = () => this.setState({expanded: ! this.state.expanded});
 
+    const blocked = (task.blocked
+                     ? <div className="kb-blocked">{task.blocked}</div>
+                     : null);
+
     return (
       <Card className={className}>
-        <CardText className="kb-w-right-thing">
-          <div className="kb-w-right-thing">
-            <span>{this.props.task.title} {this.size()}</span>
+        <CardText className="kb-w-right-thing kb-revealable">
+          <div className="kb-w-right-thing kb-w-right-thing-center">
+            <div>
+              <h1>{this.props.task.title} {this.size()}</h1>
+              {blocked}
+            </div>
             {this.avatar()}
           </div>
           <RevealButton expanded={this.state.expanded}

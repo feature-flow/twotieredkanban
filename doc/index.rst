@@ -10,7 +10,7 @@ called "features".  Ideally, a team works on one feature at a time
 A feature remains a team focus until it's providing value. It's not
 enough, for example, for software to be checked in with tests
 passing. It must be in front of customers or otherwise providing
-stake holder value.
+stakeholder value.
 
 How it works
 ============
@@ -60,8 +60,8 @@ How its implemented
 
 Feature flow can be implemented in a number of ways:
 
-- You can implement this with a feature board and a collection of task
-  boards, either using a tool or sticky-notes on physical boards.
+- You can implement feature flow with a feature board and a collection of task
+  boards, either using a software tool or sticky-notes on physical boards.
 
 - You can use a single board with big cards for features and sticky
   notes for tasks.  When a feature enters a development state, you can
@@ -75,7 +75,7 @@ Feature flow can be implemented in a number of ways:
   The Valuenator `open source application
   <https://github.com/feature-flow/twotieredkanban>`_ is an attempt to
   automate the practice in a simple and opinionated way.  There's a
-  `demo version <http://valunator.com/demo>`_ you can try without
+  `demo version <http://valuenator.com/demo>`_ you can try without
   installing or signing up for anything to get a feel for the
   mechanics of the practice.
 
@@ -101,7 +101,7 @@ size to sprints.
 
 Organizing around value rather than time has a number of advantages:
 
-- It focuses the team on what's important to stake holders.
+- It focuses the team on what's important to stakeholders.
 
   This may, for example, focus a team on activities outside of
   traditional development, such as deployment or training, because the
@@ -120,7 +120,8 @@ Feature flow isn't new. Feature flow can be seen as an instance of
 in that there's team focus on individual backlog items.
 
 Feature flow is based on two-tiered Kanban boards as described in the
-book `Kanban, by David Anderson <https://www.amazon.com/dp/B0057H2M70>`_.
+book `Kanban, by David Anderson
+<https://www.amazon.com/dp/B0057H2M70>`_ (and elsewhere).
 
 Feature-flow can and should be used with other agile practices, as
 part of a larger process.
