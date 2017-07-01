@@ -11,17 +11,30 @@ module.exports = class extends BaseAPI {
 
   constructor(view, name, cb) {
     super(new Board(name), view, cb);
+    this.name = name;
   }
 
-  add_all(store, objects, cb) {
+  op_all(store, op, objects, cb) {
     if (objects.length == 0) {
       cb(); // all done
     }
     else {
-      this.r(store.add(objects[0]), () => {
-        this.add_all(store, objects.slice(1), cb);
+      this.r(store[op](objects[0]), () => {
+        this.op_all(store, op, objects.slice(1), cb);
       });
     }
+  }
+
+  add_all(store, objects, cb) {
+    this.op_all(store, 'add', objects, cb);
+  }
+
+  put_all(store, objects, cb) {
+    this.op_all(store, 'put', objects, cb);
+  }
+
+  remove_all(store, objects, cb) {
+    this.op_all(store, 'delete', objects, cb);
   }
 
   poll(cb) {
@@ -32,6 +45,10 @@ module.exports = class extends BaseAPI {
             this.users(trans, (users, user) => {
               const board = Object.assign({}, boards.filter(
                 (board) => board.name == this.model.name)[0]);
+              if (! board.name) {
+                this.update(trans, null, cb);
+                return;
+              }
               const site = {boards: boards, users: users};
               this.all(trans.objectStore('states')
                        .index('board').openCursor(this.model.name),
@@ -50,26 +67,83 @@ module.exports = class extends BaseAPI {
                              });
                          }
                          else {
-                           this.all(trans.objectStore('tasks')
-                                    .index('board').openCursor(this.model.name),
-                                    (tasks) => {
-                                      this.update(
-                                        trans,
-                                        {
-                                          board: board,
-                                          site: site,
-                                          user: user,
-                                          states: {adds: states},
-                                          tasks: {adds: tasks}
-                                        },
-                                        cb);
-                                    });
+                           this.all(
+                             trans.objectStore('tasks')
+                               .index('board').openCursor(this.model.name),
+                             (tasks) => {
+                               this.update(
+                                 trans,
+                                 {
+                                   board: board,
+                                   site: site,
+                                   user: user,
+                                   states: {adds: states},
+                                   tasks: {adds: tasks}
+                                 },
+                                 cb);
+                             });
                          }
                        });
             });
           });
         });
     });
+  }
+
+  update(trans, data, cb) {
+    super.update(trans, data, () => {
+      if (data && data.board && data.board.name) {
+        this.name = data.board.name;
+      }
+      if (cb) {
+        cb(this, data);
+      }
+    });
+  }
+
+  _rename_board(trans, store_name, old, name, cb) {
+    const store = trans.objectStore(store_name);
+    this.all(store.index('board').openCursor(old), (obs) => {
+      obs.forEach((ob) => {
+        ob.board = name;
+      });
+      this.put_all(store, obs, cb);
+    }, cb);
+  }
+
+  rename(name, cb) {
+    this.transaction(
+      ['boards', 'states', 'tasks', 'archive'], 'readwrite', (trans) => {
+        const boards_store = trans.objectStore('boards');
+        this.all(boards_store.openCursor(name), (ex) => {
+          if (ex.length > 0) {
+            this.handle_error("There is already a board named " + name);
+          }
+          else {
+            this.chain([
+              (cb) => {
+                this.r(boards_store.get(this.name), (board) => {
+                  board.name = name;
+                  this.r(boards_store.put(board), () => {
+                    this.r(boards_store.delete(this.name), cb);
+                  }, cb);
+                }, cb);
+              },
+              (cb) => this._rename_board(trans, 'states', this.name, name, cb),
+              (cb) => this._rename_board(trans, 'tasks', this.name, name, cb),
+              (cb) => this._rename_board(trans, 'archive', this.name, name, cb),
+              (cb) => {
+                this.all(boards_store.openCursor(), (boards) => {
+                  this.update(trans, {
+                    board: {name: name},
+                    site: {boards: boards}
+                  }, cb);
+                }, cb);
+              }
+            ], cb);
+          }
+        }, cb);
+      }, cb);
   }
 
   set_event_status(event, task, parent_state) {
@@ -178,7 +252,7 @@ module.exports = class extends BaseAPI {
     }, cb);
   }
   
-  move(task_id, parent_id, state_id, before_id, cb) {
+  move(task_id, parent_id, state_id, before_id, front, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(task_id), (task) => {
@@ -197,22 +271,24 @@ module.exports = class extends BaseAPI {
             if (state_id && ! this.model.states_by_id[state_id].task) {
               throw "Invalid move-to state: project state with parent task";
             }
-            this._move(trans, tasks, task, parent_id, state_id, before_id, cb);
+            this._move(trans, tasks, task, parent_id, state_id,
+                       before_id, front, cb);
           }, cb);
         }
         else {
           if (state_id && this.model.states_by_id[state_id].task) {
             throw "Invalid move-to state: task state without parent task";
           }
-          this._move(trans, tasks, task, parent_id, state_id, before_id, cb);
+          this._move(trans, tasks, task, parent_id, state_id,
+                     before_id, front, cb);
         }
       }, cb);
     }, cb);
   }
 
-  _move(trans, tasks, task, parent_id, state_id, before_id, cb) {
+  _move(trans, tasks, task, parent_id, state_id, before_id, front, cb) {
     const board = this.model;
-    task.order = board.order(before_id);
+    task.order = board.order(before_id, front);
     const update_subtasks_working =
       ! parent_id &&
       ! task.parent &&
@@ -223,6 +299,18 @@ module.exports = class extends BaseAPI {
     task.state = state_id;
     const last = task.history[task.history.length - 1];
     const event = this.set_event_status(Object.assign({}, last), task);
+    const state = board.states_by_id[state_id];
+    if (state.task) {
+      if (state.working) {
+        task.assigned = this.model.user.id;
+        event.assigned = task.assigned;
+      }
+    }
+    else {
+      if (event.assigned) {
+        delete event.assigned;
+      }
+    }
     if (event.state !== last.state ||
         event.working !== last.working ||
         event.complete !== last.complete) {
@@ -268,5 +356,110 @@ module.exports = class extends BaseAPI {
     else {
       this.update(trans, {tasks: {adds: adds}}, cb);
     }
-  } 
+  }
+
+  archive(feature_id, cb) {
+    this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
+      const tasks_store = trans.objectStore('tasks');
+      this.r(tasks_store.get(feature_id), (feature) => {
+        const last = feature.history[feature.history.length - 1];
+        const event = Object.assign({}, last);
+        last.end = now();
+        event.start = last.end;
+        event.archived = true;
+        feature.history.push(event);
+        this.all(
+          tasks_store.index('board').openCursor(this.name), (tasks) => {
+            feature.tasks = tasks.filter((t) => t.parent === feature_id);
+            const archive = trans.objectStore('archive');
+            this.r(archive.add(feature), () => {
+              const removals = feature.tasks.map((t) => t.id);
+              removals.push(feature_id);
+              this.remove_all(tasks_store, removals, () => {
+                this.r(archive.count(), (count) => {
+                  const boards = trans.objectStore('boards');
+                  this.r(boards.get(this.name), (board) => {
+                    board.archive_count = count;
+                    this.r(boards.put(board), () => {
+                      this.update(trans, {
+                        board: {archive_count: count},
+                        tasks: {removals: removals}
+                      }, cb);
+                    }, cb);
+                  }, cb);
+                }, cb);
+              }, cb);
+            }, cb);
+          }, cb);
+      }, cb);
+    }, cb);
+  }
+
+  restore(feature_id, cb) {
+    this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
+      const archive = trans.objectStore('archive');
+      this.r(archive.get(feature_id), (feature) => {
+        const last = feature.history[feature.history.length - 1];
+        const event = Object.assign({}, last);
+        last.end = now();
+        event.start = last.end;
+        delete event.archived;
+        feature.history.push(event);
+        this.r(archive.delete(feature_id), () => {
+          const tasks_store = trans.objectStore('tasks');
+          const tasks = feature.tasks;
+          delete feature.tasks;
+          tasks.push(feature);
+          this.add_all(tasks_store, tasks, () => {
+            this.r(archive.count(), (count) => {
+              const boards = trans.objectStore('boards');
+              this.r(boards.get(this.name), (board) => {
+                board.archive_count = count;
+                this.r(boards.put(board), () => {
+                  this.update(trans, {
+                    board: {archive_count: count},
+                    tasks: {adds: tasks}
+                  }, cb);
+                }, cb);
+              }, cb);
+            }, cb);
+          }, cb);
+        }, cb);
+      }, cb);
+    }, cb);
+  }
+
+  cmp_modified(t1, t2) {
+    t1 = t1.history[t1.history.length-1].start;
+    t2 = t2.history[t2.history.length-1].start;
+    return t1 > t2 ? -1 : (t1 < t2 ? 1 : 0);
+  }
+
+  feature_text_search(f, search) {
+    if (f.title.indexOf(search) >= 0) { return true; }
+    if (f.description.indexOf(search) >= 0) { return true; }
+    return f.tasks.some((t) => {
+      return t.title.indexOf(search) >= 0 || t.description.indexOf(search) >= 0;
+    });
+  }
+  
+  get_archived(search, start, size, cb) {
+    this.transaction('archive', 'readonly', (trans) => {
+      this.all(
+        trans.objectStore('archive').index('board').openCursor(this.name),
+        (features) => {
+          if (search) {
+            features =
+              features.filter((f) => this.feature_text_search(f, search));
+          }
+          features.sort(this.cmp_modified);
+          this.update(trans, {
+            search: {archive: {
+              search: search, start: start, size: size,
+              features: features.slice(start, start + size),
+              count: features.length
+            }}}, cb);
+        }, cb);
+    }, cb);
+  }
 };

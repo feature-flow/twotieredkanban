@@ -28,7 +28,8 @@
       "history": [{"start": "2017-06-04T22:29:54.031635", "state": "Backlog"}],
       "id": "proto",
       "order": 1,
-      "title": "Prototype board"
+      "title": "Prototype board",
+      "state": "Ready"
     },
     {
       "board": "sample",
@@ -38,7 +39,8 @@
       "order": 2,
       "parent": "proto",
       "size": 2,
-      "title": "State model"
+      "title": "State model",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -48,7 +50,8 @@
       "order": 3,
       "parent": "proto",
       "size": 3,
-      "title": "Define API with memory implementation"
+      "title": "Define API with memory implementation",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -58,7 +61,8 @@
       "order": 4,
       "parent": "proto",
       "size": 1,
-      "title": "UI routes/screens"
+      "title": "UI routes/screens",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -68,7 +72,8 @@
       "order": 5,
       "parent": "proto",
       "size": 1,
-      "title": "Add board in site UI"
+      "title": "Add board in site UI",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -78,7 +83,8 @@
       "order": 6,
       "parent": "proto",
       "size": 1,
-      "title": "Board layout"
+      "title": "Board layout",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -88,7 +94,8 @@
       "order": 7,
       "parent": "proto",
       "size": 1,
-      "title": "Add/edit projects"
+      "title": "Add/edit projects",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -98,7 +105,8 @@
       "order": 8,
       "parent": "proto",
       "size": 1,
-      "title": "Add/edit tasks"
+      "title": "Add/edit tasks",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -108,7 +116,8 @@
       "order": 9,
       "parent": "proto",
       "size": 1,
-      "title": "Expand/hide projects"
+      "title": "Expand/hide projects",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -118,7 +127,8 @@
       "order": 10,
       "parent": "proto",
       "size": 1,
-      "title": "Implement project drag and drop"
+      "title": "Implement project drag and drop",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -128,7 +138,8 @@
       "order": 11,
       "parent": "proto",
       "size": 1,
-      "title": "Dev-mode ptojects and task boards"
+      "title": "Dev-mode ptojects and task boards",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -138,7 +149,8 @@
       "order": 12,
       "parent": "proto",
       "size": 1,
-      "title": "Task drag and drop"
+      "title": "Task drag and drop",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -148,7 +160,8 @@
       "order": 13,
       "parent": "proto",
       "size": 1,
-      "title": "Project completion metrics"
+      "title": "Project completion metrics",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -156,7 +169,8 @@
       "history": [{"start": "2017-06-04T22:29:54.032407", "state": "Backlog"}],
       "id": "persistence",
       "order": 14,
-      "title": "Persistence"
+      "title": "Persistence",
+      "state": "Ready"
     },
     {
       "board": "sample",
@@ -166,7 +180,8 @@
       "order": 15,
       "parent": "persistence",
       "size": 2,
-      "title": "IndexedDB/Demo API Boards"
+      "title": "IndexedDB/Demo API Boards",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -176,7 +191,8 @@
       "order": 16,
       "parent": "persistence",
       "size": 2,
-      "title": "IndexedDB/Demo API Projects and tasks"
+      "title": "IndexedDB/Demo API Projects and tasks",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -186,7 +202,8 @@
       "order": 17,
       "parent": "persistence",
       "size": 1,
-      "title": "IndexedDB/Demo API Move"
+      "title": "IndexedDB/Demo API Move",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -196,7 +213,8 @@
       "order": 18,
       "parent": "persistence",
       "size": 2,
-      "title": "Server API Boards"
+      "title": "Server API Boards",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -206,7 +224,8 @@
       "order": 19,
       "parent": "persistence",
       "size": 1,
-      "title": "Server API Projects and tasks"
+      "title": "Server API Projects and tasks",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -216,7 +235,8 @@
       "order": 20,
       "parent": "persistence",
       "size": 1,
-      "title": "Server API Move"
+      "title": "Server API Move",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -224,7 +244,8 @@
       "history": [{"start": "2017-06-04T22:29:54.032457", "state": "Backlog"}],
       "id": "auth",
       "order": 21,
-      "title": "Users and authentication"
+      "title": "Users and authentication",
+      "state": "Ready"
     },
     {
       "board": "sample",
@@ -234,7 +255,8 @@
       "order": 22,
       "parent": "auth",
       "size": 1,
-      "title": "Demo current/logged-in user in Demo"
+      "title": "Demo current/logged-in user in Demo",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -244,7 +266,8 @@
       "order": 23,
       "parent": "auth",
       "size": 2,
-      "title": "User assignment"
+      "title": "User assignment",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -254,7 +277,8 @@
       "order": 24,
       "parent": "auth",
       "size": 2,
-      "title": "Server Auth framework"
+      "title": "Server Auth framework",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -264,7 +288,8 @@
       "order": 25,
       "parent": "auth",
       "size": 3,
-      "title": "Server Email/Password auth"
+      "title": "Server Email/Password auth",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -274,7 +299,8 @@
       "order": 26,
       "parent": "auth",
       "size": 2,
-      "title": "Demo switch user"
+      "title": "Demo switch user",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -284,7 +310,8 @@
       "order": 27,
       "parent": "auth",
       "size": 2,
-      "title": "Demo update profile"
+      "title": "Demo update profile",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -294,7 +321,8 @@
       "order": 28,
       "parent": "auth",
       "size": 1,
-      "title": "Email/password logout"
+      "title": "Email/password logout",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -304,7 +332,8 @@
       "order": 29,
       "parent": "auth",
       "size": 2,
-      "title": "Email/password update profile"
+      "title": "Email/password update profile",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -312,7 +341,8 @@
       "history": [{"start": "2017-06-04T22:29:54.032519", "state": "Backlog"}],
       "id": "vel",
       "order": 30,
-      "title": "Velocity"
+      "title": "Velocity",
+      "state": "Ready"
     },
     {
       "board": "sample",
@@ -322,7 +352,8 @@
       "order": 31,
       "parent": "vel",
       "size": 1,
-      "title": "Define model"
+      "title": "Define model",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -332,7 +363,8 @@
       "order": 32,
       "parent": "vel",
       "size": 2,
-      "title": "Develop example"
+      "title": "Develop example",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -342,7 +374,8 @@
       "order": 33,
       "parent": "vel",
       "size": 1,
-      "title": "Create test based on example"
+      "title": "Create test based on example",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -352,7 +385,8 @@
       "order": 34,
       "parent": "vel",
       "size": 3,
-      "title": "demo+model test"
+      "title": "demo+model test",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -362,7 +396,8 @@
       "order": 35,
       "parent": "vel",
       "size": 1,
-      "title": "Server API velocity support"
+      "title": "Server API velocity support",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -372,7 +407,8 @@
       "order": 36,
       "parent": "vel",
       "size": 2,
-      "title": "Design velocity display"
+      "title": "Design velocity display",
+      "state": "ready"
     },
     {
       "board": "sample",
@@ -382,7 +418,8 @@
       "order": 37,
       "parent": "vel",
       "size": 1,
-      "title": "Velocity display"
+      "title": "Velocity display",
+      "state": "ready"
     }
   ]
 }

@@ -7,6 +7,10 @@ module.exports = class extends APIBase {
     super(new Board(name), view, '/board/' + name + '/');
   }
 
+  rename(name) {
+    this.put('', {name: name});
+  }
+
   add_project(props) {
     this.post('projects',
               {title: props.title, description: props.description,
@@ -34,9 +38,26 @@ module.exports = class extends APIBase {
     });
   }
 
-  move(task_id, parent_id, state_id, before_id) {
-    const order = this.model.order(before_id);
+  move(task_id, parent_id, state_id, before_id, front) {
+    const order = this.model.order(before_id, front);
     this.put(`move/${task_id}`,
              {state_id: state_id, parent_id: parent_id, order: order});
+  }
+
+  archive(feature_id) {
+    this.post('archive/' + feature_id, {});
+  }
+
+  restore(feature_id) {
+    this.delete('archive/' + feature_id);
+  }
+
+  get_archived(search, start, size, f) {
+    search = search ? '&text=' + encodeURIComponent(search) : '';
+    this.get('archive?start=' + start + '&size=' + size + search).then((r) => {
+      r.data.start = start;
+      this.model.update({search: {archive: r.data}});
+      this.view.setState({model: this.model});
+    });
   }
 };

@@ -1,3 +1,5 @@
+import bleach
+import BTrees.Length
 import BTrees.OOBTree
 import datetime
 import json
@@ -22,7 +24,10 @@ class Board(persistent.Persistent):
         self.tasks = zc.generationalset.GSet("tasks", changes)
         self.subtasks = BTrees.OOBTree.OOBTree() # {parent_id => [tasks]}
         self.update(name, title, description)
-        self.archive = BTrees.OOBTree.OOBTree() # FUTURE {project_id -> subset }
+
+        # {feature_id -> feature }
+        self.archive = BTrees.OOBTree.OOBTree()
+        #self._archive_count = BTrees.Length()
 
         if isinstance(state_data, str):
             if ' ' not in state_data:
@@ -58,6 +63,7 @@ class Board(persistent.Persistent):
             name=self.name,
             title=self.title,
             description=self.description,
+            archive_count=self.archive_count,
             )
 
     def updates(self, generation):
@@ -110,7 +116,8 @@ class Board(persistent.Persistent):
         task.update(**data)
         self.tasks.changed(task)
 
-    def move(self, task_id, parent_id=None, state_id=None, order=None):
+    def move(self, task_id, parent_id=None, state_id=None, order=None,
+             user_id=None):
         task = self.tasks[task_id]
         parent = self.tasks[parent_id] if parent_id is not None else None
 
@@ -170,6 +177,12 @@ class Board(persistent.Persistent):
         if order is not None:
             task.order = order
 
+        if state.task:
+            if (state.working):
+                task.assigned = user_id
+        else:
+            task.assigned = None
+
         if new_event:
             task._new_event()
 
@@ -180,13 +193,56 @@ class Board(persistent.Persistent):
                 subtask._new_event()
                 self.tasks.changed(subtask)
 
-    # def archive_task(self, task_id):
-    #     task = self.tasks[task_id]
-    #     self.tasks.remove(task)
-    #     if task.parent:
-    #         task.parent.archive += (task,)
-    #     else:
-    #         self.archive[task.id] = task
+    @property
+    def archive_count(self):
+        try:
+            return self._archive_count.value
+        except AttributeError:
+            return 0
+
+    @archive_count.setter
+    def archive_count(self, v):
+        try:
+            self._archive_count.value = v
+        except AttributeError:
+            self._archive_count = BTrees.Length.Length(v)
+        self.changes.add(self)
+
+    def archive_feature(self, feature_id):
+        feature = self.tasks[feature_id]
+        if feature.parent:
+            raise TaskValueError("Can't archive a task")
+        assert(feature.id == feature_id)
+        self.tasks.remove(feature)
+        feature.tasks = self.subtasks.pop(feature_id, [])
+        feature.task_texts = [dict(title=t.title, description=t.description)
+                              for t in feature.tasks]
+        for task in feature.tasks:
+            self.tasks.remove(task)
+        self.archive[feature_id] = feature
+        self.archive_count += 1
+        last = feature.history[-1]
+        event = dict(last)
+        last['end'] = now()
+        event['start'] = last['end']
+        event['archived'] = True
+        feature.history += (event,)
+
+    def restore_feature(self, feature_id):
+        feature = self.archive.pop(feature_id)
+        self.tasks.add(feature)
+        self.subtasks[feature_id] = feature.tasks
+        for task in feature.tasks:
+            self.tasks.add(task)
+        del feature.tasks
+        del feature.task_texts
+        self.archive_count -= 1
+        last = feature.history[-1]
+        event = dict(last)
+        last['end'] = now()
+        event['start'] = last['end']
+        del event['archived']
+        feature.history += (event,)
 
 class TaskTypeError(TypeError):
     """Tried to perform not applicable to task type (project vs task)
@@ -215,7 +271,6 @@ class State(persistent.Persistent):
 class Task(persistent.Persistent):
 
     state = None
-    #archive = ()
     history = ()
 
     def __init__(self, board, title, order, description='',
@@ -224,7 +279,7 @@ class Task(persistent.Persistent):
         self.board = board # to make searching easier later
         self.id = uuid.uuid1().hex
         self.title = title
-        self.description = description
+        self.description = sanitize(description)
         self.order = order
         self.size = size
         self.blocked = blocked
@@ -269,17 +324,30 @@ class Task(persistent.Persistent):
             setattr(self, name, data[name])
             if name == 'assigned':
                 self.history[-1][name] = data[name]
+            if name == 'description':
+                self.description = sanitize(self.description)
 
     def json_reduce(self):
-        return dict(id = self.id,
-                    title = self.title,
-                    description = self.description,
-                    order = self.order,
-                    state = self.state.id if self.state else None,
-                    parent =
-                    self.parent.id if self.parent is not None else None,
-                    blocked = self.blocked,
-                    assigned = self.assigned,
-                    size = self.size,
-                    history = self.history,
-                    )
+        result = dict(id = self.id,
+                      title = self.title,
+                      description = self.description,
+                      order = self.order,
+                      state = self.state.id if self.state else None,
+                      parent =
+                      self.parent.id if self.parent is not None else None,
+                      blocked = self.blocked,
+                      assigned = self.assigned,
+                      size = self.size,
+                      history = self.history,
+                      )
+        tasks = getattr(self, 'tasks', None)
+        if tasks is not None:
+            result['tasks'] = tasks
+        return result
+
+allowed_tags = ['a', 'blockquote', 'br', 'code', 'del', 'em',
+                'h1', 'h2', 'h3', 'ins', 'li', 'ol', 'p',
+                'pre', 'strong', 'ul']
+
+def sanitize(html):
+    return bleach.linkify(bleach.clean(html, allowed_tags))

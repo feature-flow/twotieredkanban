@@ -27,6 +27,9 @@ class Base:
         if user is None:
             return self.auth.login(self.request)
         self.user = user
+        if func.__name__.startswith('admin_'):
+            if not self.user.get('admin'):
+                self.error(403, dict(error="You must be an adminstrator"))
 
     def error(self, status, body):
         self.connection.transaction_manager.abort()

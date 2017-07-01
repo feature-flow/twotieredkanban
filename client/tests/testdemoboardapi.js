@@ -73,6 +73,7 @@ describe("demo board api", () => {
     new BoardAPI(view, 'test', (api) => {
       const model = api.model;
       expect(view.setState).toHaveBeenCalledWith({model: model});
+      expect(model.NotFound).toBe(undefined);
       expect(model.name).toEqual('test');
       expect(model.title).toEqual('');
       expect(model.description).toEqual('');
@@ -169,6 +170,31 @@ describe("demo board api", () => {
          "name": "Ryou Bosso", "admin": true, "current": true}
       ]);
       done();
+    });
+  });
+
+  it("should add boards with a name", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'sample', (api) => {
+      api.add_board('test9', () => {
+        view.setState.restore();
+        api.add_board('test99', () => {
+          const model = api.model;
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          expect(model.boards)
+            .toEqual([
+              { "description":
+                "This sample board provides an example board with sample" +
+                  " projects and tasks",
+                "name": "sample", "title": "Sample board" },
+              {name: 'test', title: '', description: ''},
+              {name: 'test2', title: '', description: ''},
+              {name: 'test9', title: '', description: ''},
+              {name: 'test99', title: '', description: ''}
+            ]);
+          done();
+        });
+      });
     });
   });
 
@@ -555,7 +581,7 @@ describe("demo board api", () => {
           // Make second project a task
           view.setState.restore();
           inc_date();
-          api.move(t2.id, t1.id, 'Doing', undefined, () => {
+          api.move(t2.id, t1.id, 'Doing', undefined, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Doing');
@@ -568,6 +594,7 @@ describe("demo board api", () => {
               },
               {
                 start: "2017-06-08T10:02:01.004",
+                assigned: "ryou", // Because we went to a working state
                 state: "Doing"
               },
             ]);
@@ -593,7 +620,7 @@ describe("demo board api", () => {
           // This should cause a new event in t2
           view.setState.restore();
           inc_date();
-          api.move(t1.id, null, 'Development', undefined, (err) => {
+          api.move(t1.id, null, 'Development', undefined, false, (err) => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
@@ -619,11 +646,13 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
             ]);
@@ -633,7 +662,7 @@ describe("demo board api", () => {
         .then(() => promise((cb) => {
           // Move t1 before t3
           view.setState.restore();
-          api.move(t1.id, null, 'Development', t3.id, () => {
+          api.move(t1.id, null, 'Development', t3.id, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t1.parent).toBe(undefined);
             expect(t1.state.id).toBe('Development');
@@ -661,11 +690,13 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
             ]);
@@ -676,7 +707,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to task
-          api.move(t3.id, t2.id, 'Doing', undefined, () => {
+          api.move(t3.id, t2.id, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith("can't move task into a (sub)task");
             expect(t3.parent).toBe(undefined);        // Unchanged
@@ -686,7 +717,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't make non-empty feature a task:
-          api.move(t1.id, t3.id, 'Doing', undefined, () => {
+          api.move(t1.id, t3.id, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "can't demote project to task if it has children");
@@ -697,7 +728,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to feature with task state:
-          api.move(t3.id, null, 'Doing', undefined, () => {
+          api.move(t3.id, null, 'Doing', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "Invalid move-to state: task state without parent task");
@@ -707,7 +738,7 @@ describe("demo board api", () => {
         }))
         .then(() => promise((cb) => {
           // Can't move to project with top-level state:
-          api.move(t3.id, t1.id, 'Backlog', undefined, () => {
+          api.move(t3.id, t1.id, 'Backlog', undefined, false, () => {
             expect(api.handle_error)
               .toHaveBeenCalledWith(
                 "Invalid move-to state: project state with parent task");
@@ -722,7 +753,7 @@ describe("demo board api", () => {
           expect(t1.total_completed).toBe(0);
           view.setState.restore();
           inc_date();
-          api.move(t2.id, t1.id, 'Done', undefined, () => {
+          api.move(t2.id, t1.id, 'Done', undefined, false, () => {
             expect(t2.parent.id).toBe(t1.id);
             expect(t2.state.id).toBe('Done');
             expect(t2.history).toEqual([
@@ -734,17 +765,20 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 end: "2017-06-08T10:02:03.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
               {
                 start: "2017-06-08T10:02:03.004",
                 state: 'Done',
+                assigned: "ryou",
                 complete: true
               },
             ]);
@@ -758,7 +792,7 @@ describe("demo board api", () => {
           // We can promote a task to a feature:
           view.setState.restore();
           inc_date();
-          api.move(t2.id, null, 'Backlog', undefined, () => {
+          api.move(t2.id, null, 'Backlog', undefined, false, () => {
             expect(view.setState).toHaveBeenCalledWith({model: model});
             expect(t2.parent).toBe(undefined);
             expect(t2.state.id).toBe('Backlog');
@@ -771,18 +805,21 @@ describe("demo board api", () => {
               {
                 start: "2017-06-08T10:02:01.004",
                 end: "2017-06-08T10:02:02.004",
+                assigned: "ryou",
                 state: "Doing"
               },
               {
                 start: "2017-06-08T10:02:02.004",
                 end: "2017-06-08T10:02:03.004",
                 state: "Doing",
+                assigned: "ryou",
                 working: true
               },
               {
                 start: "2017-06-08T10:02:03.004",
                 end: "2017-06-08T10:02:04.004",
                 state: 'Done',
+                assigned: "ryou",
                 complete: true
               },
               {
@@ -799,5 +836,225 @@ describe("demo board api", () => {
         .then((err) => done());
     });
   });
-  
+
+  const task_for_title = (model, title) => {
+    return model.all_tasks.filter((t) => t.title === title)[0];
+  };
+
+  it("should archive and restore features", (done) => {
+    const view = {setState: expect.createSpy()};
+    let feature1, task1, x;
+    new BoardAPI(view, 'test2', (api) => {
+      [task1, feature1] = api.model.all_tasks;
+      expect(feature1.title).toBe("Proj");
+      expect(task1.title).toBe("Task");
+      promise((cb) => {
+        // Add some more tasks to make sure we don't archive everything
+        inc_date();
+        api.add_project({title: 'f1', description: ''}, () => {
+          api.add_task({title: 't1', description: ''}, () => {
+            api.add_task({title: 't2', description: ''}, () => {
+              cb();
+            });
+          });
+        });
+      })
+        .then(() => promise((cb) => {
+          // Move the feature of interest to a different state, to make sure
+          // the state is restored correctly
+          inc_date();
+          api.move(
+            feature1.id, undefined, 'Development', undefined, false,
+            () => {
+              cb();
+            });
+        }))
+        .then(() => promise((cb) => {
+          inc_date();
+
+          api.archive(feature1.id, (api, updates) => {
+            expect(updates)
+              .toEqual({
+                board: {archive_count: 1},
+                tasks: {removals: [task1.id, feature1.id]}
+              });
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // We get the right data when we create a new api
+          new BoardAPI(view, 'test2', (api2) => {
+            const model = api2.model;
+            expect(model.all_tasks.map((t) => t.title))
+              .toEqual(['t2', 't1', 'f1']);
+            expect(model.archive_count).toBe(1);
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // We can restore an archived feature
+          inc_date();
+          api.restore(feature1.id, (api, updates) => {
+            expect(updates.board).toEqual({archive_count: 0});
+            expect(updates.tasks.removals).toBe(undefined);
+            expect(updates.tasks.adds.map((t) => t.id))
+              .toEqual([task1.id, feature1.id]);
+            const feature = updates.tasks.adds[1];
+            expect(feature.history[feature.history.length-1]).toEqual({
+              start: "2017-06-08T10:02:04.004",
+              state: "Development",
+              working: true
+            });
+            expect(feature.history[feature.history.length-2]).toEqual({
+              start: "2017-06-08T10:02:03.004",
+              end: "2017-06-08T10:02:04.004",
+              state: "Development",
+              working: true,
+              archived: true
+            });
+            cb();
+          }, cb);
+        }))
+        .then(() => promise((cb) => {
+          // We get the right data when we create a new api
+          new BoardAPI(view, 'test2', (api2) => {
+            const model = api2.model;
+            expect(model.all_tasks.map((t) => t.title))
+              .toEqual(['t2', 't1', 'f1', 'Task', 'Proj']);
+            expect(model.archive_count).toBe(0);
+            cb();
+          });
+        }))
+        .then(() => done());
+    });
+  });
+
+  it("should search archived features", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'test2', (api) => {
+      const model = api.model;
+      promise((cb) => {
+        // Add a bunch of features...
+        api.add_project({title: 'f1', description: 'foo'}, () => {
+          api.add_project({title: 'f2', description: 'bar baz'}, () => {
+            api.add_project({title: 'f3', description: 'bar bug'}, () => {
+              api.add_project({title: 'f4', description: ''}, () => {
+                api.add_project({title: 'f5', description: 'x bar'}, () => {
+                  api.add_project({title: 'f6', description: ''}, () => {
+                    api.add_project({title: 'f7', description: ''}, () => {
+                      api.add_task(
+                        { title: 't1', description: 'task bar',
+                          project_id: task_for_title(model, 'f7').id
+                        }, () => {
+                          cb();
+                        });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      })
+        .then(() => promise((cb) => {
+          // Now archive them:
+          inc_date();
+          api.archive(task_for_title(model, 'f1').id, () => {
+            inc_date();
+            api.archive(task_for_title(model, 'f2').id, () => {
+              inc_date();
+              api.archive(task_for_title(model, 'f3').id, () => {
+                inc_date();
+                api.archive(task_for_title(model, 'f4').id, () => {
+                  inc_date();
+                  api.archive(task_for_title(model, 'f5').id, () => {
+                    inc_date();
+                    api.archive(task_for_title(model, 'f6').id, () => {
+                      inc_date();
+                      api.archive(task_for_title(model, 'f7').id, () => {
+                        cb();
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        }))
+        .then(() => promise((cb) => {
+          // Get the 5 most recently archived
+          api.get_archived('', 0, 5, (_, updates) => {
+            const results = updates.search.archive;
+            expect(results.count).toBe(7);
+            expect(results.features.map((f) => f.title))
+              .toEqual(['f7', 'f6', 'f5', 'f4', 'f3']);
+            expect(results.features[0].tasks.map((t) => t.title))
+              .toEqual(['t1']); // tasks are included
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // Get the second batch of 3 most recently archived
+          api.get_archived('', 3, 3, (_, updates) => {
+            const results = updates.search.archive;
+            expect(results.count).toBe(7);
+            expect(results.features.map((f) => f.title))
+              .toEqual(['f4', 'f3', 'f2']);
+            cb();
+          });
+        }))
+        .then(() => promise((cb) => {
+          // get bar features
+          api.get_archived('bar', 0, 99, (_, updates) => {
+            const results = updates.search.archive;
+            expect(results.count).toBe(4);
+            expect(results.features.map((f) => f.title))
+              .toEqual(['f7', 'f5', 'f3', 'f2']);
+            cb();
+          });
+        }))
+        .then(() => done());
+    });
+  });
+
+  it("should set NotFound on missing boards", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, '-------------', (api) => {
+      const model = api.model;
+      expect(view.setState).toHaveBeenCalledWith({model: model});
+      expect(model.NotFound).toBe(true);
+      done();
+    });
+  });
+
+  it("should rename boards", (done) => {
+    const view = {setState: expect.createSpy()};
+    new BoardAPI(view, 'sample', (api) => {
+      view.setState.restore();
+      api.rename('test99', () => {
+        const model = api.model;
+        expect(model.name).toBe('test99');
+        expect(api.name).toBe('test99');
+        expect(model.boards.map((b) => b.name))
+          .toEqual(['test', 'test2', 'test99']);
+        expect(view.setState).toHaveBeenCalledWith({model: model});
+
+        // Make sure we get all of the data back:
+        const view2 = {setState: expect.createSpy()};
+        new BoardAPI(view2, 'test99', (api2) => {
+          const model2 = api2.model;
+          const cmpids = (l1, l2) => {
+            l1 = l1.map((o) => o.id);
+            l1.sort();
+            l2 = l2.map((o) => o.id);
+            l2.sort();
+            expect(l1).toEqual(l2);
+          };
+          cmpids(model.states, model2.states);
+          cmpids(model.all_tasks, model2.all_tasks);
+          done();
+        });
+      });
+    });
+  });
 });

@@ -1,31 +1,76 @@
 import React from 'react';
-import {Card, CardText, Dropdown} from 'react-toolbox';
 import classes from 'classnames';
 import RichTextEditor from 'react-rte';
+import {Card, CardActions, CardText} from 'react-toolbox/lib/card';
+import Snackbar from 'react-toolbox/lib/snackbar';
 
-import {Dialog, DialogBase, Editor, Input} from './dialog';
+import {has_text} from '../model/hastext';
+
+import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
+import {RevealButton} from './revealbutton';
+import {TooltipIconButton, TooltipInput} from './util';
 import {UserAvatar, UserSelect} from './who';
 
+const sized = /\s*\[(\d+)\]\s*$/;
+
 class TaskDialog extends DialogBase {
+
+  finish() {
+    const match = sized.exec(this.state.title);
+    if (match) {
+      this.state.title = this.state.title.slice(0, match.index);
+      this.state.size = +(match[1]);
+    }
+    this.save(this.state);
+  }
+
+  extra_actions() {
+    return null;
+  }
   
   render() {
     const action = this.action();
+
+    const source = [1, 2, 3, 5, 8, 13];
+    if (source.indexOf(this.state.size) < 0) {
+      source.push(this.state.size);
+      source.sort((a, b) => a < b ? -1 : (a > b ? 1: 0));
+    }
     
     return (
       <Dialog
          title={action + " task"} action={action} ref="dialog"
-         finish={() => this.finish(this.state)} type="large"
+         finish={() => this.finish()} type="large"
+         extra_actions={this.extra_actions()}
         >
-        <Input label='Title' required={true} onChange={this.required("title")}
-               />
-        <Input label='Size' type="number" required={true}
-               onChange={this.val("size", 1)} />
-        <UserSelect label="Assigned" onChange={this.val("assigned")}
-                    users={this.props.board.users} />
         <Input
-           label='Blocked' multiline={true} onChange={this.val("blocked")} />
+           label='Title' required={true} onChange={this.required("title")}
+           ref="focus"
+           onEnter={() => this.on_enter()}
+          />
+          <span className="kb-input-tip">
+            Pressing enter in the title field {this.enter_action()}.
+            Ending with a number in square braces sets the size.
+          </span>
+        <div className="kb-field-row">
+          <Select label='Size' source={source}
+                  className="kb-task-size"
+                  onChange={this.val("size", 1)} />
+          <UserSelect label="Assigned" onChange={this.val("assigned")}
+                      users={this.props.board.users} none="Unassigned"
+                      />
+          <Input label='Blocked' multiline={true} className="kb-flex-grow"
+                 onChange={this.val("blocked")} />
+        </div>
         <Editor onChange={this.val("description")} />
+        <Snackbar
+           label={this.state.snackbar_label}
+           ref='snackbar'
+           active={this.state.snackbar_active || false}
+           timeout={3333}
+           onTimeout={() => this.setState({snackbar_active: false})}
+        />
       </Dialog>
     );
   }
@@ -44,7 +89,16 @@ class AddTask extends TaskDialog {
     });
   }
 
-  finish(data) {
+  on_enter() {
+    this.finish(this.state);
+    this.show();
+  }
+
+  enter_action() {
+    return "saves input and adds another";
+  }
+
+  save(data) {
     this.props.api.add_task({
       project_id: this.props.project.id,
       title: data.title,
@@ -53,7 +107,14 @@ class AddTask extends TaskDialog {
       blocked: data.blocked,
       assigned: data.assigned
     });
-  }  
+    this.setState({snackbar_active: true,
+                   snackbar_label: 'Added: ' + data.title});
+  }
+  
+  extra_actions() {
+    return [{label: "Add and add another",
+             onClick: () => this.on_enter()}];
+  }
 }
 
 class EditTask extends TaskDialog {
@@ -72,7 +133,20 @@ class EditTask extends TaskDialog {
                });
   }
 
-  finish(data) {
+  on_enter() {
+    this.refs.dialog.hide();
+    this.finish(this.state);
+  }
+
+  enter_tooltip() {
+    return "Press enter to save";
+  }
+
+  enter_action() {
+    return "saves changes.";
+  }
+
+  save(data) {
     this.props.api.update_task(data.id, {
       title: data.title,
       description: data.description.toString('html'),
@@ -98,17 +172,32 @@ class TaskBoard extends React.Component {
 
     const columns = () => {
       return project.state.substates.map((state) => {
-        return (
-          <td key={state.id}>
-            <TaskColumn
-               project={project}
-               state={state}
-               tasks={project.subtasks(state.id)}
-               board={this.props.board}
-               api={this.props.api}
-               />
-          </td>
-        );
+        if (state.working || state.complete) {
+          return (
+            <td key={state.id}>
+              <UnorderedTaskColumn
+                 project={project}
+                 state={state}
+                 tasks={project.subtasks(state.id)}
+                 board={this.props.board}
+                 api={this.props.api}
+                 />
+            </td>
+          );
+        }
+        else {
+          return (
+            <td key={state.id}>
+              <TaskColumn
+                 project={project}
+                 state={state}
+                 tasks={project.subtasks(state.id)}
+                 board={this.props.board}
+                 api={this.props.api}
+                 />
+            </td>
+          );
+        }
       });
     };
 
@@ -141,12 +230,12 @@ class TaskColumn extends React.Component {
 
       const dropped = (dt) => this.dropped(dt, task.id);
 
-      const ddata = {'text/id': task.id};
+      const ddata = {'text/id': task.id, 'text/task': task.id};
       ddata['text/' + task.id] = task.id;
 
       result.push(
         <DropZone className="kb-divider" key={"above-" + task.id}
-                  disallow={[task.id]} dropped={dropped} />
+                  disallow={['children', task.id]} dropped={dropped} />
       );
       result.push(
         <Draggable data={ddata} key={task.id}>
@@ -186,14 +275,106 @@ class TaskColumn extends React.Component {
   }
 }
 
+class UnorderedTaskColumn extends React.Component {
+
+  dropped(dt) {
+    this.props.api.move(
+      dt.getData('text/id'), // id of task to be moved
+      this.props.project.id, // id of destination project
+      this.props.state.id,   // destination state id
+      undefined, true);      // Move to front(/top)
+  } 
+
+  tasks() {
+    return this.props.tasks.map((task) => {
+      const ddata = {'text/id': task.id, 'text/task': task.id};
+      ddata['text/' + task.id] = task.id;
+
+      return (
+        <Draggable data={ddata} key={task.id}>
+          <Task task={task} board={this.props.board} api={this.props.api} />
+        </Draggable>
+      );
+    });
+  }
+
+  render() {
+    const className = classes(
+      'kb-column', 'kb-unordered-column',
+      {
+        working: this.props.state.working,
+        complete: this.props.state.complete
+      });
+
+    const disallowed = this.props.tasks.map((task) => task.id);
+    const dropped = (dt) => this.dropped(dt);
+
+    return (
+      <DropZone className={className} disallow={disallowed} dropped={dropped}>
+        {this.tasks()}
+      </DropZone>
+    );
+  }
+}
+
 class Task extends React.Component {
 
+  constructor (props) {
+    super(props);
+    this.state = {};
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
-    return (nextProps.task.rev !== this.rev);
+    return (nextProps.task.rev !== this.rev ||
+            nextState.expanded !== this.state.expanded);
+  }
+
+  toggle_explanded() {
+    this.setState({expanded: ! this.state.expanded});
   }
 
   size() {
     return this.props.task.size > 1 ? '[' + this.props.task.size + ']' : '';
+  }
+
+  details() {
+    if (this.state.expanded && has_text(this.props.task.description)) {
+      return (
+        <CardText
+           dangerouslySetInnerHTML={{__html: this.props.task.description}}
+          />
+      );
+    }
+    return null;
+  }
+
+  actions() {
+    if (this.state.expanded) {
+      return (
+        <CardActions>
+          <TooltipIconButton
+             icon="mode_edit"
+             onMouseUp={() => this.refs.edit.show()}
+             tooltip="Edit this task." tooltipPosition="right"
+             />
+        </CardActions>
+      );
+    }
+    return null;
+  }
+
+  avatar() {
+    const {task} = this.props;
+    if (task.assigned) {
+      return (
+        <UserAvatar
+           email={task.user.email}
+           title={task.user.name}
+           size="20"
+           />
+      );
+    }
+    return null;
   }
   
   render() {
@@ -202,20 +383,21 @@ class Task extends React.Component {
 
     const className = classes('kb-task', {blocked: !! task.blocked});
 
-    const avatar = () =>
-            task.assigned ?
-            <UserAvatar
-              email={task.user.email}
-              title={task.user.name}
-              size="20"
-              />
-      : null;
+    const expand = () => this.setState({expanded: ! this.state.expanded});
 
     return (
-      <Card className={className} onClick={() => this.refs.edit.show()}>
-        <CardText>
-          {this.props.task.title} {this.size()} {avatar()}
+      <Card className={className}>
+        <CardText className="kb-w-right-thing">
+          <div className="kb-w-right-thing">
+            <span>{this.props.task.title} {this.size()}</span>
+            {this.avatar()}
+          </div>
+          <RevealButton expanded={this.state.expanded}
+                        toggle={this.toggle_explanded.bind(this)}
+                        />
         </CardText>
+        {this.details()}
+        {this.actions()}
         <EditTask ref="edit" task={task} board={board} api={api} />
       </Card>
     );

@@ -17,7 +17,7 @@ demo_db = '''
 </zodb>
 '''
 
-def make_app():
+def make_app(config=demo_db):
     app = bobo.Application(
         bobo_resources="""
                        twotieredkanban.apibase
@@ -27,7 +27,7 @@ def make_app():
     return pkg_resources.load_entry_point(
         'zc.zodbwsgi', 'paste.filter_app_factory', 'main')(
             app, {},
-            configuration = demo_db,
+            configuration = config,
             max_connections = '4',
             thread_transaction_manager = 'False'
         )
@@ -44,9 +44,11 @@ class APITests(setupstack.TestCase):
         self.app = self._test_app()
         self.vars = Vars()
 
-    def _test_app(self):
+    def _test_app(self, url=None):
         app = webtest.TestApp(self._app)
         app.extra_environ['HTTP_X_GENERATION'] = '0'
+        if url:
+            self.update_app(app, app.get(url))
         return app
 
     def update_app(self, app, resp):
@@ -101,6 +103,38 @@ class APITests(setupstack.TestCase):
                       )
                  ),
             self.post('/site/boards', data).json)
+
+        # We can also add a board in the context of a board
+        self.app = self._test_app()
+        self.get('/board/Dev/poll') # set generation
+        data2 = dict(name='Dev2', title='Development 2',
+                    description='Let us develop things again')
+        self.assertEqual(
+            dict(updates=
+                 dict(generation=self.vars.generation2,
+                      board=dict(data, archive_count=0),
+                      site=dict(users=[],
+                                boards=[data, data2])
+                      )
+                 ),
+            self.post('/board/Dev/boards', data2).json)
+
+    def test_rename_board(self):
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('t')
+            site.add_board('tt')
+        self.get('/board/t/poll')
+        site_app = self._test_app('/site/poll')
+        tt_app = self._test_app('/site/poll')
+        r = self.put('/board/t/', dict(name='t2'))
+        vars = Vars()
+        self.assertEqual(dict(board=vars.board, site=vars.site,
+                              generation=vars.g),
+                         r.json['updates'])
+        self.assertEqual(['t2', 'tt'],
+                         [b['name'] for b in vars.site['boards']])
+        self.assertEqual('t2', vars.board['name'])
 
     def test_add_project(self):
         self.post('/site/boards', dict(name='t', title='t', description=''))
@@ -200,12 +234,37 @@ class APITests(setupstack.TestCase):
         self.assertEqual(t1['order'], task['order'])
         self.assertEqual(p2id, task['parent'])
 
+    def test_move_task_to_new_working_state_gets_assigned(self):
+        states = self.get_states()
+        r = self.post('/board/t/projects',
+                      dict(title='p1', description='', order=1))
+        p1id = r.json['updates']['tasks']['adds'][0]['id']
+        r = self.post('/board/t/project/' + p1id,
+                      dict(title='t1', description='', order=2))
+        t1 = r.json['updates']['tasks']['adds'][0]
+        self.assertEqual(
+            dict(updates=
+                 dict(generation=self.vars.generation,
+                      tasks=dict(adds=[self.vars.task])
+                      )
+                 ),
+            self.put('/board/t/move/' + t1['id'],
+                     dict(parent_id=p1id, state_id='Doing')
+                     ).json)
+        task = self.vars.task
+        self.assertEqual(t1['id'], task['id'])
+        self.assertEqual('Doing', task['state'])
+        self.assertEqual(t1['order'], task['order'])
+        self.assertEqual(p1id, task['parent'])
+        self.assertEqual('jaci', task['assigned'])
+
     def test_auth(self):
         # Note that this test, like the ones above use a very dump
         # auth plugin. We're just testing for proper interaction with
         # the auth plugin.
 
-        # unauthenticated users can't get redirected to a login page
+        # unauthenticated users can't do anything and get redirected
+        # to a login page
         with self._app.database.transaction() as conn:
             get_site(conn.root, 'localhost').auth = auth.Bad()
         app = self._test_app()
@@ -216,7 +275,9 @@ class APITests(setupstack.TestCase):
         with self._app.database.transaction() as conn:
             get_site(conn.root, 'localhost').auth = auth.NonAdmin()
         app = self._test_app()
-        self.app.post('/site/boards', dict(boards=[]), status=403)
+        r = self.app.post('/site/boards',
+                          dict(name='test', title='', description=''),
+                          status=403)
 
     def test_no_site(self):
         # When accessing a domain wo a site, we'll get redirected to a
@@ -236,3 +297,34 @@ class APITests(setupstack.TestCase):
 
         # restore default_url
         config(dict(no_site_url=default_url))
+
+    def test_archive_and_restore(self):
+        vars = Vars()
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('test', '', '')
+            board = site.boards['test']
+            board.new_project('p1', 0)
+            [p1] = board.tasks
+            board.new_task(p1.id, 't1', 1)
+            board.new_task(p1.id, 't2', 2)
+            task_ids = sorted(t.id for t in board.tasks)
+            board.new_project('p2', 3)
+
+        self.get('/board/test/poll') # set generation
+
+        r = self.app.post('/board/test/archive/' + p1.id)
+        updates = r.json['updates']
+        self.assertEqual(dict(archive_count=1,
+                              description='', name='test', title=''),
+                         updates['board'])
+        self.assertEqual(dict(removals=vars.removals), updates['tasks'])
+        self.assertEqual(sorted(vars.removals), task_ids)
+
+        r = self.app.delete('/board/test/archive/' + p1.id)
+        updates = r.json['updates']
+        self.assertEqual(dict(archive_count=0,
+                              description='', name='test', title=''),
+                         updates['board'])
+        self.assertEqual(dict(adds=vars.restores), updates['tasks'])
+        self.assertEqual(sorted(t['id'] for t in vars.restores), task_ids)

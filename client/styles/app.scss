@@ -1,6 +1,7 @@
 table {
     border-collapse:collapse;
     width: 100%;
+    min-height: 14ex;
 }
 
 table,td,th {
@@ -49,6 +50,10 @@ td {
     height: 100%;
     display: flex;
     flex-direction: column;
+
+    .kb-task.blocked {
+        background-color: #fdd;
+    }
 }
 
 .kb-column.working {
@@ -58,13 +63,16 @@ td {
 }
 
 .kb-column.complete {
+    height: 100%;
+    overflow-y: scroll;
     .kb-task {
         background-color: #ddf;
     }
 }
 
-.kb-task.blocked {
-    background-color: #fdd;
+.kb-column.kb-unordered-column.dragover {
+    /* border: 5px solid #ccff99; */
+    background-color: #ccff99;
 }
 
 .kb-scrollable {
@@ -77,4 +85,116 @@ td {
     img {
         margin-right: 1em;
     }
+}
+
+.kb-field-row {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    .kb-flex-grow {
+        flex-grow: 1;
+    }
+    > * {
+        margin-right: 2em;
+    }
+}
+
+.kb-assigned {
+    min-width: 20em;
+}
+
+.kb-task-size {
+    width: 5em;
+}
+
+
+.kb-w-right-thing {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    :first-child {
+        flex-grow: 1;
+    }
+}
+
+.kb-backlog {
+    margin: 1em;
+    h1 {
+        font-size: 120%;
+    }
+    h1::after {
+        content: ":"
+    }
+}
+
+.kb-the-bag {
+  background-color: #FFDF00;
+  padding: 1em;
+  margin-top: 1em;
+  margin-left: 3em;
+  margin-right: 1em;
+  border-radius: 1em;
+  border-style: solid;
+
+  .kb-archived-feature {
+      padding-left: 1em;
+      .kb-archived-task {
+          padding-left: 1em;
+      }
+  }
+
+  h1 {
+      font-size: 120%;
+      text-align: center;
+  }
+
+  h2 {
+      font-size: 100%;
+      text-decoration: underline;
+  }
+
+  h3 {
+      text-decoration: none;
+  }
+}
+.kb-the-bag.dragover {
+    border: 5px solid #ccff99;
+}
+
+.kb-batch {
+    text-align: center;
+    .kb-batch-position {
+        font-weight: bold;
+        vertical-align: -20%;
+    }
+}
+
+body {
+    font-family: Roboto;
+    margin: 0;
+}
+
+.kb-button-row {
+    display: flex;
+    justify-content: center;
+}
+
+.kb-version {
+    width: 100%;
+    text-align: center;
+}
+
+.kb-frame-nav {
+    button {
+        color: #bbb !important;
+    }
+}
+
+.kb-input-tip {
+    font-size: 80%;
+    vertical-align: 200%;
+}
+
+.kb-intro {
+    margin: 1em;
 }

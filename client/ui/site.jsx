@@ -1,39 +1,27 @@
 import React from 'react';
-import {Button} from 'react-toolbox';
 
-import {Boards, AddBoardDialog} from './boards';
+import {Base} from './app'; 
 import Frame from './frame';
 import SiteAPI from 'SiteAPI';
+import Intro from 'Intro';
 
-module.exports = class extends React.Component {
+module.exports = class extends Base {
 
-  constructor(props) {
-    super(props);
-    this.api = new SiteAPI(this);
-    this.api.start();
-    this.state = {model: this.api.model};
-  }
-
-  componentWillUnmount() {
-    this.api.stop();
-  }
-
-  componentWillMount() {
-    this.api.start();
+  new_api() {
+    return new SiteAPI(this);
   }
 
   render() {
+    document.title = window.location.hostname || "Valuenator demo";
     const boards = this.state.model.boards;
     return (
       <div>
         <Frame
-           title="Boards"
+           title="Valunator"
            model={this.state.model}
            api={this.api}
            />
-        <Boards boards={boards} />
-        <Button icon='add' floating onMouseUp={() => this.refs.add.show()} />
-          <AddBoardDialog api={this.api} ref="add" />
+        <Intro/>
       </div>
     );
   }

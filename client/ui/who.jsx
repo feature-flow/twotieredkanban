@@ -1,5 +1,7 @@
 import React from 'react';
-import {Avatar, Dropdown, Tooltip} from 'react-toolbox';
+import Avatar from 'react-toolbox/lib/avatar';
+import Dropdown from 'react-toolbox/lib/dropdown';
+import Tooltip from 'react-toolbox/lib/tooltip';
 import md5 from 'md5';
 
 import {Dialog, DialogBase, Input} from './dialog';
@@ -29,12 +31,23 @@ const User = (props) => (
   </div>
 );
 
-const user_select_template = (user) => <User user={user} />;
+const user_select_template = (user) => {
+  if (user.value) {
+    return <User user={user} />;
+  }
+  else {
+    return <div>{user.title}</div>;
+  }
+};
 
 const UserSelect = (props) => {
   const users = props.users.map(
     (u) => Object.assign({value: u.id}, u));
-  
+
+  if (props.none) {
+    users.unshift({value: '', title: props.none});
+  }
+
   return (<Dropdown className="kb-assigned"
           auto={false}
           source={users}
@@ -63,7 +76,8 @@ class Profile extends DialogBase {
       <Dialog
          title="Update your information" type="small" action="Update"
          finish={finish} ref="dialog">
-        <Input label='Name' required={true} onChange={this.required("name")} />
+        <Input label='Name' required={true} onChange={this.required("name")}
+               ref="focus" />
         <Input label='Email' required={true} onChange={this.required("email")}
                />
         <Input label='Nickname' required={true} onChange={this.required("nick")}

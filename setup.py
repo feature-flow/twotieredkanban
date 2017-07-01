@@ -1,6 +1,7 @@
 name, version = 'twotieredkanban', '0'
 
 install_requires = [
+    'bleach',
     'bobo',
     'gevent', 'psycogreen',
     'PyJWT',
@@ -8,6 +9,8 @@ install_requires = [
     'zc.generationalset',
     'zope.exceptions',                  # XXX required by zodbwsgi
     'passlib',
+    'newt.db',
+    'newt.qbe',
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest',
                             'zc.zodbwsgi'])

@@ -1,5 +1,5 @@
 import React from 'react';
-import {IconMenu, MenuItem} from 'react-toolbox';
+import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
 
 import {UserAvatar, UserSelect, UserProfile} from '../ui/who';
 import {Dialog, DialogBase, show_dialog} from '../ui/dialog';

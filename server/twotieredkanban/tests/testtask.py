@@ -31,3 +31,21 @@ class TaskTests(unittest.TestCase):
                      ),
                  ),
             task.json_reduce())
+
+        task.tasks = []
+        self.assertEqual(
+            dict(id = id.hex,
+                 title = 'the task',
+                 description = 'the description',
+                 order = 42,
+                 state = 'test',
+                 parent = None,
+                 blocked = None,
+                 assigned = None,
+                 size = 1,
+                 history=(
+                     dict(start='2017-06-08T10:02:00.004', state='test'),
+                     ),
+                 tasks = [],
+                 ),
+            task.json_reduce())

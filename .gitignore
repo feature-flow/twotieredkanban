@@ -12,3 +12,4 @@ node_modules
 /attic
 /.tmp
 db.cfg
+valuenator.cfg

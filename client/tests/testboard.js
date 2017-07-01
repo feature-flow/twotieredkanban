@@ -57,7 +57,7 @@ describe("Kanban Board", () => {
 
   it("Should handle its own data", () => {
     const board = initialized_board();
-    expect(board.name).toBe("test");
+    expect(board.name).toBe("dev");
     expect(board.title).toBe("Test");
     expect(board.description).toBe("test board");
     expect(board.boards).toEqual(boards);
@@ -137,4 +137,56 @@ describe("Kanban Board", () => {
     expect(board.tasks['p2'].total_completed).toBe(0);
   });
 
+  it("should update user on existing task", () => {
+    const board = initialized_board();
+    board.update(
+      {
+        tasks: {adds: [
+          task('t1', 1, {parent: 'p1', size: 1, history: [{complete: true}]}),
+          task('p1', 4),
+        ]},
+        site: {
+          users: [{"id": "gal", "nick": "gal", "email": "gal@example.com",
+                   "name": "Gal Humana"}]
+        }
+        });
+    expect(board.tasks['t1'].user).toBe(undefined);
+    board.update({tasks: {adds: [
+      task('t1', 1,
+           {assigned: 'gal',
+            parent: 'p1', size: 1, history: [{complete: true}]}),
+    ]}});
+    expect(board.tasks['t1'].user.id).toBe('gal');
+    expect(board.tasks['t1'].user.nick).toBe('gal');
+    expect(board.tasks['t1'].user.name).toBe('Gal Humana');
+    expect(board.tasks['t1'].user.email).toBe('gal@example.com');
+  });
+
+  it("should handle removals", () => {
+    const board = initialized_board();
+    board.update({tasks: {adds: [
+      task('t1', 1, {parent: 'p1'}),
+      task('t2', 2, {parent: 'p1', state: 'ready'}),
+      task('t3', 3, {parent: 'p1', state: 'Doing'}),
+      task('p1', 4),
+      task('p2', 5, {state: 'Development'})
+    ]}});
+
+    board.update({tasks: {removals: ['t1', 't2']}});
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['t3', 'p1', 'p2']);
+    expect(board.tasks['p1'].subtasks('ready').map((t) => t.id)).toEqual([]);
+    expect(board.tasks['p1'].count).toBe(1);
+
+    board.update({tasks: {removals: ['t3', 'p1']}});
+    expect(board.subtasks('Backlog').map((t) => t.id)).toEqual([]);
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['p2']);
+  });
+
+  it("should have an archive count", () => {
+    const board = initialized_board();
+    expect(board.archive_count).toBe(0);
+    board.update({board: {archive_count: 1}});
+    expect(board.archive_count).toBe(1);
+  });
+  
 });

@@ -17,12 +17,18 @@ class Main extends React.Component {
   }
 }
 
+const NotFound = (props) => {
+  window.location.hash = '#/';
+  return <div>Not found</div>;
+};
+
 ReactDOM.render(
-<Router history={hashHistory}>
-  <Route path="/" component={Main}>
-    <IndexRoute component={Site} />
-    <Route path="board/:name" component={Board} />
-  </Route>
-</Router>,
-document.getElementById('app')
+  <Router history={hashHistory}>
+    <Route path="/" component={Main}>
+      <IndexRoute component={Site} />
+      <Route path="board/:name" component={Board} />
+      <Route path="**" component={NotFound} />
+    </Route>
+  </Router>,
+  document.getElementById('app')
 );

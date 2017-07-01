@@ -40,6 +40,7 @@ class DropZone extends React.Component {
   
   constructor(props) {
     super(props);
+    this.dragin = 0;
     this.state = {dragover: false};
   }
 
@@ -60,12 +61,23 @@ class DropZone extends React.Component {
 
   dragenter(ev) {
     if (this.allowed(ev.dataTransfer)) {
-      this.setState({dragover: true});
+      console.log('dragenter', this.dragin);
+      if (this.dragin < 1) {
+        this.dragin = 1;
+        this.setState({dragover: true});
+      }
+      else {
+        this.dragin += 1;
+      }
     }
   }
 
   dragleave() {
-    this.setState({dragover: false});
+    this.dragin -= 1;
+    console.log('dragleave', this.dragin);
+    if (this.dragin == 0) {
+      this.setState({dragover: false});
+    }
   }
 
   drop(ev) {

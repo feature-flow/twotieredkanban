@@ -29,27 +29,35 @@ const populate_store = (store, data) => {
 };
 
 let open_database = () => {
-  open_request = indexedDB.open(dbname, 1);
+  open_request = indexedDB.open(dbname, 2);
   open_request.onupgradeneeded = (ev) => {
     const db = ev.target.result;
-    const boards = db.createObjectStore('boards', {keyPath: 'name' });
-    db.createObjectStore('users',  {keyPath: 'id' });
-    db.createObjectStore('states', {keyPath: 'key' })
-      .createIndex('board', 'board', {unique: false});
+    if (ev.oldVersion < 1) {
+      const boards = db.createObjectStore('boards', {keyPath: 'name' });
+      db.createObjectStore('users',  {keyPath: 'id' });
+      db.createObjectStore('states', {keyPath: 'key' })
+        .createIndex('board', 'board', {unique: false});
 
-    db.createObjectStore('tasks',  {keyPath: 'id' })
-      .createIndex('board', 'board', {unique: false});
+      db.createObjectStore('tasks',  {keyPath: 'id' })
+        .createIndex('board', 'board', {unique: false});
 
-    boards.transaction.oncomplete = () => {
-      const trans = db.transaction(['boards', 'users', 'states', 'tasks'],
-                                   'readwrite');
-      populate_store(trans.objectStore('users'), sample.users);
-      populate_store(trans.objectStore('boards'), sample.boards);
-      sample.boards.forEach((board) => {
-        populate_store(trans.objectStore('states'), board_states(board.name));
-      });
-      populate_store(trans.objectStore('tasks'), sample.tasks);
-    };
+      boards.transaction.oncomplete = () => {
+        const trans = db.transaction(['boards', 'users', 'states', 'tasks'],
+                                     'readwrite');
+        populate_store(trans.objectStore('users'), sample.users);
+        populate_store(trans.objectStore('boards'), sample.boards);
+        sample.boards.forEach((board) => {
+          populate_store(trans.objectStore('states'),
+                         board_states(board.name));
+        });
+        populate_store(trans.objectStore('tasks'), sample.tasks);
+      };
+    }
+    if (ev.oldVersion < 2) {
+      db.createObjectStore('archive', {keyPath: 'id' })
+          .createIndex('board', 'board', {unique: false});
+
+    }
   };
   
   opened = new Promise((resolve, reject) => {
@@ -71,8 +79,9 @@ module.exports = {
       this.view = view;
       this.opened = opened;
       opened.catch(
-        (code) => this.handle_error("Couldn't open feature-flow local database",
-                                    code)
+        (code) => this.handle_error(
+          "Couldn't open feature-flow local database",
+          code)
       );
       this.poll(cb);
     }
@@ -147,6 +156,19 @@ module.exports = {
       };
     }
 
+    chain(funcs, cb) {
+      if (funcs.length == 0) {
+        if (cb) {
+          cb(); // done
+        }
+      }
+      else {
+        funcs[0](() => {
+          this.chain(funcs.splice(1), cb);
+        });
+      }
+    }
+
     poll() {
       return this.opened.then((db) => {
         this.db = db;
@@ -175,10 +197,15 @@ module.exports = {
 
     update(trans, data, cb) {
       trans.oncomplete = () => {
-        if (data.user) {
-          this.user = data.user;
+        if (data) {
+          if (data.user) {
+            this.user = data.user;
+          }
+          this.model.update(data);
         }
-        this.model.update(data);
+        else {
+          this.model.NotFound = true;
+        }
         this.view.setState({model: this.model});
         if (cb) {
           cb(this, data);
@@ -232,5 +259,25 @@ module.exports = {
         });
       }
     }
+    
+    add_board(name, cb) {
+      this.transaction('boards', 'readwrite', (trans) => {
+        const store = trans.objectStore('boards');
+
+        this.all(store.openCursor(name), (boards) => {
+          if (boards.length > 0) {
+            this.handle_error("There is already a board named " + name);
+          }
+          else {
+            this.r(store.add({name: name, title: '', description: ''}), () => {
+              this.all(store.openCursor(), (boards) => {
+                this.update(trans, {site: {boards: boards}}, cb);
+              });
+            });
+          }
+        });
+      });
+    }
+
   }
 };

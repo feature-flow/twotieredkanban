@@ -1,8 +1,18 @@
 import React from 'react';
-import {AppBar, Drawer, Navigation, IconMenu, MenuItem} from 'react-toolbox';
 
-import {Boards} from './boards';
+import AppBar from 'react-toolbox/lib/app_bar';
+import {Button} from 'react-toolbox/lib/button';
+import Drawer from 'react-toolbox/lib/drawer';
+import Link from 'react-toolbox/lib/link';
+import Navigation from 'react-toolbox/lib/navigation';
+import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
+
+import version from '../version';
+
+import {Boards, AddBoardDialog} from './boards';
 import {Avatar} from 'AuthUI';
+import {Admin} from './admin';
+import {TooltipButton, TooltipIconButton} from './util';
 
 class Frame extends React.Component {
 
@@ -11,17 +21,22 @@ class Frame extends React.Component {
     this.state = { show_drawer: false };
   }
 
+  go_home() {
+    window.location.hash = '#/';
+  }
+  
   render() {
-    const {title, model, api} = this.props;
+    const {title, model, api, extra_nav} = this.props;
     
     const toggle_drawer = () => {
       this.setState({show_drawer: ! this.state.show_drawer});
     };
     
     return (
-      <div>
+      <div className='kb-frame'>
         <AppBar title={title} leftIcon='menu' onLeftIconClick={toggle_drawer}>
-          <Navigation type='horizontal'>
+          <Navigation type='horizontal' className="kb-frame-nav">
+            {extra_nav}
             <Avatar model={model} api={this.props.api} />
           </Navigation>
         </AppBar>
@@ -29,6 +44,22 @@ class Frame extends React.Component {
                 onOverlayClick={toggle_drawer}
                 >
           <Boards boards={model.boards} />
+
+          <div className="kb-button-row">
+            <Admin user={model.user} >
+              <TooltipIconButton
+                icon='add'
+                onMouseUp={() => this.refs.add.show()}
+                tooltip="Add another board." tooltipPosition="right"
+                />
+                <AddBoardDialog api={this.props.api} ref="add" />
+            </Admin>
+            <TooltipIconButton
+               icon="home" onMouseUp={this.go_home} tooltipPosition="right"
+               tooltip="View welcome message."
+               />
+          </div>
+          <div className="kb-version">{version}</div>
         </Drawer>
       </div>
       );

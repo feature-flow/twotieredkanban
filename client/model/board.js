@@ -79,6 +79,7 @@ class Task extends TaskContainer {
     this.blocked = task.blocked;
     this.created = task.created;
     this.assigned = task.assigned;
+    this.user = task.user;
     this.size = task.size;
     this.complete = task.complete;
     this.parent = task.parent;
@@ -113,7 +114,9 @@ class Board extends TaskContainer {
     this.project_states = [];
     this.task_states = [];
     this.states_by_id = {}; // {id -> state
+    this.archive_count = 0;
 
+    this.search = {}; // Search results
   }
 
   add_task(task) {
@@ -166,11 +169,18 @@ class Board extends TaskContainer {
 
   update(updates) {
     if (updates.board) {
-      if (updates.board.title) {
+      if (updates.board.name != undefined) {
+        this.name = updates.board.name;
+      }
+      if (updates.board.title != undefined) {
         this.title = updates.board.title;
       }
-      if (updates.board.description) {
+      if (updates.board.description != undefined) {
         this.description = updates.board.description;
+      }
+      if (updates.board.archive_count != undefined) {
+        this.archive_count = updates.board.archive_count;
+        delete this.search.archive; // Clear search results
       }
     }
 
@@ -209,47 +219,62 @@ class Board extends TaskContainer {
     }
 
     if (updates.tasks) {
-      // TODO: only handling new and updates
-      // projects
-      updates.tasks.adds.forEach((task) => {
-        if (! task.parent) {
-          this.add_task(new Task(
-            task.id,
-            {
-              title: task.title,
-              description: task.description,
-              state: task.state ? task.state : this.default_project_state_id,
-              order: task.order,
-              history: task.history
-            }
-          ));
-        }
-      });
-
-      // tasks
-      // Note that we deal with tasks in a second pass so we know
-      // projects are in place.
-      updates.tasks.adds.forEach((task) => {
-        if (task.parent) {
-          this.add_task(
-            new Task(
+      // TODO: updates.tasks.contents
+      if (updates.tasks.adds) {
+        updates.tasks.adds.forEach((task) => {
+          if (! task.parent) {
+            this.add_task(new Task(
               task.id,
               {
                 title: task.title,
                 description: task.description,
-                state: task.state ? task.state : this.default_task_state_id,
+                state: task.state ? task.state : this.default_project_state_id,
                 order: task.order,
-                blocked: task.blocked,
-                assigned: task.assigned,
-                size: task.size,
-                history: task.history,
-                parent: this.tasks[task.parent]
+                history: task.history
               }
             ));
-        }
-      });
+          }
+        });
 
-      this.all_tasks.sort(this.cmp_order);
+        // tasks
+        // Note that we deal with tasks in a second pass so we know
+        // projects are in place.
+        updates.tasks.adds.forEach((task) => {
+          if (task.parent) {
+            this.add_task(
+              new Task(
+                task.id,
+                {
+                  title: task.title,
+                  description: task.description,
+                  state: task.state ? task.state : this.default_task_state_id,
+                  order: task.order,
+                  blocked: task.blocked,
+                  assigned: task.assigned,
+                  size: task.size,
+                  history: task.history,
+                  parent: this.tasks[task.parent]
+                }
+              ));
+          }
+        });
+
+        this.all_tasks.sort(this.cmp_order);
+      }
+
+      if (updates.tasks.removals) {
+        updates.tasks.removals.forEach((task_id) => {
+          const task = this.tasks[task_id];
+          (task.parent || this).remove_subtask(task);
+          delete this.tasks['task_id'];
+          this.ar_remove(this.all_tasks, task);
+        });
+      }
+    }
+
+    if (updates.search) {
+      // Search results flow much like data changes
+      Object.assign(this.search, updates.search);
     }
   }
 
