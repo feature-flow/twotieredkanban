@@ -126,9 +126,7 @@ td {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    :first-child {
-        flex-grow: 1;
-    }
+    justify-content: space-between;
 }
 
 .kb-w-right-thing.kb-w-right-thing-center {
@@ -142,10 +140,10 @@ td {
 
 .kb-backlog {
     margin: 1em;
-    h1 {
+    > h1 {
         font-size: 120%;
     }
-    h1::after {
+    > h1::after {
         content: ":"
     }
 }
@@ -220,4 +218,8 @@ body {
 
 .kb-intro {
     margin: 1em;
+}
+
+p.kb-warning {
+    font-weight: bold;
 }

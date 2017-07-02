@@ -38,6 +38,10 @@ module.exports = class extends APIBase {
     });
   }
 
+  delete_task(id) {
+    this.delete('tasks/' + id);
+  }
+
   move(task_id, parent_id, state_id, before_id, front) {
     const order = this.model.order(before_id, front);
     this.put(`move/${task_id}`,

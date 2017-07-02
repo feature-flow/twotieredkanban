@@ -244,6 +244,12 @@ class Board(persistent.Persistent):
         del event['archived']
         feature.history += (event,)
 
+    def remove(self, task_id):
+        task = self.tasks[task_id]
+        for subtask in self.subtasks.pop(task.id, ()):
+            self.tasks.remove(subtask)
+        self.tasks.remove(task)
+
 class TaskTypeError(TypeError):
     """Tried to perform not applicable to task type (project vs task)
     """

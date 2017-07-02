@@ -328,3 +328,26 @@ class APITests(setupstack.TestCase):
                          updates['board'])
         self.assertEqual(dict(adds=vars.restores), updates['tasks'])
         self.assertEqual(sorted(t['id'] for t in vars.restores), task_ids)
+
+
+    def test_remove(self):
+        vars = Vars()
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            site.add_board('test', '', '')
+            board = site.boards['test']
+            board.new_project('p1', 0)
+            [p1id] = [t.id for t in board.tasks]
+
+        self.get('/board/test/poll') # set generation
+
+        r = self.app.delete('/board/test/tasks/' + p1id)
+        updates = r.json['updates']
+        self.assertEqual(dict(generation=vars.generation,
+                              tasks=dict(removals=[p1id])),
+                         r.json['updates'])
+
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            board = site.boards['test']
+            self.assertEqual(0, len(board.tasks))

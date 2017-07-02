@@ -4,8 +4,8 @@ import RichTextEditor from 'react-rte';
 
 import {has_text} from '../model/hastext';
 
-import {Dialog, DialogBase, Input, Editor} from './dialog';
-import {RevealButton} from './revealbutton';
+import {Confirm, Dialog, DialogBase, Input, Editor} from './dialog';
+import {Reveal, Revealable, RevealButton} from './revealbutton';
 import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
 import {TooltipIconButton} from './util';
 
@@ -66,23 +66,15 @@ class EditProject extends ProjectDialog {
 
 }
 
-class Project extends React.Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {expanded: false};
-  }
+class Project extends Revealable {
 
   shouldComponentUpdate(nextProps, nextState) {
     return (nextProps.project.rev !== this.rev ||
             nextState.expanded !== this.state.expanded);
   }
-  toggle_explanded() {
-    this.setState({expanded: ! this.state.expanded});
-  }
 
   details() {
-    if (this.state.expanded && has_text(this.props.project.description)) {
+    if (has_text(this.props.project.description)) {
       return (
         <CardText
            dangerouslySetInnerHTML={{__html: this.props.project.description}}
@@ -93,25 +85,42 @@ class Project extends React.Component {
   }
 
   actions() {
-    if (this.state.expanded) {
-      const {project, api, board} = this.props;
-      return (
-        <CardActions>
-          <AddTask     ref="add" project={project} board={board} api={api} />
-          <EditProject ref="edit" project={project} api={api} />
-          <TooltipIconButton
-             icon="add"
-             onMouseUp={() => this.refs.add.show() }
-             tooltip="Add a task to this feature." tooltipPosition="right"
-            />
-          <TooltipIconButton
-            icon="mode_edit"
-            onMouseUp={() => this.refs.edit.show()}
-            tooltip="Edit this feature." tooltipPosition="right"
-            />
-        </CardActions>
-      );
-    }
+    const {project, api, board} = this.props;
+    return (
+      <CardActions>
+        <TooltipIconButton
+          icon="delete_forever"
+          onMouseUp={
+            () => this.refs.delete.show({title: project.title})
+          }
+          tooltip="Delete this feature." tooltipPosition="right"
+          />
+        <Confirm ref="delete"
+                 text={(<div>
+                          <p>
+                            Are you sure you want to delete {project.title}?
+                          </p>
+                          <p className="kb-warning">
+                            This cannot be undone. Consider putting this
+                            feature in The Bag instead.
+                            </p>
+                        </div>)}
+                 finish={() => api.delete(project.id)}
+                 />
+        <TooltipIconButton
+           icon="add"
+           onMouseUp={() => this.refs.add.show() }
+           tooltip="Add a task to this feature." tooltipPosition="right"
+          />
+        <AddTask     ref="add" project={project} board={board} api={api} />
+        <TooltipIconButton
+          icon="mode_edit"
+          onMouseUp={() => this.refs.edit.show()}
+          tooltip="Edit this feature." tooltipPosition="right"
+          />
+        <EditProject ref="edit" project={project} api={api} />
+      </CardActions>
+    );
     return null;
   }
   
@@ -150,9 +159,11 @@ class Project extends React.Component {
              toggle={this.toggle_explanded.bind(this)}
              />
         </CardText>
-        {this.details()}
+        <Reveal expanded={this.state.expanded}>
+          {this.details()}
+          {this.actions()}
+        </Reveal>
         {this.tasks()}
-        {this.actions()}
       </Card>);
   }
 

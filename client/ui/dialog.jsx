@@ -189,11 +189,28 @@ class DialogBase extends React.Component {
   }
 }
 
+class Confirm extends DialogBase {
+  render() {
+    return (
+      <Dialog_
+         title={this.props.title || "Are you sure?"}
+         action={this.props.action || "Ok"}
+         ref="dialog"
+         finish={this.props.finish}
+         type="Small"
+         >
+        {this.props.text}
+      </Dialog_>
+    );
+  }
+}
+
 module.exports = {
   Dialog: Dialog_,
   Editor: Editor,
   Input: Input_,
   DialogBase: DialogBase,
   Select: Select,
-  show_dialog: (dialog, state) => () => dialog.show(state)
+  show_dialog: (dialog, state) => () => dialog.show(state),
+  Confirm: Confirm
 };

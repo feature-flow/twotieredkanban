@@ -6,9 +6,9 @@ import Snackbar from 'react-toolbox/lib/snackbar';
 
 import {has_text} from '../model/hastext';
 
-import {Dialog, DialogBase, Editor, Input, Select} from './dialog';
+import {Confirm, Dialog, DialogBase, Editor, Input, Select} from './dialog';
 import {Draggable, DropZone} from './dnd';
-import {RevealButton} from './revealbutton';
+import {Reveal, Revealable, RevealButton} from './revealbutton';
 import {TooltipIconButton, TooltipInput} from './util';
 import {UserAvatar, UserSelect} from './who';
 
@@ -317,20 +317,11 @@ class UnorderedTaskColumn extends React.Component {
   }
 }
 
-class Task extends React.Component {
-
-  constructor (props) {
-    super(props);
-    this.state = {};
-  }
+class Task extends Revealable {
 
   shouldComponentUpdate(nextProps, nextState) {
     return (nextProps.task.rev !== this.rev ||
             nextState.expanded !== this.state.expanded);
-  }
-
-  toggle_explanded() {
-    this.setState({expanded: ! this.state.expanded});
   }
 
   size() {
@@ -338,7 +329,7 @@ class Task extends React.Component {
   }
 
   details() {
-    if (this.state.expanded && has_text(this.props.task.description)) {
+    if (has_text(this.props.task.description)) {
       return (
         <CardText
            dangerouslySetInnerHTML={{__html: this.props.task.description}}
@@ -349,18 +340,22 @@ class Task extends React.Component {
   }
 
   actions() {
-    if (this.state.expanded) {
-      return (
-        <CardActions>
-          <TooltipIconButton
-             icon="mode_edit"
-             onMouseUp={() => this.refs.edit.show()}
-             tooltip="Edit this task." tooltipPosition="right"
-             />
-        </CardActions>
-      );
-    }
-    return null;
+    return (
+      <CardActions>
+        <TooltipIconButton
+          icon="delete_forever"
+          onMouseUp={
+            () => this.refs.delete.show({title: this.props.task.title})
+          }
+          tooltip="Delete this task." tooltipPosition="right"
+          />
+        <TooltipIconButton
+          icon="mode_edit"
+          onMouseUp={() => this.refs.edit.show()}
+          tooltip="Edit this task." tooltipPosition="right"
+          />
+      </CardActions>
+    );
   }
 
   avatar() {
@@ -404,9 +399,18 @@ class Task extends React.Component {
                         toggle={this.toggle_explanded.bind(this)}
                         />
         </CardText>
-        {this.details()}
-        {this.actions()}
-        <EditTask ref="edit" task={task} board={board} api={api} />
+        <Reveal expanded={this.state.expanded}>
+          {this.details()}
+          {this.actions()}
+          <EditTask ref="edit" task={task} board={board} api={api} />
+          <Confirm ref="delete"
+                   text={(<div>
+                            <p>Are you sure you want to delete {task.title}?</p>
+                            <p className="kb-warning">This cannot be undone.</p>
+                          </div>)}
+                   finish={() => api.delete(task.id)}
+                   />
+        </Reveal>
       </Card>
     );
   }

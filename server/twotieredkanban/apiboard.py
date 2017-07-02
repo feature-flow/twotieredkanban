@@ -47,6 +47,11 @@ class Board(Sync):
         self.context.update_task(task_id, **bobo_request.json)
         return self.response()
 
+    @delete("/tasks/:task_id")
+    def delete_task(self, bobo_request, task_id):
+        self.context.remove(task_id)
+        return self.response()
+
     @post("/archive/:feature_id")
     def archive_feature(self, feature_id):
         self.context.archive_feature(feature_id)

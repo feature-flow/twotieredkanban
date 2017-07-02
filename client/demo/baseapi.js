@@ -127,7 +127,7 @@ module.exports = {
         }
       };
     }
-
+    
     all(request, f, cb) {
       const results = [];
       request.onsuccess = (ev) => {
@@ -146,6 +146,34 @@ module.exports = {
               cb(err);
             }
           }
+        }
+      };
+      request.onerror = (ev) => {
+        this.handle_error(ev);
+        if (cb) {
+          cb(ev);
+        }
+      };
+    }
+    
+    each(request, f, cb) {
+      request.onsuccess = (ev) => {
+        const cursor = ev.target.result;
+        if (cursor) {
+          try {
+            f(cursor.value);
+          }
+          catch (err) {
+            this.handle_error(err);
+            if (cb) {
+              cb(err);
+            }
+            return;
+          }
+          cursor.continue();
+        }
+        else {
+          cb();
         }
       };
       request.onerror = (ev) => {

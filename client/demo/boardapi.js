@@ -13,7 +13,7 @@ module.exports = class extends BaseAPI {
     super(new Board(name), view, cb);
     this.name = name;
   }
-
+  
   op_all(store, op, objects, cb) {
     if (objects.length == 0) {
       cb(); // all done
@@ -358,6 +358,25 @@ module.exports = class extends BaseAPI {
     }
   }
 
+  delete(id, cb) {
+    this.transaction('tasks', 'readwrite', (trans) => {
+      const tasks = trans.objectStore('tasks');
+      const removals = [id];
+      this.each(
+        tasks.index('board').openCursor(this.name),
+        (task) => {
+          if (task.parent === id) {
+            removals.push(task.id);
+          }
+        },
+        () => {
+          this.remove_all(tasks, removals, () => {
+            this.update(trans, {tasks: {removals: removals}}, cb);
+          });
+        }, cb);
+    });
+  }
+  
   archive(feature_id, cb) {
     this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {
       const tasks_store = trans.objectStore('tasks');

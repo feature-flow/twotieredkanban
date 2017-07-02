@@ -5,8 +5,9 @@ Change history
 0.10.0 (unreleased)
 =====================
 
+- Features and tasks can be deleted.
 
-Style improvements
+- Style improvements
 
 0.9.0 (2017-06-28)
 =====================

@@ -13,7 +13,7 @@ module.exports = {
 
     constructor (props) {
       super(props);
-      this.state = {};
+      this.state = {expanded: false};
     }
 
     toggle_explanded() {
