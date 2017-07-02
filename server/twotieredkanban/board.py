@@ -246,8 +246,15 @@ class Board(persistent.Persistent):
 
     def remove(self, task_id):
         task = self.tasks[task_id]
-        for subtask in self.subtasks.pop(task.id, ()):
-            self.tasks.remove(subtask)
+        if task.parent:
+            self.subtasks[task.parent.id] = tuple(
+                t for t in self.subtasks[task.parent.id]
+                if t is not task
+                )
+        else:
+            for subtask in self.subtasks.pop(task.id, ()):
+                self.tasks.remove(subtask)
+
         self.tasks.remove(task)
 
 class TaskTypeError(TypeError):

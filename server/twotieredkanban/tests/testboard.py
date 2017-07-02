@@ -685,6 +685,19 @@ class BoardTests(unittest.TestCase):
             set(self.updates()['tasks']['removals']))
         self.assertEqual(len(self.board.tasks), 0)
 
+    def test_remove_task_then_feature(self):
+        self.board.new_project("Feature", 0)
+        [fid] = [t.id for t in self.updates()['tasks']['adds']]
+        self.board.new_task(fid, "t1", 0)
+        self.board.new_task(fid, "t2", 0)
+        t1id, t2id = [t.id for t in self.updates()['tasks']['adds']]
+        self.board.remove(t1id)
+        self.board.remove(fid)
+        self.assertEqual(
+            set([fid, t1id, t2id]),
+            set(self.updates()['tasks']['removals']))
+        self.assertEqual(len(self.board.tasks), 0)
+
 
 sample_description = """
 <h1>Heading large</h1>
