@@ -44,6 +44,14 @@ class Base:
 
         return response
 
+    @get("/favicon.ico", content_type="image/x-icon")
+    def favicon(self):
+        with open(os.path.join(os.path.dirname(__file__), "favicon.ico"),
+                  'rb') as f:
+            response = webob.Response(f.read())
+
+        return response
+
     @bobo.get("/ruok")
     def ruok(self):
         return 'imok'
