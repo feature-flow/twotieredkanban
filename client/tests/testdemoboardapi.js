@@ -860,6 +860,12 @@ describe("demo board api", () => {
         });
       })
         .then(() => promise((cb) => {
+          // Archive a feature in an unrelated board to provoke leakage
+          new BoardAPI(view, 'sample', (api) => {
+            api.archive('proto', cb);
+          });
+        }))
+        .then(() => promise((cb) => {
           // Move the feature of interest to a different state, to make sure
           // the state is restored correctly
           inc_date();

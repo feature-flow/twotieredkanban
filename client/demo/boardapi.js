@@ -395,7 +395,7 @@ module.exports = class extends BaseAPI {
               const removals = feature.tasks.map((t) => t.id);
               removals.push(feature_id);
               this.remove_all(tasks_store, removals, () => {
-                this.r(archive.count(), (count) => {
+                this.r(archive.index('board').count(this.name), (count) => {
                   const boards = trans.objectStore('boards');
                   this.r(boards.get(this.name), (board) => {
                     board.archive_count = count;
@@ -430,7 +430,7 @@ module.exports = class extends BaseAPI {
           delete feature.tasks;
           tasks.push(feature);
           this.add_all(tasks_store, tasks, () => {
-            this.r(archive.count(), (count) => {
+            this.r(archive.index('board').count(this.name), (count) => {
               const boards = trans.objectStore('boards');
               this.r(boards.get(this.name), (board) => {
                 board.archive_count = count;
