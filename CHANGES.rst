@@ -9,6 +9,10 @@ Change history
 
 - Style improvements
 
+- a favicon is provided.
+
+- Various bug fixes.
+
 0.9.0 (2017-06-28)
 =====================
 
