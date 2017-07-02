@@ -266,7 +266,7 @@ class Board extends TaskContainer {
         updates.tasks.removals.forEach((task_id) => {
           const task = this.tasks[task_id];
           (task.parent || this).remove_subtask(task);
-          delete this.tasks['task_id'];
+          delete this.tasks[task_id];
           this.ar_remove(this.all_tasks, task);
         });
       }

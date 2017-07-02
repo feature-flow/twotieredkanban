@@ -1087,6 +1087,8 @@ describe("demo board api", () => {
       api.remove(feature_id, (api, data) => {
         expect(data.tasks.removals).toEqual([feature_id, task_id]);
         expect(model.all_tasks.length).toBe(0);
+        expect(model.tasks[task_id]).toBe(undefined);
+        expect(model.tasks[feature_id]).toBe(undefined);
         done();
       });
     });
