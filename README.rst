@@ -16,8 +16,8 @@ Status and changes
 ==================
 
 The software is currently in an alpha state. You can try out a `demo
-version <http://valuenator.com/demo>`_ that stores data persistently
-in your browser.  It currently requires Chrome. We'll be adding
-support for other browsers soon.
+version <http://valuenator.com/demo/#/board/sample>`_ that stores data
+persistently in your browser.  It currently requires Chrome. We'll be
+adding support for other browsers soon.
 
 We'll also be announcing a beta for an on-line version soon.
