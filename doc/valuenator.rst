@@ -262,7 +262,7 @@ title and description text.
 
 Each feature is shown with title and metrics and has a reveal
 button. Clicking on the reveal button for a feature shows its
-description and tasks.  Also shown, at the bottom, is button to restore
+description and tasks.  Also shown, at the bottom, is a button to restore
 the feature from the bag. Clicking on this button restores the feature
 to the state it was in before it was bagged.
 
