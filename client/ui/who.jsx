@@ -14,7 +14,7 @@ const UserAvatar = (props) => {
   const src = 'https://www.gravatar.com/avatar/' +
           md5(email) + '.jpg?s=' + (size || 32) + '&d=wavatar';
   if (title) {
-    return <TAvatar tooltip={title} image={src} />;
+    return <TAvatar tooltip={title} image={src} className={props.className} />;
   }
   else {
     return <Avatar image={src} />;

@@ -1,7 +1,7 @@
 table {
     border-collapse:collapse;
-    width: 100%;
     min-height: 14ex;
+    width: 100%;
 }
 
 table,td,th {
@@ -21,14 +21,28 @@ td {
 
 .kb-project {
     width: auto;
-    margin: .5em;
+    margin: 5px;
     background-color: #f9f9f9;
+    h1 {
+        font-size: 120%;
+        text-align: center;
+    }
 }
 
 .kb-task {
     width: auto;
-    margin: .5em;
+    margin: 3px;
     background-color: #fff999;
+    h1 {
+        font-size: 100%;
+    }
+    .kb-assigned-avatar {
+        margin-left: .5em;
+    }
+    .kb-revealable {
+        padding: .5em;
+        padding-right: 0;
+    }
 }
 
 .kb-divider {
@@ -115,6 +129,15 @@ td {
     :first-child {
         flex-grow: 1;
     }
+}
+
+.kb-w-right-thing.kb-w-right-thing-center {
+    align-items: center;
+}
+
+.kb-w-right-thing.kb-revealable {
+    align-items: flex-start;
+    flex-wrap: nowrap;
 }
 
 .kb-backlog {

@@ -12,7 +12,7 @@ import {TooltipIconButton} from './util';
 class ProjectDialog extends DialogBase {
   
   render() {
-    const action = this.props.action;
+    const action = this.action();
     
     return (
       <Dialog title={this.action() + " feature"} action={action} ref="dialog"
@@ -142,9 +142,9 @@ class Project extends React.Component {
     return (
       <Card className="kb-project">
         <CardText className="kb-w-right-thing">
-          <span>
+          <h1>
             {project.title} [{project.total_completed}/{project.total_size}]
-          </span>
+          </h1>
           <RevealButton
              expanded={this.state.expanded}
              toggle={this.toggle_explanded.bind(this)}
