@@ -188,5 +188,27 @@ describe("Kanban Board", () => {
     board.update({board: {archive_count: 1}});
     expect(board.archive_count).toBe(1);
   });
+
+  it("should handle having task contents replaces", () => {
+    const board = initialized_board();
+    board.update({tasks: {adds: [
+      task('xt1', 1, {parent: 'xp2'}),
+      task('xt2', 2, {parent: 'xp2', state: 'ready'}),
+      task('xt3', 3, {parent: 'xp1', state: 'Doing'}),
+      task('xp1', 4),
+      task('xp2', 5, {state: 'Development'})
+    ]}});
+    board.update({tasks: {contents: [
+      task('t3', 3, {parent: 'p1', state: 'Doing'}),
+      task('p1', 4),
+      task('p2', 5, {state: 'Development'})
+    ]}});
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['t3', 'p1', 'p2']);
+    expect(board.tasks['p1'].subtasks('ready').map((t) => t.id)).toEqual([]);
+    expect(board.tasks['p1'].count).toBe(1);
+    board.update({tasks: {removals: ['t3', 'p1']}});
+    expect(board.subtasks('Backlog').map((t) => t.id)).toEqual([]);
+    expect(board.all_tasks.map((t) => t.id)).toEqual(['p2']);
+  });
   
 });

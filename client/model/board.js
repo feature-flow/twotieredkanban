@@ -219,7 +219,13 @@ class Board extends TaskContainer {
     }
 
     if (updates.tasks) {
-      // TODO: updates.tasks.contents
+      if (updates.tasks.contents) {
+        this.subtasks_by_state = {};
+        this.tasks = {};
+        this.all_tasks = [];
+        updates.tasks.adds = updates.tasks.contents;
+      }
+
       if (updates.tasks.adds) {
         updates.tasks.adds.forEach((task) => {
           if (! task.parent) {
