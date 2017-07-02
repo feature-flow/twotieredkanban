@@ -240,9 +240,9 @@ You can change your mind and break rules
 
 While you'll usually drag tasks across boards state by state in one
 direction, Valuenator doesn't enforce this. You can skip states. You
-can drag tasks between from one feature to another.  You can drag
-tasks to feature columns, turning them into features.  You drag empty
-features to task columns making them tasks.
+can drag tasks from one feature to another.  You can drag tasks to
+feature columns, turning them into features.  You drag empty features
+to task columns making them tasks.
 
 Features don't have to be done to be moved to the Bag. The Bag is a
 place to put features you don't want to think about any more. You may
