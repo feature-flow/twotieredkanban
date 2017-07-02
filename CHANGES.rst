@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.10.0 (unreleased)
+0.10.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.10.0 (2017-07-02)
 =====================
 
 - Features and tasks can be deleted.
