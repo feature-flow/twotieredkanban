@@ -2,10 +2,11 @@
 Change history
 ==============
 
-0.9.1 (unreleased)
+0.10.0 (unreleased)
 =====================
 
-Nothing changed yet
+
+Style improvements
 
 0.9.0 (2017-06-28)
 =====================
