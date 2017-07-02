@@ -121,7 +121,7 @@ module.exports = class {
   }
 
   delete(url) {
-    return axios.put(url[0] == '/' ? url : this.base + url, this.config)
+    return axios.delete(url[0] == '/' ? url : this.base + url, this.config)
       .catch((e) => this.handle_error(e));
   }
 

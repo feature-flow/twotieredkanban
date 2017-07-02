@@ -38,7 +38,7 @@ module.exports = class extends APIBase {
     });
   }
 
-  delete_task(id) {
+  remove(id) {
     this.delete('tasks/' + id);
   }
 

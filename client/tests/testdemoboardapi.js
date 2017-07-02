@@ -1058,12 +1058,12 @@ describe("demo board api", () => {
     });
   });
 
-  it("should delete tasks", (done) => {
+  it("should remove tasks", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test2', (api) => {
       const model = api.model;
       const task_id = model.subtasks('Backlog')[0].subtasks('ready')[0].id;
-      api.delete(task_id, (api, data) => {
+      api.remove(task_id, (api, data) => {
         expect(data.tasks.removals).toEqual([task_id]);
         expect(model.subtasks('Backlog')[0].subtasks('ready')).toEqual([]);
         expect(model.all_tasks.length).toBe(1);
@@ -1072,13 +1072,13 @@ describe("demo board api", () => {
     });
   });
 
-  it("should delete features", (done) => {
+  it("should remove features", (done) => {
     const view = {setState: expect.createSpy()};
     new BoardAPI(view, 'test2', (api) => {
       const model = api.model;
       const feature_id = model.subtasks('Backlog')[0].id;
       const task_id = model.subtasks('Backlog')[0].subtasks('ready')[0].id;
-      api.delete(feature_id, (api, data) => {
+      api.remove(feature_id, (api, data) => {
         expect(data.tasks.removals).toEqual([feature_id, task_id]);
         expect(model.all_tasks.length).toBe(0);
         done();

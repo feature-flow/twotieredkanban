@@ -408,7 +408,7 @@ class Task extends Revealable {
                             <p>Are you sure you want to delete {task.title}?</p>
                             <p className="kb-warning">This cannot be undone.</p>
                           </div>)}
-                   finish={() => api.delete(task.id)}
+                   finish={() => api.remove(task.id)}
                    />
         </Reveal>
       </Card>

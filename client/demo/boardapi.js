@@ -358,7 +358,7 @@ module.exports = class extends BaseAPI {
     }
   }
 
-  delete(id, cb) {
+  remove(id, cb) {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       const removals = [id];

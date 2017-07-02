@@ -105,7 +105,7 @@ class Project extends Revealable {
                             feature in The Bag instead.
                             </p>
                         </div>)}
-                 finish={() => api.delete(project.id)}
+                 finish={() => api.remove(project.id)}
                  />
         <TooltipIconButton
            icon="add"
