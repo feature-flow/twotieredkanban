@@ -13,3 +13,8 @@ node_modules
 /.tmp
 db.cfg
 valuenator.cfg
+.DS_Store
+/server.log
+/prod
+/doc/_build
+
