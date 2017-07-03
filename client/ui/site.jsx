@@ -5,7 +5,7 @@ import Dropdown from 'react-toolbox/lib/dropdown';
 
 import {Base} from './app';
 import {Dialog, DialogBase, Input, Select} from './dialog';
-import Frame from './frame';
+import {Frame} from './frame';
 import SiteAPI from 'SiteAPI';
 import {TooltipIconButton} from './util';
 import {UserAvatar} from "./who";
