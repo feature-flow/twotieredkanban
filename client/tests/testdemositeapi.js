@@ -116,5 +116,52 @@ describe("demo site api", () => {
       });
     });
 
+    it("should update user type", (done) => {
+      const view = {setState: expect.createSpy()};
+      new SiteAPI(view, (api) => {
+        const model = api.model;
+        api.change_user_type('gal', true, (_, updates) => {
+          expect(updates.site.users.filter((u) => u.id == 'gal')[0].admin)
+            .toBe(true);
+          done();
+        });
+      });
+    });
+
+    it("should add users", (done) => {
+      const view = {setState: expect.createSpy()};
+      new SiteAPI(view, (api) => {
+        const model = api.model;
+        expect(model.users.length).toBe(6);
+        api.add_user(
+          'test@example.com', 'Testy Tester', false, (_, updates) => {
+            expect(updates.site.users.length).toBe(7);
+            const [user] = updates.site.users.filter(
+              (u) => u.email == 'test@example.com');
+            delete user.id;
+            expect(user).toEqual({
+                email: 'test@example.com',
+                name: 'Testy Tester',
+                admin: false,
+                nick: ''
+              });
+            api.add_user(
+              'test2@example.com', '', true, (_, updates) => {
+                expect(updates.site.users.length).toBe(8);
+                const [user] = updates.site.users.filter(
+                  (u) => u.email == 'test2@example.com');
+                delete user.id;
+                expect(user).toEqual({
+                    email: 'test2@example.com',
+                    name: '',
+                    admin: true,
+                    nick: ''
+                  });
+                done();
+              });
+          });
+      });
+    });
+    
   });
 });

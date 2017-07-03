@@ -83,18 +83,32 @@ class EmailPWTests(setupstack.TestCase):
         # We can even make an invitation
         invite = dict(email="cas@example.com", name="Cas Emplo")
         with mock.patch('twotieredkanban.emailpw.sendmail'):
-            app.post_json('/auth/invite', invite)
+            app.post_json('/auth/invites', invite)
 
         with db.transaction() as conn:
             site = conn.root.sites['localhost']
+            invite['admin'] = False
             self.assertEqual(
                 [(invite['email'], invite)],
-                [(k, dict(email=user.email, name=user.name))
+                [(k, dict(email=user.email, name=user.name, admin=user.admin))
                  for (k, user) in site.auth.invites.items()])
             self.assertEqual([(user.id, user)],
                              list(site.auth.users_by_uid.items()))
             self.assertEqual([(user.email, user)],
                              list(site.auth.users_by_email.items()))
+
+        # Make an admin invitation
+        invite = dict(email="tester@example.com", name="", admin=True)
+        with mock.patch('twotieredkanban.emailpw.sendmail'):
+            app.post_json('/auth/invites', invite)
+
+        with db.transaction() as conn:
+            site = conn.root.sites['localhost']
+            self.assertEqual(
+                [(invite['email'], invite)],
+                [(k, dict(email=user.email, name=user.name, admin=user.admin))
+                 for (k, user) in site.auth.invites.items()
+                 if k == "tester@example.com"])
 
     def test_update_profile(self):
         db = self.app.database
@@ -131,3 +145,37 @@ class EmailPWTests(setupstack.TestCase):
                       'nick': 'nick'},
              'zoid': vars.zoid}},
             r.json)
+
+    def test_promote(self):
+        db = self.app.database
+        from .. import emailpw
+        with db.transaction() as conn:
+            user = emailpw.User('user@example.com', 'Tester', 'tester')
+            user.set_pw(b'secret')
+            uid = user.id
+            epw = conn.root.sites['localhost'].auth
+            epw.users_by_uid[user.id] = user
+            epw.users_by_email[user.email] = user
+            user = emailpw.User('admin@example.com', 'Super', 'super', True)
+            user.set_pw(b'supersecret')
+            epw.users_by_uid[user.id] = user
+            epw.users_by_email[user.email] = user
+
+        app = self._test_app()
+        r = app.get('/auth/login')
+        r.forms[0].set('password', 'supersecret')
+        r.forms[0].set('email', 'admin@example.com')
+        r2 = r.forms[0].submit()
+
+        # Now, we'll updata the user's admin flag
+        r = app.put_json('/auth/users/' + uid, dict(admin=True))
+        vars = Vars()
+        self.assertEqual(
+            {'updates': {'generation': vars.generation,
+                         'site': {'boards': [],
+                                  'users': vars.users},
+                         'zoid': vars.zoid,
+                         'user': vars.user}},
+            r.json)
+        self.assertEqual(True,
+                         [u for u in vars.users if u['id'] == uid][0]['admin'])

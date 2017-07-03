@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Route, Router, IndexRoute, hashHistory} from 'react-router';
 
-import Site from './ui/site';
+import {AdminUI, Site} from './ui/site';
 import {Board} from './ui/board';
 
 require('./styles/app.scss');
@@ -26,6 +26,7 @@ ReactDOM.render(
   <Router history={hashHistory}>
     <Route path="/" component={Main}>
       <IndexRoute component={Site} />
+      <Route path="admin" component={AdminUI} />
       <Route path="board/:name" component={Board} />
       <Route path="**" component={NotFound} />
     </Route>

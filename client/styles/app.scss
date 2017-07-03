@@ -1,22 +1,25 @@
-table {
-    border-collapse:collapse;
-    min-height: 14ex;
-    width: 100%;
-}
 
-table,td,th {
-    border: 1px solid grey;
-}
+.kb-board {
+    table {
+        border-collapse:collapse;
+        min-height: 14ex;
+        width: 100%;
+    }
 
-th {
-    border-bottom: 2px solid black;
-    text-align: center;
-    padding: 3px;
-    background-color: #eee;
-}
+    table,td,th {
+        border: 1px solid grey;
+    }
 
-td {
-    height: 1px;
+    th {
+        border-bottom: 2px solid black;
+        text-align: center;
+        padding: 3px;
+        background-color: #eee;
+    }
+
+    td {
+        height: 1px;
+    }
 }
 
 .kb-project {
@@ -224,4 +227,24 @@ body {
 
 p.kb-warning {
     font-weight: bold;
+}
+
+.kb-users {
+    th {
+        text-align: left;
+        padding-left: 2em;
+        border-bottom: 1px solid black;
+    }
+    td {
+        padding-left: 2em;
+    }
+    table {
+        border-bottom: 1px solid black;
+        border-collapse: collapse
+    }
+}
+
+.kb-small-avatar {
+    height: 20px;
+    width: 20px;
 }

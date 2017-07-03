@@ -2,10 +2,15 @@
 Change history
 ==============
 
-0.10.1 (unreleased)
+0.11.0 (unreleased)
 =====================
 
-Nothing changed yet
+- Added an "Administrative functions" screen with an initial tab for
+  managing users.  This lets you:
+
+  - Assign or remove admin rights.
+
+  - Invite new users.
 
 0.10.0 (2017-07-02)
 =====================

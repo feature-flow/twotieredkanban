@@ -44,9 +44,13 @@ class Frame extends React.Component {
                 onOverlayClick={toggle_drawer}
                 >
           <Boards boards={model.boards} />
-
           <div className="kb-button-row">
             <Admin user={model.user} >
+              <TooltipIconButton
+                 icon='build'
+                 onMouseUp={() => window.location.hash = '#/admin'}
+                 tooltip="Administrative functions" tooltipPosition="right"
+                />
               <TooltipIconButton
                 icon='add'
                 onMouseUp={() => this.refs.add.show()}
@@ -55,8 +59,8 @@ class Frame extends React.Component {
                 <AddBoardDialog api={this.props.api} ref="add" />
             </Admin>
             <TooltipIconButton
-               icon="home" onMouseUp={this.go_home} tooltipPosition="right"
-               tooltip="View welcome message."
+               icon="home" onMouseUp={() => window.location.hash = '#/'}
+               tooltip="View the welcome message." tooltipPosition="right"
                />
           </div>
           <div className="kb-version">{version}</div>

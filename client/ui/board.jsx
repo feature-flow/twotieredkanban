@@ -39,7 +39,7 @@ class Board extends Base {
     );
     
     return (
-      <div>
+      <div className="kb-board">
         <Frame
            title={this.props.params.name}
            model={board}

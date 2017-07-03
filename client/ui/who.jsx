@@ -14,10 +14,10 @@ const UserAvatar = (props) => {
   const src = 'https://www.gravatar.com/avatar/' +
           md5(email) + '.jpg?s=' + (size || 32) + '&d=wavatar';
   if (title) {
-    return <TAvatar tooltip={title} image={src} className={props.className} />;
+    return <TAvatar image={src} className={props.className} tooltip={title} />;
   }
   else {
-    return <Avatar image={src} />;
+    return <Avatar  image={src} className={props.className} />;
   }
 };
 

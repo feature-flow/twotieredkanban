@@ -5,4 +5,12 @@ module.exports = class extends APIBase {
   constructor(view) {
     super(new Site(), view, '/site/');
   }
+
+  add_user(email, name, admin) {
+    this.post('/auth/invites', {email: email, name: name || '', admin: admin});
+  }
+
+  change_user_type(id, admin) {
+    this.put('/auth/users/' + id, {admin: admin});
+  }
 };
