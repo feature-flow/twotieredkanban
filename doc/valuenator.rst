@@ -250,6 +250,15 @@ for example decide that a feature is too hard not worth the effort and
 drag it to the bag. (Bag it.)  If you change your mind later, you can
 pull it back out of the bag.
 
+Empty features
+--------------
+
+Sometimes features are very small and don't need to be broken into
+multiple tasks.  If you drag an empty feature into development, a task
+with an empty title will be created automatically for you. This is
+useful for tracking progress through development states and seeing
+assignments.  Of course, you can edit this task if you wish.
+
 Working with the Bag
 --------------------
 
