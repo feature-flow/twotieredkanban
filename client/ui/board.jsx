@@ -20,6 +20,12 @@ class Board extends Base {
     const name = this.state.model.name;
     this.refs.rename.show({old_name: name, name: name});
   }
+
+  download() {
+    this.api.export((data) => {
+      window.open("data:application/json," + encodeURI(JSON.stringify(data)), '_blank');
+    }); 
+  }
   
   render() {
     const board = this.state.model;
@@ -31,12 +37,16 @@ class Board extends Base {
     }
     document.title = board.name;
 
-    const extra_nav = (
-      <TooltipIconButton
-         icon="mode_edit" tooltip="Rename board"
+    const extra_nav = [
+      (<TooltipIconButton
+       icon="file_download" tooltip="Download board data" key="download"
+         onMouseUp={() => this.download()}
+       />),
+      (<TooltipIconButton
+         icon="mode_edit" tooltip="Rename board" key="edit"
          onMouseUp={() => this.show_rename()}
-        />
-    );
+       />)
+    ];
     
     return (
       <div>

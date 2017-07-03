@@ -481,4 +481,40 @@ module.exports = class extends BaseAPI {
         }, cb);
     }, cb);
   }
+
+  export(cb) {
+    // Get all data for the board
+    this.transaction(
+      ['archive', 'boards', 'states', 'tasks', 'users'], 'readonly',
+      (trans) => {
+        const result = {};
+        this.r(trans.objectStore('boards').get(this.name), (board) => {
+          result.boards = [board]; // boards for loading demo sample (for now)
+          this.all(
+            trans.objectStore('archive').index('board')
+              .openCursor(this.name),
+            (archive) => {
+              result.archive = archive;
+              this.all(
+                trans.objectStore('states').index('board')
+                  .openCursor(this.name),
+                (states) => {
+                  result.states = states;
+                  this.all(
+                    trans.objectStore('tasks').index('board')
+                      .openCursor(this.name),
+                    (tasks) => {
+                      result.tasks = tasks;
+                      this.all(
+                        trans.objectStore('users').openCursor(),
+                        (users) => {
+                          result.users = users;
+                          cb(result);
+                        }, cb);
+                    }, cb);
+                }, cb);
+            }, cb);
+        }, cb);
+      }, cb);
+  }
 };
