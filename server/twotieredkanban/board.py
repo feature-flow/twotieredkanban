@@ -17,7 +17,7 @@ class Board(persistent.Persistent):
     id = 'board'
 
     def __init__(self, site, name, title='', description='',
-                 state_data='model.json'):
+                 state_data='default-states.json'):
         self.site = site
         self.changes = changes = zc.generationalset.GSet()
         self.states = zc.generationalset.GSet("states", changes)

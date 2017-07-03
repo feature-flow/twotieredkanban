@@ -1,7 +1,7 @@
 import indexedDB from "indexedDB";
 
-import default_states from './model.json';
-import sample from "./sample.json";
+import default_states from './default-states.json';
+import sample from "Sample";
 
 const dbname = "FeatureFlowDemo";
 let open_request = null;

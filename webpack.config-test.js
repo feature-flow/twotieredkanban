@@ -8,9 +8,10 @@ module.exports = {
   resolve: {
     modules: ['node_modules'],
     alias: {
-      indexedDB: 'fake-indexeddb'
+      indexedDB: 'fake-indexeddb',
+      Sample:  '../tests/sample.json'
     },
-    extensions: ['.js', '.jsx', '.css']
+    extensions: ['.js', '.jsx', '.css', 'json']
   },
   module: {
     rules: [

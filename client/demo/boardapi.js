@@ -3,7 +3,7 @@ import uuid from 'uuid/v1';
 import {Board} from '../model/board';
 
 import {BaseAPI, board_states} from './baseapi';
-import default_states from './model.json';
+import default_states from './default-states.json';
 
 const now = () => (new Date()).toJSON().replace('Z', '');
 

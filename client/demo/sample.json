@@ -1,322 +1,718 @@
 {
-  "users": [
-    {"id": "jaci", "nick": "jaci", "email": "jaci@example.com",
-     "name": "Jaci Admi", "admin": true},
-    {"id": "ryou", "nick": "ryou", "email": "ryou@example.com",
-     "name": "Ryou Bosso", "admin": true, "current": true},
-    {"id": "kiran", "nick": "kiran", "email": "kiran@example.com",
-     "name": "Kiran Persons"},
-    {"id": "gal", "nick": "gal", "email": "gal@example.com",
-     "name": "Gal Humana"},
-    {"id": "alex", "nick": "alex", "email": "alex@example.com",
-     "name": "Alex Peeple"},
-    {"id": "cas", "nick": "cas", "email": "cas@example.com",
-     "name": "Cas Emplo"}
-  ],
-  "boards": [
+  "boards": [{
+    "name": "sample",
+    "title": "Sample board",
+    "description": "This sample board provides an example board with sample projects and tasks"
+  }],
+  "archive": [],
+  "states": [
     {
-      "name": "sample",
-      "title": "Sample board",
-      "description":
-      "This sample board provides an example board with sample projects and tasks"
+      "board": "sample",
+      "order": 8,
+      "explode": false,
+      "working": true,
+      "complete": false,
+      "task": false,
+      "title": "Acceptance",
+      "id": "Acceptance",
+      "key": [
+        "sample",
+        "Acceptance"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 0,
+      "explode": false,
+      "working": false,
+      "complete": false,
+      "task": false,
+      "title": "Backlog",
+      "id": "Backlog",
+      "key": [
+        "sample",
+        "Backlog"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 10,
+      "explode": false,
+      "working": false,
+      "complete": false,
+      "task": false,
+      "title": "Deployed",
+      "id": "Deployed",
+      "key": [
+        "sample",
+        "Deployed"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 9,
+      "explode": false,
+      "working": true,
+      "complete": false,
+      "task": false,
+      "title": "Deploying",
+      "id": "Deploying",
+      "key": [
+        "sample",
+        "Deploying"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 2,
+      "explode": true,
+      "working": true,
+      "complete": false,
+      "task": false,
+      "title": "Development",
+      "id": "Development",
+      "key": [
+        "sample",
+        "Development"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 4,
+      "explode": false,
+      "working": true,
+      "complete": false,
+      "task": true,
+      "title": "Doing",
+      "id": "Doing",
+      "key": [
+        "sample",
+        "Doing"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 7,
+      "explode": false,
+      "working": false,
+      "complete": true,
+      "task": true,
+      "title": "Done",
+      "id": "Done",
+      "key": [
+        "sample",
+        "Done"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 5,
+      "explode": false,
+      "working": false,
+      "complete": false,
+      "task": true,
+      "title": "Needs review",
+      "id": "Needs review",
+      "key": [
+        "sample",
+        "Needs review"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 1,
+      "explode": false,
+      "working": false,
+      "complete": false,
+      "task": false,
+      "title": "Ready",
+      "id": "Ready",
+      "key": [
+        "sample",
+        "Ready"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 6,
+      "explode": false,
+      "working": true,
+      "complete": false,
+      "task": true,
+      "title": "Review",
+      "id": "Review",
+      "key": [
+        "sample",
+        "Review"
+      ]
+    },
+    {
+      "board": "sample",
+      "order": 3,
+      "explode": false,
+      "working": false,
+      "complete": false,
+      "task": true,
+      "title": "Ready",
+      "id": "ready",
+      "key": [
+        "sample",
+        "ready"
+      ]
     }
   ],
   "tasks": [
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.031635", "state": "Backlog"}],
-      "id": "proto",
-      "order": 1,
-      "title": "Prototype board",
-      "state": "Ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032246", "state": "ready"}],
-      "id": "states",
-      "order": 2,
-      "parent": "proto",
-      "size": 2,
-      "title": "State model",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032266", "state": "ready"}],
-      "id": "api",
-      "order": 3,
-      "parent": "proto",
-      "size": 3,
-      "title": "Define API with memory implementation",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032278", "state": "ready"}],
-      "id": "routes",
-      "order": 4,
-      "parent": "proto",
-      "size": 1,
-      "title": "UI routes/screens",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032300", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032300",
+          "state": "ready",
+          "end": "2017-07-03T12:37:40.342"
+        },
+        {
+          "start": "2017-07-03T12:37:40.342",
+          "state": "Doing",
+          "working": true,
+          "assigned": "gal",
+          "end": "2017-07-03T12:39:39.387"
+        },
+        {
+          "start": "2017-07-03T12:39:39.387",
+          "state": "Done",
+          "assigned": "gal",
+          "complete": true
+        }
+      ],
       "id": "add_board",
-      "order": 5,
+      "order": -19.895387171351395,
       "parent": "proto",
       "size": 1,
       "title": "Add board in site UI",
-      "state": "ready"
+      "state": "Done",
+      "assigned": "gal"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032313", "state": "ready"}],
-      "id": "layout",
-      "order": 6,
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032266",
+          "state": "ready",
+          "end": "2017-07-03T12:37:38.216"
+        },
+        {
+          "start": "2017-07-03T12:37:38.216",
+          "state": "Doing",
+          "working": true,
+          "assigned": "jaci",
+          "end": "2017-07-03T12:39:41.066"
+        },
+        {
+          "start": "2017-07-03T12:39:41.066",
+          "state": "Done",
+          "assigned": "jaci",
+          "complete": true
+        }
+      ],
+      "id": "api",
+      "order": -20.789601578941852,
       "parent": "proto",
-      "size": 1,
-      "title": "Board layout",
-      "state": "ready"
+      "size": 3,
+      "title": "Define API with memory implementation",
+      "state": "Done",
+      "assigned": "jaci"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032326", "state": "ready"}],
-      "id": "projects",
-      "order": 7,
-      "parent": "proto",
-      "size": 1,
-      "title": "Add/edit projects",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032338", "state": "ready"}],
-      "id": "rasks",
-      "order": 8,
-      "parent": "proto",
-      "size": 1,
-      "title": "Add/edit tasks",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032350", "state": "ready"}],
-      "id": "expand",
-      "order": 9,
-      "parent": "proto",
-      "size": 1,
-      "title": "Expand/hide projects",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032361", "state": "ready"}],
-      "id": "project_dnd",
-      "order": 10,
-      "parent": "proto",
-      "size": 1,
-      "title": "Implement project drag and drop",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032372", "state": "ready"}],
-      "id": "dev_mode",
-      "order": 11,
-      "parent": "proto",
-      "size": 1,
-      "title": "Dev-mode ptojects and task boards",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032381", "state": "ready"}],
-      "id": "task_dnd",
-      "order": 12,
-      "parent": "proto",
-      "size": 1,
-      "title": "Task drag and drop",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032391", "state": "ready"}],
-      "id": "completion",
-      "order": 13,
-      "parent": "proto",
-      "size": 1,
-      "title": "Project completion metrics",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032407", "state": "Backlog"}],
-      "id": "persistence",
-      "order": 14,
-      "title": "Persistence",
-      "state": "Ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032417", "state": "ready"}],
-      "id": "idb",
-      "order": 15,
-      "parent": "persistence",
-      "size": 2,
-      "title": "IndexedDB/Demo API Boards",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032427", "state": "ready"}],
-      "id": "idbp",
-      "order": 16,
-      "parent": "persistence",
-      "size": 2,
-      "title": "IndexedDB/Demo API Projects and tasks",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032434", "state": "ready"}],
-      "id": "idbm",
-      "order": 17,
-      "parent": "persistence",
-      "size": 1,
-      "title": "IndexedDB/Demo API Move",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032439", "state": "ready"}],
-      "id": "sdb",
-      "order": 18,
-      "parent": "persistence",
-      "size": 2,
-      "title": "Server API Boards",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032444", "state": "ready"}],
-      "id": "sdbp",
-      "order": 19,
-      "parent": "persistence",
-      "size": 1,
-      "title": "Server API Projects and tasks",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032451", "state": "ready"}],
-      "id": "sdbm",
-      "order": 20,
-      "parent": "persistence",
-      "size": 1,
-      "title": "Server API Move",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032457", "state": "Backlog"}],
-      "id": "auth",
-      "order": 21,
-      "title": "Users and authentication",
-      "state": "Ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032463", "state": "ready"}],
-      "id": "demo_current",
-      "order": 22,
-      "parent": "auth",
-      "size": 1,
-      "title": "Demo current/logged-in user in Demo",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032469", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032469",
+          "state": "ready",
+          "end": "2017-07-03T12:41:39.441"
+        },
+        {
+          "start": "2017-07-03T12:41:39.441",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:42:17.170"
+        },
+        {
+          "start": "2017-07-03T12:42:17.170",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true,
+          "end": "2017-07-03T12:42:36.072"
+        },
+        {
+          "start": "2017-07-03T12:42:36.072",
+          "state": "Doing",
+          "assigned": "alex",
+          "working": true,
+          "end": "2017-07-03T12:43:42.914"
+        },
+        {
+          "start": "2017-07-03T12:43:42.914",
+          "state": "Needs review",
+          "assigned": "alex"
+        }
+      ],
       "id": "assignment",
-      "order": 23,
+      "order": 42.5216297006853,
       "parent": "auth",
       "size": 2,
       "title": "User assignment",
-      "state": "ready"
+      "state": "Needs review",
+      "assigned": "alex"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032485", "state": "ready"}],
-      "id": "server_auth",
-      "order": 24,
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032457",
+          "state": "Backlog",
+          "end": "2017-07-03T12:41:27.200"
+        },
+        {
+          "start": "2017-07-03T12:41:27.200",
+          "state": "Development",
+          "working": true
+        }
+      ],
+      "id": "auth",
+      "order": 41.6566498891732,
+      "title": "Users and authentication",
+      "state": "Development"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032391",
+          "state": "ready",
+          "end": "2017-07-03T12:37:52.916"
+        },
+        {
+          "start": "2017-07-03T12:37:52.916",
+          "state": "Doing",
+          "working": true,
+          "assigned": "alex",
+          "end": "2017-07-03T12:38:48.735"
+        },
+        {
+          "start": "2017-07-03T12:38:48.735",
+          "state": "Done",
+          "assigned": "alex",
+          "complete": true
+        }
+      ],
+      "id": "completion",
+      "order": -10.996020978426435,
+      "parent": "proto",
+      "size": 1,
+      "title": "Project completion metrics",
+      "state": "Done",
+      "assigned": "alex"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032463",
+          "state": "ready",
+          "end": "2017-07-03T12:41:36.555"
+        },
+        {
+          "start": "2017-07-03T12:41:36.555",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas",
+          "end": "2017-07-03T12:42:19.554"
+        },
+        {
+          "start": "2017-07-03T12:42:19.554",
+          "state": "Done",
+          "assigned": "cas",
+          "complete": true
+        }
+      ],
+      "id": "demo_current",
+      "order": -38.24822399738921,
       "parent": "auth",
-      "size": 2,
-      "title": "Server Auth framework",
-      "state": "ready"
+      "size": 1,
+      "title": "Demo current/logged-in user in Demo",
+      "state": "Done",
+      "assigned": "cas"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032491", "state": "ready"}],
-      "id": "pw_auth",
-      "order": 25,
-      "parent": "auth",
-      "size": 3,
-      "title": "Server Email/Password auth",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032497", "state": "ready"}],
-      "id": "switch_user",
-      "order": 26,
-      "parent": "auth",
-      "size": 2,
-      "title": "Demo switch user",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032502", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032502",
+          "state": "ready",
+          "end": "2017-07-03T12:43:10.728"
+        },
+        {
+          "start": "2017-07-03T12:43:10.728",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:43:35.486"
+        },
+        {
+          "start": "2017-07-03T12:43:35.486",
+          "state": "Review",
+          "assigned": "jaci",
+          "working": true
+        }
+      ],
       "id": "demo_profile",
-      "order": 27,
+      "order": -42.50601315406694,
       "parent": "auth",
       "size": 2,
       "title": "Demo update profile",
-      "state": "ready"
+      "state": "Review",
+      "assigned": "jaci"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032508", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032372",
+          "state": "ready",
+          "end": "2017-07-03T12:37:49.712"
+        },
+        {
+          "start": "2017-07-03T12:37:49.712",
+          "state": "Doing",
+          "working": true,
+          "assigned": "gal",
+          "end": "2017-07-03T12:38:52.477"
+        },
+        {
+          "start": "2017-07-03T12:38:52.477",
+          "state": "Done",
+          "assigned": "gal",
+          "complete": true
+        }
+      ],
+      "id": "dev_mode",
+      "order": -13.16520391841099,
+      "parent": "proto",
+      "size": 1,
+      "title": "Dev-mode ptojects and task boards",
+      "state": "Done",
+      "assigned": "gal"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032350",
+          "state": "ready",
+          "end": "2017-07-03T12:37:46.598"
+        },
+        {
+          "start": "2017-07-03T12:37:46.598",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:38:56.645"
+        },
+        {
+          "start": "2017-07-03T12:38:56.645",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true
+        }
+      ],
+      "id": "expand",
+      "order": -15.376257854344153,
+      "parent": "proto",
+      "size": 1,
+      "title": "Expand/hide projects",
+      "state": "Done",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032417",
+          "state": "ready",
+          "end": "2017-07-03T12:40:26.531"
+        },
+        {
+          "start": "2017-07-03T12:40:26.531",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:41:22.225"
+        },
+        {
+          "start": "2017-07-03T12:41:22.225",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true
+        }
+      ],
+      "id": "idb",
+      "order": -35.06811117447424,
+      "parent": "persistence",
+      "size": 2,
+      "title": "IndexedDB/Demo API Boards",
+      "state": "Done",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032434",
+          "state": "ready",
+          "end": "2017-07-03T12:40:30.718"
+        },
+        {
+          "start": "2017-07-03T12:40:30.718",
+          "state": "Doing",
+          "working": true,
+          "assigned": "gal",
+          "end": "2017-07-03T12:41:18.413"
+        },
+        {
+          "start": "2017-07-03T12:41:18.413",
+          "state": "Done",
+          "assigned": "gal",
+          "complete": true
+        }
+      ],
+      "id": "idbm",
+      "order": -33.145056120716454,
+      "parent": "persistence",
+      "size": 1,
+      "title": "IndexedDB/Demo API Move",
+      "state": "Done",
+      "assigned": "gal"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032427",
+          "state": "ready",
+          "end": "2017-07-03T12:40:29.195"
+        },
+        {
+          "start": "2017-07-03T12:40:29.195",
+          "state": "Doing",
+          "working": true,
+          "assigned": "jaci",
+          "end": "2017-07-03T12:41:20.517"
+        },
+        {
+          "start": "2017-07-03T12:41:20.517",
+          "state": "Done",
+          "assigned": "jaci",
+          "complete": true
+        }
+      ],
+      "id": "idbp",
+      "order": -34.29342040079804,
+      "parent": "persistence",
+      "size": 2,
+      "title": "IndexedDB/Demo API Projects and tasks",
+      "state": "Done",
+      "assigned": "jaci"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032313",
+          "state": "ready",
+          "end": "2017-07-03T12:37:42.043"
+        },
+        {
+          "start": "2017-07-03T12:37:42.043",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas",
+          "end": "2017-07-03T12:39:37.704"
+        },
+        {
+          "start": "2017-07-03T12:39:37.704",
+          "state": "Done",
+          "assigned": "cas",
+          "complete": true
+        }
+      ],
+      "id": "layout",
+      "order": -18.723542919709477,
+      "parent": "proto",
+      "size": 1,
+      "title": "Board layout",
+      "state": "Done",
+      "assigned": "cas"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032407",
+          "state": "Backlog",
+          "end": "2017-07-03T12:40:13.030"
+        },
+        {
+          "start": "2017-07-03T12:40:13.030",
+          "state": "Development",
+          "working": true,
+          "end": "2017-07-03T12:41:24.184"
+        },
+        {
+          "start": "2017-07-03T12:41:24.184",
+          "state": "Acceptance",
+          "working": true
+        }
+      ],
+      "id": "persistence",
+      "order": 40.36901760033623,
+      "title": "Persistence",
+      "state": "Acceptance"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032361",
+          "state": "ready",
+          "end": "2017-07-03T12:37:48.066"
+        },
+        {
+          "start": "2017-07-03T12:37:48.066",
+          "state": "Doing",
+          "working": true,
+          "assigned": "jaci",
+          "end": "2017-07-03T12:38:54.632"
+        },
+        {
+          "start": "2017-07-03T12:38:54.632",
+          "state": "Done",
+          "assigned": "jaci",
+          "complete": true
+        }
+      ],
+      "id": "project_dnd",
+      "order": -14.368143785451274,
+      "parent": "proto",
+      "size": 1,
+      "title": "Implement project drag and drop",
+      "state": "Done",
+      "assigned": "jaci"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032326",
+          "state": "ready",
+          "end": "2017-07-03T12:37:43.848"
+        },
+        {
+          "start": "2017-07-03T12:37:43.848",
+          "state": "Doing",
+          "working": true,
+          "assigned": "alex",
+          "end": "2017-07-03T12:39:36.135"
+        },
+        {
+          "start": "2017-07-03T12:39:36.135",
+          "state": "Done",
+          "assigned": "alex",
+          "complete": true
+        }
+      ],
+      "id": "projects",
+      "order": -17.794184905019726,
+      "parent": "proto",
+      "size": 1,
+      "title": "Add/edit projects",
+      "state": "Done",
+      "assigned": "alex"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.031635",
+          "state": "Backlog",
+          "end": "2017-07-03T12:34:40.283"
+        },
+        {
+          "start": "2017-07-03T12:34:40.283",
+          "state": "Development",
+          "working": true,
+          "end": "2017-07-03T12:39:59.134"
+        },
+        {
+          "start": "2017-07-03T12:39:59.134",
+          "state": "Deployed"
+        }
+      ],
+      "id": "proto",
+      "order": 38.766047132015814,
+      "title": "Prototype board",
+      "state": "Deployed"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032491",
+          "state": "ready",
+          "end": "2017-07-03T12:44:08.204"
+        },
+        {
+          "start": "2017-07-03T12:44:08.204",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas"
+        }
+      ],
+      "id": "pw_auth",
+      "order": -44.84829865011974,
+      "parent": "auth",
+      "size": 3,
+      "title": "Server Email/Password auth",
+      "state": "Doing",
+      "assigned": "cas"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032508",
+          "state": "ready"
+        }
+      ],
       "id": "pw_logout",
       "order": 28,
       "parent": "auth",
@@ -327,7 +723,12 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032513", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032513",
+          "state": "ready"
+        }
+      ],
       "id": "pw_profile",
       "order": 29,
       "parent": "auth",
@@ -338,7 +739,290 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032519", "state": "Backlog"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032338",
+          "state": "ready",
+          "end": "2017-07-03T12:37:45.346"
+        },
+        {
+          "start": "2017-07-03T12:37:45.346",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:38:58.728"
+        },
+        {
+          "start": "2017-07-03T12:38:58.728",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true
+        }
+      ],
+      "id": "rasks",
+      "order": -16.329677946586195,
+      "parent": "proto",
+      "size": 1,
+      "title": "Add/edit tasks",
+      "state": "Done",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032278",
+          "state": "ready",
+          "end": "2017-07-03T12:37:34.490"
+        },
+        {
+          "start": "2017-07-03T12:37:34.490",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:39:43.021"
+        },
+        {
+          "start": "2017-07-03T12:39:43.021",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true
+        }
+      ],
+      "id": "routes",
+      "order": -21.884890925015426,
+      "parent": "proto",
+      "size": 1,
+      "title": "UI routes/screens",
+      "state": "Done",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032439",
+          "state": "ready",
+          "end": "2017-07-03T12:40:32.199"
+        },
+        {
+          "start": "2017-07-03T12:40:32.199",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas",
+          "end": "2017-07-03T12:41:16.779"
+        },
+        {
+          "start": "2017-07-03T12:41:16.779",
+          "state": "Done",
+          "assigned": "cas",
+          "complete": true
+        }
+      ],
+      "id": "sdb",
+      "order": -31.68772546581362,
+      "parent": "persistence",
+      "size": 2,
+      "title": "Server API Boards",
+      "state": "Done",
+      "assigned": "cas"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032451",
+          "state": "ready",
+          "end": "2017-07-03T12:40:36.024"
+        },
+        {
+          "start": "2017-07-03T12:40:36.024",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou",
+          "end": "2017-07-03T12:40:40.711"
+        },
+        {
+          "start": "2017-07-03T12:40:40.711",
+          "state": "Done",
+          "assigned": "ryou",
+          "complete": true
+        }
+      ],
+      "id": "sdbm",
+      "order": -29.869672368207066,
+      "parent": "persistence",
+      "size": 1,
+      "title": "Server API Move",
+      "state": "Done",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032444",
+          "state": "ready",
+          "end": "2017-07-03T12:40:34.020"
+        },
+        {
+          "start": "2017-07-03T12:40:34.020",
+          "state": "Doing",
+          "working": true,
+          "assigned": "alex",
+          "end": "2017-07-03T12:41:14.973"
+        },
+        {
+          "start": "2017-07-03T12:41:14.973",
+          "state": "Done",
+          "assigned": "alex",
+          "complete": true
+        }
+      ],
+      "id": "sdbp",
+      "order": -30.605391423962672,
+      "parent": "persistence",
+      "size": 1,
+      "title": "Server API Projects and tasks",
+      "state": "Done",
+      "assigned": "alex"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032485",
+          "state": "ready",
+          "end": "2017-07-03T12:44:05.831"
+        },
+        {
+          "start": "2017-07-03T12:44:05.831",
+          "state": "Doing",
+          "working": true,
+          "assigned": "ryou"
+        }
+      ],
+      "id": "server_auth",
+      "order": -44.20439325311068,
+      "parent": "auth",
+      "size": 2,
+      "title": "Server Auth framework",
+      "state": "Doing",
+      "assigned": "ryou"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032246",
+          "state": "ready",
+          "end": "2017-07-03T12:34:42.974"
+        },
+        {
+          "start": "2017-07-03T12:34:42.974",
+          "state": "Done",
+          "complete": true,
+          "end": "2017-07-03T12:37:24.694"
+        },
+        {
+          "start": "2017-07-03T12:37:24.694",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas",
+          "end": "2017-07-03T12:39:53.724"
+        },
+        {
+          "start": "2017-07-03T12:39:53.724",
+          "state": "Done",
+          "assigned": "cas",
+          "complete": true
+        }
+      ],
+      "id": "states",
+      "order": -22.59067642042213,
+      "parent": "proto",
+      "size": 2,
+      "title": "State model",
+      "state": "Done",
+      "assigned": "cas"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032497",
+          "state": "ready",
+          "end": "2017-07-03T12:43:08.209"
+        },
+        {
+          "start": "2017-07-03T12:43:08.209",
+          "state": "Doing",
+          "working": true,
+          "assigned": "gal",
+          "end": "2017-07-03T12:43:39.134"
+        },
+        {
+          "start": "2017-07-03T12:43:39.134",
+          "state": "Review",
+          "assigned": "gal",
+          "working": true
+        }
+      ],
+      "id": "switch_user",
+      "order": -43.02386908608114,
+      "parent": "auth",
+      "size": 2,
+      "title": "Demo switch user",
+      "state": "Review",
+      "assigned": "gal"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032381",
+          "state": "ready",
+          "end": "2017-07-03T12:37:51.312"
+        },
+        {
+          "start": "2017-07-03T12:37:51.312",
+          "state": "Doing",
+          "working": true,
+          "assigned": "cas",
+          "end": "2017-07-03T12:38:50.645"
+        },
+        {
+          "start": "2017-07-03T12:38:50.645",
+          "state": "Done",
+          "assigned": "cas",
+          "complete": true
+        }
+      ],
+      "id": "task_dnd",
+      "order": -11.717574714276383,
+      "parent": "proto",
+      "size": 1,
+      "title": "Task drag and drop",
+      "state": "Done",
+      "assigned": "cas"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032519",
+          "state": "Backlog"
+        }
+      ],
       "id": "vel",
       "order": 30,
       "title": "Velocity",
@@ -347,62 +1031,28 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032526", "state": "ready"}],
-      "id": "vel_model",
-      "order": 31,
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032876",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_display ",
+      "order": 37,
       "parent": "vel",
       "size": 1,
-      "title": "Define model",
+      "title": "Velocity display",
       "state": "ready"
     },
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032531", "state": "ready"}],
-      "id": "vel_ex",
-      "order": 32,
-      "parent": "vel",
-      "size": 2,
-      "title": "Develop example",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032537", "state": "ready"}],
-      "id": "vel_test",
-      "order": 33,
-      "parent": "vel",
-      "size": 1,
-      "title": "Create test based on example",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032542", "state": "ready"}],
-      "id": "vel_model_pass",
-      "order": 34,
-      "parent": "vel",
-      "size": 3,
-      "title": "demo+model test",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032851", "state": "ready"}],
-      "id": "vel_server",
-      "order": 35,
-      "parent": "vel",
-      "size": 1,
-      "title": "Server API velocity support",
-      "state": "ready"
-    },
-    {
-      "board": "sample",
-      "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032870", "state": "ready"}],
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032870",
+          "state": "ready"
+        }
+      ],
       "id": "vel_display_design",
       "order": 36,
       "parent": "vel",
@@ -413,13 +1063,123 @@
     {
       "board": "sample",
       "description": "",
-      "history": [{"start": "2017-06-04T22:29:54.032876", "state": "ready"}],
-      "id": "vel_display ",
-      "order": 37,
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032531",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_ex",
+      "order": 32,
+      "parent": "vel",
+      "size": 2,
+      "title": "Develop example",
+      "state": "ready"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032526",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_model",
+      "order": 31,
       "parent": "vel",
       "size": 1,
-      "title": "Velocity display",
+      "title": "Define model",
       "state": "ready"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032542",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_model_pass",
+      "order": 34,
+      "parent": "vel",
+      "size": 3,
+      "title": "demo+model test",
+      "state": "ready"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032851",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_server",
+      "order": 35,
+      "parent": "vel",
+      "size": 1,
+      "title": "Server API velocity support",
+      "state": "ready"
+    },
+    {
+      "board": "sample",
+      "description": "",
+      "history": [
+        {
+          "start": "2017-06-04T22:29:54.032537",
+          "state": "ready"
+        }
+      ],
+      "id": "vel_test",
+      "order": 33,
+      "parent": "vel",
+      "size": 1,
+      "title": "Create test based on example",
+      "state": "ready"
+    }
+  ],
+  "users": [
+    {
+      "id": "alex",
+      "nick": "alex",
+      "email": "alex@example.com",
+      "name": "Alex Peeple"
+    },
+    {
+      "id": "cas",
+      "nick": "cas",
+      "email": "cas@example.com",
+      "name": "Cas Emplo"
+    },
+    {
+      "id": "gal",
+      "nick": "gal",
+      "email": "gal@example.com",
+      "name": "Gal Humana"
+    },
+    {
+      "id": "jaci",
+      "nick": "jaci",
+      "email": "jaci@example.com",
+      "name": "Jaci Admi",
+      "admin": true
+    },
+    {
+      "id": "kiran",
+      "nick": "kiran",
+      "email": "kiran@example.com",
+      "name": "Kiran Persons"
+    },
+    {
+      "id": "ryou",
+      "nick": "ryou",
+      "email": "jim@jimfulton.info",
+      "name": "Ryou Bosso",
+      "admin": true,
+      "current": true
     }
   ]
 }

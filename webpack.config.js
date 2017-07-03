@@ -89,7 +89,8 @@ module.exports = function (env) {
       BoardAPI:  path.resolve(__dirname, 'client/demo/boardapi'),
       SiteAPI:   path.resolve(__dirname, 'client/demo/siteapi'),
       AuthUI:    path.resolve(__dirname, 'client/demo/ui'),
-      Intro:    path.resolve(__dirname, 'client/demo/intro')
+      Intro:    path.resolve(__dirname, 'client/demo/intro'),
+      Sample:    path.resolve(__dirname, 'client/demo/sample.json')
     };
   }
 
