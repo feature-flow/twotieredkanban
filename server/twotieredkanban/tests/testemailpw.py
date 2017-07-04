@@ -16,7 +16,8 @@ class EmailPWTests(setupstack.TestCase):
         from ..emailpw import bootstrap
         with mock.patch('twotieredkanban.emailpw.sendmail') as sendmail:
             bootstrap(self.app.database,
-                      'localhost', "jaci@example.com", "Jaci Admi")
+                      'localhost', "jaci@example.com", "Jaci Admi",
+                      title="Test site")
             (_, to, message), _ = sendmail.call_args
             self.invite_token = (
                 message.split('https://localhost/auth/accept?token=')[1]

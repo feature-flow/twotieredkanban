@@ -5,11 +5,11 @@ from ZODB.utils import u64
 
 from .board import Board
 
-def get_site(root, name, create=False):
+def get_site(root, name, title=None):
     try:
         sites = root.sites
     except AttributeError:
-        if create:
+        if title:
             sites = root.sites = BTrees.OOBTree.BTree()
         else:
             raise
@@ -17,8 +17,8 @@ def get_site(root, name, create=False):
     try:
         return sites[name]
     except KeyError:
-        if create:
-            sites[name] = Site()
+        if title:
+            sites[name] = Site(title)
             return sites[name]
         else:
             raise
@@ -32,8 +32,10 @@ class Site(persistent.Persistent):
     # number of users is limited.
     users = ()
     auth = None
+    title = ''
 
-    def __init__(self):
+    def __init__(self, title):
+        self.title = title
         self.boards = BTrees.OOBTree.BTree()
         self.changes = changes = zc.generationalset.GSet()
         self.changes.add(self)

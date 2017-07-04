@@ -254,7 +254,7 @@ def config(config):
     if 'sendmail' in config:
         sendmail = __import__(config['sendmail'], fromlist=['*'])
 
-def bootstrap(db, site_name, email, name, admin=True, base_url=''):
+def bootstrap(db, site_name, email, name, admin=True, base_url='', title=None):
 
     if isinstance(db, str):
         import ZODB.config
@@ -263,7 +263,7 @@ def bootstrap(db, site_name, email, name, admin=True, base_url=''):
 
     from .site import get_site
     with db.transaction() as conn:
-        site = get_site(conn.root, site_name, True)
+        site = get_site(conn.root, site_name, title)
         if site.auth is None:
             site.auth = EmailPW(site)
         site.auth.invite_or_reset(
@@ -284,10 +284,12 @@ def bootstrap_script(args=None):
     special value "d" is given, then http://localhost:8000 is used.
     """)
     parser.add_argument('-A', '--non-admin', action='store_true')
+    parser.add_argument('-t', '--title',
+                        help="Create a site with the given title")
     options = parser.parse_args(args)
 
     if options.base_url == 'd':
         options.base_url = 'http://localhost:8000'
 
     bootstrap(options.config, options.site, options.email, options.name,
-              not options.non_admin, options.base_url)
+              not options.non_admin, options.base_url, options.title)

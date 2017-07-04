@@ -39,7 +39,7 @@ class APITests(setupstack.TestCase):
     def setUp(self):
         self._app = make_app()
         with self._app.database.transaction() as conn:
-            get_site(conn.root, 'localhost', True).auth = auth.Admin()
+            get_site(conn.root, 'localhost', 'Test site').auth = auth.Admin()
 
         self.app = self._test_app()
         self.vars = Vars()

@@ -10,7 +10,7 @@ class SiteTests(unittest.TestCase):
 
     def setUp(self):
         from ..site import Site
-        self.site = Site()
+        self.site = Site("Test")
         self.generation = self.site.generation
         self.conn = ZODB.connection(None)
         self.conn.root.site = self.site
@@ -22,6 +22,7 @@ class SiteTests(unittest.TestCase):
         return updates
 
     def test_new_site(self):
+        self.assertEqual(self.site.title, "Test")
         self.assertEqual(self.site.users, ())
         self.assertEqual(dict(self.site.boards), {})
         self.assertEqual(self.site, self.site.updates(0)['site'])

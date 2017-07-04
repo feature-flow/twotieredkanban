@@ -54,7 +54,7 @@ class SearchTests(TestCase):
         super().setUp()
         self._app = make_app(self.dsn)
         with self._app.database.transaction() as conn:
-            get_site(conn.root, 'localhost', True).auth = auth.Admin()
+            get_site(conn.root, 'localhost', 'Test site').auth = auth.Admin()
 
         self.app = self._test_app()
         self.vars = Vars()
@@ -151,7 +151,7 @@ class SearchTests(TestCase):
             [p] = board.tasks
             board.archive_feature(list(board.tasks)[0].id)
 
-            site = get_site(conn.root, 'other', True)
+            site = get_site(conn.root, 'other', 'Other site')
             site.add_board('test', '', '')
             board = site.boards['test']
             board.new_project('test other site', 0)

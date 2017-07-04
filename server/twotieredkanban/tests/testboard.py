@@ -18,7 +18,7 @@ class BoardTests(unittest.TestCase):
     def setUp(self):
         from ..site import Site
         self.conn = ZODB.connection(None)
-        self.conn.root.site = self.site = Site()
+        self.conn.root.site = self.site = Site('Test site')
         self.site.add_board('dev', 'Development', 'Development projects')
         self.board = self.site.boards['dev']
         self.board_generation = self.board.generation
