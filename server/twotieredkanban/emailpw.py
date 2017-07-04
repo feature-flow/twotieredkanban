@@ -1,5 +1,6 @@
 """Email + password authentication
 """
+import bleach
 import bobo
 import BTrees.OOBTree
 import persistent
@@ -13,6 +14,11 @@ from . import jwtauth
 from .apiutil import Sync, post, put
 
 pwcontext = passlib.context.CryptContext(schemes=["pbkdf2_sha256"])
+
+here = os.path.dirname(__file__)
+
+def clean(text):
+    return bleach.clean(text, tags=())
 
 class User(persistent.Persistent):
 
@@ -116,15 +122,20 @@ class EmailPW(persistent.Persistent):
         user = self.users_by_email.get(email)
         if user is None:
             message = invite_message
+            subject = invite_subject
             user = self.invites.get(email)
             if user is None:
                 user = User(email, name, admin=admin)
                 self.invites[email] = user
         else:
             message = reset_message
+            subject = reset_subject
 
         token = self.invite_token(email=email)
-        sendmail('punt_from', user.to, message % (baseurl, token))
+        sendmail(user.to,
+                 subject % self.site.title,
+                 message % (self.site.title, baseurl, token),
+                 )
 
     def login(self, request):
         return bobo.redirect('/auth/login')
@@ -137,8 +148,9 @@ class EmailPW(persistent.Persistent):
 class Subroute(Sync):
 
     @bobo.get("/login")
-    def get_login(self, message='Please log in'):
-        return login_form % message
+    def get_login(self, message=''):
+        with open(os.path.join(here, 'emailpw-login.html')) as f:
+            return f.read() % (self.context.title, clean(message))
 
     @bobo.post("/login")
     def post_login(self, email, password):
@@ -174,12 +186,22 @@ class Subroute(Sync):
         return self.response()
 
     @bobo.get("/accept")
-    def get_accept(self, token, message='Set your password'):
+    def get_accept(self, token, message='', reset=False):
         email = self.context.auth.accept_email(token)
-        return (pw_form % (message, token) if email
-                else "Sorry, your invitation has expired")
-
-        return pw_form % (message, token)
+        if email:
+            with open(os.path.join(here, 'emailpw-pw.html')) as f:
+                pw_form = f.read()
+            return pw_form % (
+                'Reset' if reset else 'Set',
+                self.context.title,
+                clean(message),
+                token
+                )
+        else:
+            return (
+                '<div class="accept-expired">Sorry, your %s has expired</div>' %
+                ('password reset' if reset else 'invitation', )
+                )
 
     @bobo.post("/accept")
     def post_accept(self, token, password, confirm):
@@ -198,61 +220,37 @@ class Subroute(Sync):
         response.set_cookie(jwtauth.TOKEN, '')
         return response
 
-    @bobo.get('/emailpw.css')
+    @bobo.get('/emailpw.css', content_type="text/css")
     def css(self):
-        return css
+        with open(os.path.join(here, 'emailpw.css')) as f:
+            return f.read()
 
-css = ''
-
-login_form = """<html>
-<head><link rel="stylesheet" type="text/css" href="emailpw.css"></head>
-<body><form action="login" method="POST" class="kb-emailpw"><fieldset>
-  <legend>%s</legend>
-  <p><label for="email">Enter your email</label>
-     <input type="text" name="email"></p>
-  <p><label for-"password">Enter your password</label>
-     <input type="password" name="password"></p>
-  <p><input type="submit" value="Log in"></p>
-</fieldset></form></body></html>
-"""
-
-pw_form = """<html>
-<head><link rel="stylesheet" type="text/css" href="emailpw.css"></head>
-<body><form action="accept" method="POST" class="kb-emailpw"><fieldset>
-  <legend>%s</legend>
-  <p><label for-"password">
-    Enter your password (9-999 characters, with no leading or trailing spaces)
-     </label>
-     <input type="password" name="password" maxlength="999"></p>
-  <p><label for-"confirm">Confirm your password</label>
-     <input type="password" name="confirm" maxlength="999"></p>
-  <p><input type="hidden" name="token" value="%s">
-     <input type="submit" value="Set password"></p>
-</fieldset></form></body></html>
-"""
-
+invite_subject = "Invitation to %s"
 invite_message = """
-You've been invited to feature flow.  Please use this URL to set your password:
+You've been invited to %s.
+
+Please use this URL to set your password:
 
 %s/auth/accept?token=%s
-
-Love, feature-flow
 """
 
+reset_subject = "%s password reset"
 reset_message = """
-Someone requested a password reset for your feature-flow account.  If this
-was you, please visit:
+Someone requested a password reset for your %s account.
+
+If this was you, please visit:
 
 %s/auth/reset?token=%s
 
-Love, feature-flow
+If this wasn't you, you don't need to do anything.
 """
 
 sendmail = print
 def config(config):
     global sendmail
     if 'sendmail' in config:
-        sendmail = __import__(config['sendmail'], fromlist=['*'])
+        mod, expr = config['sendmail'].split(':')
+        sendmail = eval(expr, __import__(mod, fromlist=['*']).__dict__)
 
 def bootstrap(db, site_name, email, name, admin=True, base_url='', title=None):
 

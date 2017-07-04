@@ -18,7 +18,11 @@ class EmailPWTests(setupstack.TestCase):
             bootstrap(self.app.database,
                       'localhost', "jaci@example.com", "Jaci Admi",
                       title="Test site")
-            (_, to, message), _ = sendmail.call_args
+            (to, subject, message), _ = sendmail.call_args
+            self.assertEqual("Jaci Admi <jaci@example.com>", to)
+            self.assertEqual("Invitation to Test site", subject)
+            self.assertTrue(
+                message.strip().startswith("You've been invited to Test site."))
             self.invite_token = (
                 message.split('https://localhost/auth/accept?token=')[1]
                 .split()[0])
@@ -53,6 +57,7 @@ class EmailPWTests(setupstack.TestCase):
         app = self._test_app()
         r = app.get('/auth/accept?token=' + token)
         self.assertTrue(token in r.text)
+        self.assertTrue("Set password for Test site." in r.text)
 
         r.forms[0].set('password', ' secretsecret')
         r.forms[0].set('confirm', 'secretsecret ')
@@ -75,6 +80,7 @@ class EmailPWTests(setupstack.TestCase):
 
         # Now, we can log in
         r = app.get('/auth/login')
+        self.assertTrue("Log into Test site." in r.text)
         r.forms[0].set('password', ' secretsecret ')
         r.forms[0].set('email', user.email)
         r2 = r.forms[0].submit()

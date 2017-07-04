@@ -1,0 +1,7 @@
+.w3-card {
+    padding: 2em;
+    border-radius: 1em;
+}
+label::after {
+    content: ':';
+}

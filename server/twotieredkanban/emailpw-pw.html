@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" type="text/css" href="emailpw.css"></head>
+  <body class="w3-container w3-indigo">
+    <h1>%s password for %s.</h1>
+    <div class="w3-card w3-white">
+      <form action="accept" method="POST" class="kb-emailpw">
+        <p>%s</p>
+        <p><label for-"password">
+            Enter your password (9-999 characters,
+            with no leading or trailing spaces)</label><br>
+          <input type="password" name="password" maxlength="999"></p>
+        <p><label for-"confirm">Confirm your password</label><br>
+          <input type="password" name="confirm" maxlength="999"></p>
+        <p><input type="hidden" name="token" value="%s">
+          <input type="submit" value="Set password"></p>
+      </form>
+    </div>
+  </body>
+</html>
