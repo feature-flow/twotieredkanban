@@ -190,6 +190,8 @@ class Board extends TaskContainer {
       this.users.forEach((u) => {
         this.users_by_id[u.id] = u;
       });
+      this.users.sort(
+        (u1, u2) => u1.name < u2.name ? -1 : (u1.name > u2.name ? 1 : 0));
     }
 
     if (updates.user) {

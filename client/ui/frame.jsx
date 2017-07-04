@@ -3,15 +3,15 @@ import React from 'react';
 import AppBar from 'react-toolbox/lib/app_bar';
 import {Button} from 'react-toolbox/lib/button';
 import Drawer from 'react-toolbox/lib/drawer';
-import Link from 'react-toolbox/lib/link';
+import {List, ListItem, ListSubHeader} from 'react-toolbox/lib/list';
 import Navigation from 'react-toolbox/lib/navigation';
 import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
 
 import version from '../version';
 
-import {Boards, AddBoardDialog} from './boards';
-import {Avatar} from 'AuthUI';
 import {Admin} from './admin';
+import {Avatar} from 'AuthUI';
+import {Dialog, Input, DialogBase} from './dialog';
 import {TooltipButton, TooltipIconButton} from './util';
 
 class Frame extends React.Component {
@@ -44,9 +44,13 @@ class Frame extends React.Component {
                 onOverlayClick={toggle_drawer}
                 >
           <Boards boards={model.boards} />
-
           <div className="kb-button-row">
             <Admin user={model.user} >
+              <TooltipIconButton
+                 icon='build'
+                 onMouseUp={() => window.location.hash = '#/admin'}
+                 tooltip="Administrative functions" tooltipPosition="right"
+                />
               <TooltipIconButton
                 icon='add'
                 onMouseUp={() => this.refs.add.show()}
@@ -55,8 +59,8 @@ class Frame extends React.Component {
                 <AddBoardDialog api={this.props.api} ref="add" />
             </Admin>
             <TooltipIconButton
-               icon="home" onMouseUp={this.go_home} tooltipPosition="right"
-               tooltip="View welcome message."
+               icon="home" onMouseUp={() => window.location.hash = '#/'}
+               tooltip="View the welcome message." tooltipPosition="right"
                />
           </div>
           <div className="kb-version">{version}</div>
@@ -64,6 +68,54 @@ class Frame extends React.Component {
       </div>
       );
   }
-}; 
+};
 
-module.exports = Frame;
+const Boards = (props) => {
+  const goto_board = (board) => {
+    window.location.hash = '#/board/' + encodeURIComponent(board.name);
+  };
+
+  const boards = () => {
+    const boards = props.boards; 
+    if (boards.length > 0) {
+      return boards.map((board) => {
+        return (
+          <ListItem
+             caption={board.name}
+             onClick={() => goto_board(board)}
+            key={board.name}
+            />
+        );
+      });
+    }
+    else {
+      return <ListSubHeader caption="No boards have been created" />;
+    }
+  };
+
+  return (
+    <List selectable ripple>
+      <ListSubHeader caption='Boards' />
+      {boards()}
+    </List>
+  );
+  
+};
+
+class  AddBoardDialog extends DialogBase {
+  render() {
+    return (
+      <Dialog
+         title="New Board" action="Add" ref="dialog"
+         finish={() => this.props.api.add_board(this.state.name)}
+        >
+        <Input label='Name' required={true}
+               onChange={this.required("name")} ref="focus" />
+      </Dialog>
+    );
+  }
+}
+
+module.exports = {
+  Frame: Frame
+};

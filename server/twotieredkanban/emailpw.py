@@ -144,10 +144,10 @@ class Subroute(Sync):
     def post_login(self, email, password):
         return self.context.auth.login_creds(email, password)
 
-    @post("/invite")
-    def invite(self, email, name=''):
+    @post("/invites")
+    def invite(self, email, name='', admin=False):
         self.context.auth.invite_or_reset(
-            email, name, self.base.request.host_url)
+            email, name, self.base.request.host_url, admin)
         return self.response()
 
     @put("/user")
@@ -163,6 +163,15 @@ class Subroute(Sync):
         self.context.update_users(
             user.data for user in emailpw.users_by_uid.values())
         return self.response(send_user=user.data)
+
+    @put("/users/:id")
+    def admin_put_user_type(self, id, admin):
+        emailpw = self.context.auth
+        user = emailpw.users_by_uid.get(id)
+        user.admin = True
+        self.context.update_users(
+            user.data for user in emailpw.users_by_uid.values())
+        return self.response()
 
     @bobo.get("/accept")
     def get_accept(self, token, message='Set your password'):

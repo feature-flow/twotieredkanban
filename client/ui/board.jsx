@@ -5,7 +5,7 @@ import {Base} from './app';
 import BoardAPI from 'BoardAPI';
 import {Dialog, DialogBase, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
-import Frame from './frame';
+import {Frame} from './frame';
 import {TheBag} from './thebag';
 import {TooltipButton, TooltipIconButton} from './util';
 import {Project} from './project';
@@ -39,7 +39,7 @@ class Board extends Base {
     );
     
     return (
-      <div>
+      <div className="kb-board">
         <Frame
            title={this.props.params.name}
            model={board}
