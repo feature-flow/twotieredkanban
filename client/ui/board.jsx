@@ -147,7 +147,11 @@ class ProjectColumn extends React.Component {
     if (state.explode) {
       const feature = board.tasks[feature_id];
       if (feature.subtasks().length == 0) {
-        api.add_task({project_id: feature_id, title: '', size: 1});
+        api.add_task({
+          project_id: feature_id,
+          title: ' ',
+          description: '',
+          size: 1});
       }
     }
   } 
