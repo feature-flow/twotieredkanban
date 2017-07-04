@@ -13,7 +13,8 @@ install_requires = [
     'newt.qbe',
     ]
 extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest',
-                            'zc.zodbwsgi'])
+                            'zc.zodbwsgi'],
+                      ses=['boto'])
 
 entry_points = """
 [zc.buildout]
