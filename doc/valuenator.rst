@@ -35,7 +35,7 @@ Running Valuenator
 ==================
 
 The easiest way to try Valuenator is with the `demo version
-<http://valuenator.com/demo>`_.  This lets you try out the
+<http://valuenator.com/demo/#/board/sample>`_.  This lets you try out the
 application and get familiar with concepts very quickly without making
 any commitments or signing up for anything.
 

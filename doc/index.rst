@@ -75,9 +75,9 @@ Feature flow can be implemented in a number of ways:
   The Valuenator `open source application
   <https://github.com/feature-flow/twotieredkanban>`_ is an attempt to
   automate the practice in a simple and opinionated way.  There's a
-  `demo version <http://valuenator.com/demo>`_ you can try without
-  installing or signing up for anything to get a feel for the
-  mechanics of the practice.
+  `demo version <http://valuenator.com/demo/#/board/sample>`_ you can
+  try without installing or signing up for anything to get a feel for
+  the mechanics of the practice.
 
 However it's implemented, it's important that the implementation makes
 it easy to see everything relevant to a team at once.  This is one
