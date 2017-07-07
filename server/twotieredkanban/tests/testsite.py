@@ -1,8 +1,7 @@
 import unittest
+from testvars import Vars
 import ZODB
 from ZODB.utils import u64
-
-from .var import Var
 
 from .sample import users
 
@@ -28,22 +27,23 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(self.site, self.site.updates(0)['site'])
 
     def test_add_board(self):
+        vars = Vars()
         generation = self.site.generation
         self.site.add_board('first', 'The first one', 'Yup, the first')
-        self.assertEqual([('first', Var(self, 'board'))],
+        self.assertEqual([('first', vars.board)],
                          list(self.site.boards.items()))
-        self.assertEqual(self.site, self.board.site)
-        self.assertEqual('first', self.board.name)
-        self.assertEqual('The first one', self.board.title)
-        self.assertEqual('Yup, the first', self.board.description)
+        self.assertEqual(self.site, vars.board.site)
+        self.assertEqual('first', vars.board.name)
+        self.assertEqual('The first one', vars.board.title)
+        self.assertEqual('Yup, the first', vars.board.description)
         self.assertTrue(self.site.generation > generation)
 
-        generation = self.board.generation
+        generation = vars.board.generation
         self.site.add_board('second', 'The second one', 'Yup, the second')
         self.assertEqual(['first', 'second'], list(self.site.boards))
 
         # The original board was updated:
-        self.assertTrue(self.board.generation > generation)
+        self.assertTrue(vars.board.generation > generation)
 
     def test_rename_board(self):
         self.site.add_board('first', '', '')
@@ -89,6 +89,6 @@ class SiteTests(unittest.TestCase):
         self.site.update_users(users)
 
         self.assertEqual(
-            {'generation': Var(),
+            {'generation': Vars().x,
              'site': self.site, 'zoid': str(u64(self.site.changes._p_oid))},
             self.site.updates(0))

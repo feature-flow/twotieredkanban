@@ -1,11 +1,11 @@
 import json
 import mock
+from testvars import Vars
 import unittest
 import ZODB
 from ZODB.utils import u64
 
 from ..apiutil import Encoder
-from .var import Var, Vars
 
 def reduce(data):
     return json.loads(json.dumps(data, cls=Encoder))
@@ -30,9 +30,10 @@ class BoardTests(unittest.TestCase):
         return updates
 
     def test_initial_data(self):
+        vars = Vars()
         self.assertEqual(
             dict(generation=self.board_generation,
-                 states=dict(adds=Var(self, 'states')),
+                 states=dict(adds=vars.states),
                  board=self.board,
                  site=self.site,
                  zoid = str(u64(self.board.changes._p_oid)),
@@ -68,10 +69,10 @@ class BoardTests(unittest.TestCase):
              {'complete': False, 'explode': False, 'id': 'Deployed',
               'order': 10, 'task': False, 'title': 'Deployed',
               'working': False}],
-            reduce(self.states))
+            reduce(vars.states))
 
-        self.assertEqual(len(set(state.id for state in self.states)),
-                         len(self.states))
+        self.assertEqual(len(set(state.id for state in vars.states)),
+                         len(vars.states))
 
     def test_json(self):
         self.assertEqual(

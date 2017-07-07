@@ -6,12 +6,12 @@ import bobo
 from newt.db.tests.base import TestCase
 import pkg_resources
 from pprint import pprint
+from testvars import Vars
 import webtest
 
 from ..site import get_site
 
 from . import auth, sample
-from .var import Vars
 
 db_config = """
 %%import newt.db

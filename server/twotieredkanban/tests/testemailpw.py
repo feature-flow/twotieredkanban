@@ -1,8 +1,7 @@
 import mock
+from testvars import Vars
 import webtest
 from zope.testing import setupstack
-
-from .var import Vars
 
 from .testapi import make_app
 

@@ -2,12 +2,12 @@ from zope.testing import setupstack
 import bobo
 import json
 import pkg_resources
+from testvars import Vars
 import webtest
 
 from ..site import get_site
 
 from . import auth
-from .var import Vars
 from .sample import users
 
 demo_db = '''
