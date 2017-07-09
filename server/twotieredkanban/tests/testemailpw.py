@@ -196,6 +196,28 @@ class EmailPWTests(setupstack.TestCase):
                 self.assertEqual([], sendmail.mock_calls)
 
     @mock.patch('twotieredkanban.emailpw.sendmail')
+    def test_setpw_reset_expired_because_reset_and_setpw(self, sendmail):
+        # Because resets get reset when a password is reset, it's not enough
+        # to just check them.
+        self._add_user('t@example.com', pw='pw')
+        with self.db.transaction() as conn:
+            auth = conn.root.sites['localhost'].auth
+            auth.forgot('t@example.com', '')
+            token = self.parse_token(sendmail.call_args)
+            user = auth.users_by_email['t@example.com']
+            self.assertEqual(1, user.resets)
+            auth.forgot('t@example.com', '')
+            token2 = self.parse_token(sendmail.call_args)
+            self.assertEqual(2, user.resets)
+            auth.setpw(token2, 'p'*9, 'p'*9)
+            auth.forgot('t@example.com', '')
+            self.assertEqual(1, user.resets)
+            from ..emailpw import UserError
+            with self.assertRaisesRegex(
+                UserError, "Sorry, your password request has expired"):
+                auth.setpw(token, 'pw'*99, 'pw'*99)
+
+    @mock.patch('twotieredkanban.emailpw.sendmail')
     def test_forgot(self, sendmail):
         with self.db.transaction() as conn:
             auth = conn.root.sites['localhost'].auth

@@ -94,7 +94,11 @@ class EmailPW(persistent.Persistent):
         if user.resets <= MAX_RESETS:
             action = "Reset" if user.pwhash else "Set"
             subject = "%s your password for %s" % (action, self.site.title)
-            token = self.setpw_token(email=user.email, resets=user.resets)
+            token = self.setpw_token(
+                email=user.email,
+                resets=user.resets,
+                generation=user.generation,
+                )
             message = (reset_message if user.pwhash else approve_message) % (
                 self.site.title, base_url, token)
             sendmail(user.to, subject, message)
@@ -106,7 +110,10 @@ class EmailPW(persistent.Persistent):
         if data:
             email = data['email']
             user = self.invites.get(email) or self.users_by_email.get(email)
-            if user and user.resets == data['resets']:
+            if (user and
+                user.resets == data['resets'] and
+                user.generation == data['generation']
+                ):
                 return user
 
         return None
