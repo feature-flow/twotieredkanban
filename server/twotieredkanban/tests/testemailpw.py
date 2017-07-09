@@ -354,7 +354,7 @@ class EmailPWTests(setupstack.TestCase):
         self._login(app, 'admin@example.com', 'supersecret')
 
         # Now, we'll updata the user's admin flag
-        r = app.put_json('/auth/users/' + uid + '/promote')
+        r = app.put_json('/auth/users/' + uid + '/type', dict(admin=True))
         vars = Vars()
         self.assertEqual(
             {'updates': {'generation': vars.generation,
@@ -364,6 +364,19 @@ class EmailPWTests(setupstack.TestCase):
                          'user': vars.user}},
             r.json)
         self.assertEqual(True,
+                         [u for u in vars.users if u['id'] == uid][0]['admin'])
+
+        # Now demote
+        r = app.put_json('/auth/users/' + uid + '/type', dict(admin=False))
+        vars = Vars()
+        self.assertEqual(
+            {'updates': {'generation': vars.generation,
+                         'site': {'boards': [],
+                                  'users': vars.users},
+                         'zoid': vars.zoid,
+                         'user': vars.user}},
+            r.json)
+        self.assertEqual(False,
                          [u for u in vars.users if u['id'] == uid][0]['admin'])
 
     def test_web_request_access(self):

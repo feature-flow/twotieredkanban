@@ -53,6 +53,12 @@ class User(persistent.Persistent):
     def data(self):
         return dict(id=self.id, email=self.email, name=self.name,
                     nick=self.nick, admin=self.admin)
+
+    @property
+    def request_data(self):
+        return dict(email=self.email, name=self.name,
+                    approved=self.approved)
+
 class UserError(Exception):
     pass
 
@@ -242,7 +248,8 @@ class Subroute(Sync):
     @get("/requests")
     def admin_requests(self):
         return self.response(
-            requests=[i.data for i in self.context.auth.invites.values()])
+            requests=[i.request_data
+                      for i in self.context.auth.invites.values()])
 
     @put("/user")
     def put_user(self, name=None, email=None, nick=None):
@@ -258,11 +265,11 @@ class Subroute(Sync):
             user.data for user in emailpw.users_by_uid.values())
         return self.response(send_user=user.data)
 
-    @put("/users/:id/promote")
-    def admin_promote_user(self, id):
+    @put("/users/:id/type")
+    def admin_set_user_type(self, id, admin):
         emailpw = self.context.auth
         user = emailpw.users_by_uid.get(id)
-        user.admin = True
+        user.admin = admin
         self.context.update_users(
             user.data for user in emailpw.users_by_uid.values())
         return self.response()

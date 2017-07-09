@@ -2,7 +2,7 @@
 {% block prompt %}{{ action }} your password for {{title}}.{% endblock %}
 {% block content %}
 <form action="setpw" method="POST" class="kb-emailpw">
-  %{message}s
+  {{ message }}
   <p><label for-"password">
       Enter your password (9-999 characters,
       with no leading or trailing spaces)</label><br>
