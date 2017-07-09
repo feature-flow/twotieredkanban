@@ -11,12 +11,16 @@ module.exports = class extends APIBase {
   }
 
   change_user_type(id, admin) {
-    this.put('/auth/users/' + id, {admin: admin});
+    this.put('/auth/users/' + id + '/type', {admin: admin});
   }
 
-  get_invites(f) {
-    this.get('/auth/invites').then((resp) => {
-      f(resp.data.invites);
+  get_requests(f) {
+    this.get('/auth/requests').then((resp) => {
+      f(resp.data.requests);
     });
+  }
+
+  approve(email, f) {
+    this.put('/auth/requests/'+email).then(f);
   }
 };

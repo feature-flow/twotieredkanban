@@ -6,6 +6,7 @@ import Dropdown from 'react-toolbox/lib/dropdown';
 import {Base} from './app';
 import {Dialog, DialogBase, Input, Select} from './dialog';
 import {Frame} from './frame';
+import {Reveal} from './revealbutton';
 import SiteAPI from 'SiteAPI';
 import {TooltipIconButton} from './util';
 import {UserAvatar} from "./who";
@@ -64,8 +65,8 @@ class AdminUI extends Site {
           <Tab label="Users">
             <Users users={users} api={this.api} />
           </Tab>
-          <Tab label="Invitations">
-            <Invites api={this.api} />
+          <Tab label="Access requests">
+            <Requests api={this.api} />
           </Tab>
         </Tabs>
       </div>
@@ -108,66 +109,40 @@ class Users extends React.Component {
             ))}
           </tbody>
         </table>
-        <TooltipIconButton
-          icon='add'
-          onMouseUp={() => this.refs.add.show()}
-          tooltip="Invite someone to the team." tooltipPosition="right"
-        />
-        <AddUserDialog api={this.props.api} ref="add" />
       </div>
     );
   }
 }
 
-class AddUserDialog extends DialogBase {
-
-  finish() {
-    this.props.api.add_user(
-      this.state.email, this.state.name || "", this.state.type || false);
-  }
-
-  render() {
-    return (
-      <Dialog
-         title="Invite a new team member"
-         action="Invite"
-         ref="dialog"
-         finish={() => this.finish()}
-         type="small"
-        >
-        <Input
-           label='Email' required={true} onChange={this.required("email")}
-           ref="focus"
-          />
-        <Input label='Name' onChange={this.val("name", "")} />
-        <Select label="User type" source={user_types}
-                onChange={this.val("type", 0)} />
-      </Dialog>
-    );
-  }
-}
-
-class Invites extends React.Component {
+class Requests extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {};
-    props.api.get_invites((invites) => {
-      this.setState({invites: invites});
+    this.get_requests();
+  }
+
+  get_requests() {
+    this.props.api.get_requests((requests) => {
+      this.setState({requests: requests});
     });
+  }
+  
+  approve(email) {
+    this.props.api.approve(email, () => this.get_requests());
   }
 
   render() {
-    const {invites} = this.state;
-    if (invites) {
-      if (invites.length > 0) {
+    const {requests} = this.state;
+    if (requests) {
+      if (requests.length > 0) {
         return (
-          <div className="kb-invites">
+          <div className="kb-requests">
             <table>
               <thead><tr>
-                  <th></th><th>Name</th><th>Email</th><th>Type</th></tr></thead>
+                  <th></th><th>Name</th><th>Email</th><th></th></tr></thead>
               <tbody>
-                {invites.map((user) => (
+                {requests.map((user) => (
                   <tr key={user.id}>
                     <td>
                       <UserAvatar
@@ -179,25 +154,20 @@ class Invites extends React.Component {
                     </td>
                     <td>{user.name}</td>
                     <td>{user.email}</td>
-                    <td><Dropdown
-                           source={user_types}
-                           value={user.admin ? 1 : 0}
-                           /></td>
+                    <td><Reveal expanded={! user.approved}><TooltipIconButton
+                        icon="done"
+                        onMouseUp={() => this.approve(user.email)}
+                        tooltip="Approve this user's request to join the team."
+                        /></Reveal></td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <TooltipIconButton
-              icon='add'
-            onMouseUp={() => this.refs.add.show()}
-            tooltip="Invite someone to the team." tooltipPosition="right"
-              />
-            <AddUserDialog api={this.props.api} ref="add" />
           </div>
         );
       }
       else {
-        return <div>There are no outstanding invitations.</div>;
+        return <div>There are no outstanding access requests.</div>;
       }
     }
     else {
