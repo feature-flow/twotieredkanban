@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block prompt %}Enter the email address you use to sign in.{% endblock %}
+{% block content %}
+<p>We'll send you a link you can use to enter a new password.</p>
+<form action="forgot" method="POST" class="kb-emailpw">
+  {% if message %}<p>{{message}}</p>{% endif %}
+  <p><label for="email">Enter your email</label><br>
+    <input type="text" name="email"></p>
+  <p><input type="submit" value="Send reset link"></p>
+</form>
+{% endblock %}

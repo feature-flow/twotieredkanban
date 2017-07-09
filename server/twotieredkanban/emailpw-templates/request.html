@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block prompt %}Request access to {{title}}.{% endblock %}
+{% block content %}
+<form action="request" method="POST" class="kb-emailpw">
+  {% if message %}<p>{{message}}</p>{% endif %}
+  <p><label for="name">Name</label><br>
+    <input type="text" name="name"></p>
+  <p><label for-"email">Email</label><br>
+    <input name="email"></p>
+  <p><input type="submit" value="Request access"></p>
+</form>
+{% endblock %}
