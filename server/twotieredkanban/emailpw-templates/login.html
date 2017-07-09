@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block prompt %}Log into {{title}}.{% endblock %}
+{% block content %}
+<form action="login" method="POST" class="kb-emailpw">
+  {% if message %}<p>{{message}}</p>{% endif %}
+  <p><label for="email">Enter your email</label><br>
+    <input type="text" name="email"></p>
+  <p><label for-"password">Enter your password</label><br>
+    <input type="password" name="password"></p>
+  <p><input type="submit" value="Log in"></p>
+  <p>
+    <a href="forgot">Forgot password</a>
+    |
+    <a href="request">Request access</a>
+  </p>
+</form>
+{% endblock %}

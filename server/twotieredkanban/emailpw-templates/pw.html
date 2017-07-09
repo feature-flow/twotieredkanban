@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}{{ title }}{% endblock %}
+{% block prompt %}{{ action }} your password for {{title}}.{% endblock %}
+{% block content %}
+<form action="setpw" method="POST" class="kb-emailpw">
+  %{message}s
+  <p><label for-"password">
+      Enter your password (9-999 characters,
+      with no leading or trailing spaces)</label><br>
+    <input type="password" name="password" maxlength="999"></p>
+  <p><label for-"confirm">Confirm your password</label><br>
+    <input type="password" name="confirm" maxlength="999"></p>
+  <p><input type="hidden" name="token" value="{{ token }}">
+    <input type="submit" value="Set password"></p>
+</form>
+{% endblock %}

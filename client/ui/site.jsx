@@ -37,7 +37,7 @@ class AdminUI extends Site {
 
   constructor(props) {
     super(props);
-    this.state.tab_index=1;
+    this.state.tab_index=0;
   }
 
   new_api() {
@@ -59,10 +59,13 @@ class AdminUI extends Site {
            model={this.state.model}
            api={this.api}
            />
-        <Tabs index={this.state.tabindex}
+        <Tabs index={this.state.tab_index}
               onChange={(index) => this.setState({tab_index: index})}>
           <Tab label="Users">
-            <Users users={users} api={this.api}/>
+            <Users users={users} api={this.api} />
+          </Tab>
+          <Tab label="Invitations">
+            <Invites api={this.api} />
           </Tab>
         </Tabs>
       </div>
@@ -141,6 +144,65 @@ class AddUserDialog extends DialogBase {
                 onChange={this.val("type", 0)} />
       </Dialog>
     );
+  }
+}
+
+class Invites extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {};
+    props.api.get_invites((invites) => {
+      this.setState({invites: invites});
+    });
+  }
+
+  render() {
+    const {invites} = this.state;
+    if (invites) {
+      if (invites.length > 0) {
+        return (
+          <div className="kb-invites">
+            <table>
+              <thead><tr>
+                  <th></th><th>Name</th><th>Email</th><th>Type</th></tr></thead>
+              <tbody>
+                {invites.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      <UserAvatar
+                         className="kb-small-avatar"
+                         email={user.email}
+                         title={user.name}
+                         size="20"
+                         />
+                    </td>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td><Dropdown
+                           source={user_types}
+                           value={user.admin ? 1 : 0}
+                           /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <TooltipIconButton
+              icon='add'
+            onMouseUp={() => this.refs.add.show()}
+            tooltip="Invite someone to the team." tooltipPosition="right"
+              />
+            <AddUserDialog api={this.props.api} ref="add" />
+          </div>
+        );
+      }
+      else {
+        return <div>There are no outstanding invitations.</div>;
+      }
+    }
+    else {
+      return <div></div>;
+    }
   }
 }
 

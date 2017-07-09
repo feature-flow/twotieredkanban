@@ -5,12 +5,15 @@ Change history
 0.11.0 (unreleased)
 =====================
 
+- Refactored user on-boarding. Users must now request access rather
+  than getting invites, to avoid sending unsolicited emails.
+
 - Added an "Administrative functions" screen with an initial tab for
   managing users.  This lets you:
 
   - Assign or remove admin rights.
 
-  - Invite new users.
+  - Approve access requests.
 
 0.10.0 (2017-07-02)
 =====================

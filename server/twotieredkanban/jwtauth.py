@@ -7,15 +7,12 @@ TOKEN='auth_token'
 def token(secret, **data):
     return jwt.encode(data, secret, algorithm='HS256').decode('utf-8')
 
-def decode(token, secret, key=None, timeout=None):
+def decode(token, secret, timeout=None):
     try:
         data = jwt.decode(token, secret, algorithms=['HS256'])
 
         if timeout and data['time'] + timeout < time.time():
             return None
-
-        if key:
-            data = data.get(key)
 
         return data
     except jwt.exceptions.DecodeError:
@@ -24,9 +21,7 @@ def decode(token, secret, key=None, timeout=None):
 def save(jar, secret, secure=False, **data):
     jar.set_cookie(TOKEN, token(secret, **data), secure=secure, httponly=True)
 
-def load(jar, secret, key=None):
+def load(jar, secret):
     token = jar.cookies.get(TOKEN)
     data = token and decode(token, secret)
-    if data and key:
-        data = data.get(key)
     return data

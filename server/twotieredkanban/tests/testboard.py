@@ -1,5 +1,5 @@
 import json
-import mock
+from unittest import mock
 from testvars import Vars
 import unittest
 import ZODB

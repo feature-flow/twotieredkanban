@@ -81,7 +81,7 @@ module.exports = class {
   }
 
   get(url, data) {
-    return axios.get(this.base + url, this.config)
+    return axios.get(url[0] == '/' ? url : this.base + url, this.config)
       .catch((e) => this.handle_error(e));
   }
 

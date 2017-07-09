@@ -4,6 +4,7 @@ install_requires = [
     'bleach',
     'bobo',
     'gevent', 'psycogreen',
+    'jinja2',
     'PyJWT',
     'setuptools',
     'zc.generationalset',
@@ -12,7 +13,7 @@ install_requires = [
     'newt.db',
     'newt.qbe',
     ]
-extras_require = dict(test=['manuel', 'mock', 'zope.testing', 'webtest',
+extras_require = dict(test=['zope.testing', 'webtest',
                             'zc.zodbwsgi', 'testvars'],
                       ses=['boto'])
 

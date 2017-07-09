@@ -50,4 +50,8 @@ module.exports = class extends BaseAPI {
       }, cb);
     }, cb);
   }
+
+  get_invites(f) {
+    setTimeout(() => f([]), 10);
+  }
 };

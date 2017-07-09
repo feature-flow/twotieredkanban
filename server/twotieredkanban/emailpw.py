@@ -1,40 +1,45 @@
 """Email + password authentication
 """
-import bleach
 import bobo
 import BTrees.OOBTree
-import persistent
+import jinja2
+import logging
 import os
 import passlib.context
+import persistent
 import time
 import urllib.parse
 import uuid
 
 from . import jwtauth
-from .apiutil import Sync, post, put
+from .apiutil import Sync, get, post, put
+
+logger = logging.getLogger(__name__)
 
 pwcontext = passlib.context.CryptContext(schemes=["pbkdf2_sha256"])
 
-here = os.path.dirname(__file__)
-
-def clean(text):
-    return bleach.clean(text, tags=())
+MAX_RESETS = 9
 
 class User(persistent.Persistent):
 
     pwhash = None
+    approved = True
+    resets = 0
+    generation = 0
+    note = ''
 
-    def __init__(self, email, name='', nick='', admin=False):
+    def __init__(self, email, name='', nick='', admin=False, approved=False):
         self.id = uuid.uuid1().hex
         self.email = email
         self.name = name
         self.nick = nick
         self.admin = admin
+        self.approved = approved
 
     def check_pw(self, pw):
         return pwcontext.verify(pw, self.pwhash)
 
-    def set_pw(self, pw):
+    def setpw(self, pw):
         self.pwhash = pwcontext.hash(pw)
 
     @property
@@ -48,8 +53,10 @@ class User(persistent.Persistent):
     def data(self):
         return dict(id=self.id, email=self.email, name=self.name,
                     nick=self.nick, admin=self.admin)
+class UserError(Exception):
+    pass
 
-class BadPassword(Exception):
+class BadPassword(UserError):
     pass
 
 class EmailPW(persistent.Persistent):
@@ -60,82 +67,113 @@ class EmailPW(persistent.Persistent):
         self.users_by_uid = BTrees.OOBTree.BTree()
         self.users_by_email = BTrees.OOBTree.BTree()
         self.disabled = BTrees.OOBTree.BTree()
-        self.invites = BTrees.OOBTree.BTree()
+        self.invites = BTrees.OOBTree.BTree() # email -> User
         self.invite_secret = os.urandom(24)
         self.secret = os.urandom(24)
 
-    def invite_token(self, **data):
+    def setpw_token(self, **data):
         return jwtauth.token(self.invite_secret, time=time.time(), **data)
 
-    def decode_invite(self, token, key=None):
-        return jwtauth.decode(token, self.invite_secret, key,
-                              timeout=self.invite_timeout)
+    def decode_setpw(self, token):
+        return jwtauth.decode(token, self.invite_secret, self.invite_timeout)
 
-    def accept_email(self, token):
-        return self.decode_invite(token, 'email')
+    def bootstrap(self, email, name, base_url):
+        assert email not in self.invites and email not in self.users_by_email
+        self.invites[email] = user = User(email, name,
+                                          approved=True, admin=True)
+        self.send_pw_email(user, base_url)
 
-    def accept_user(self, token):
-        email = self.decode_invite(token, 'email')
-        return email and self.invites.pop(email, None)
+    def send_pw_email(self, user, base_url):
+        user.resets += 1
+        if user.resets <= MAX_RESETS:
+            action = "Reset" if user.pwhash else "Set"
+            subject = "%s your password for %s" % (action, self.site.title)
+            token = self.setpw_token(email=user.email, resets=user.resets)
+            message = (reset_message if user.pwhash else approve_message) % (
+                self.site.title, base_url, token)
+            sendmail(user.to, subject, message)
+        else:
+            logger.error("Too many resets for %s" % user.email)
 
-    def accept_invite(self, token, password, confirm):
-        password = password.strip()
-        confirm = confirm.strip()
-        if password != confirm:
-            raise BadPassword("Passwords don't match")
-        elif len(password) > 999:
-            raise BadPassword("Password is too long")
-        elif len(password) < 9:
-            raise BadPassword("Password must have at least 9 characters")
+    def setpw_user(self, token):
+        data = self.decode_setpw(token)
+        if data:
+            email = data['email']
+            user = self.invites.get(email) or self.users_by_email.get(email)
+            if user and user.resets == data['resets']:
+                return user
 
-        user = self.accept_user(token)
-        if not user or user.email in self.users_by_email:
-            return "Sorry, your invitation has expired"
-        user.set_pw(password.encode('utf-8'))
-        self.users_by_email[user.email] = user
-        self.users_by_uid[user.id] = user
-        self.site.update_users(user.data for user in self.users_by_uid.values())
         return None
 
+    def setpw(self, token, password, confirm):
+        user = self.setpw_user(token)
+        if user is not None:
+            password = password.strip()
+            confirm = confirm.strip()
+            if password != confirm:
+                raise BadPassword("Passwords don't match")
+            elif len(password) > 999:
+                raise BadPassword("Password is too long")
+            elif len(password) < 9:
+                raise BadPassword("Password must have at least 9 characters")
+            user.setpw(password.encode('utf-8'))
+            user.resets = 0
+            user.generation += 1
+            if user.email in self.invites:
+                self.invites.pop(user.email)
+                self.users_by_email[user.email] = user
+                self.users_by_uid[user.id] = user
+                self.site.update_users(user.data
+                                       for user in self.users_by_uid.values())
+            return
+        else:
+            raise UserError("Sorry, your password request has expired")
+
+    def request(self, email, name, baseurl):
+        if email in self.users_by_email:
+            raise UserError("There is already a user with that email adress.")
+        user = self.invites.get(email)
+        if user is not None:
+            if user.approved:
+                self.send_pw_email(user, baseurl)
+                return ("An email has been sent to %s"
+                        " with a link to set your password" % email)
+        else:
+            self.invites[email] = User(email, name)
+
+        return "Your request is awaiting approval."
+
+    def approve(self, email, base_url):
+        user = self.invites.get(email)
+        if user is not None:
+            user.approved = True
+            self.send_pw_email(user, base_url)
+
+    def forgot(self, email, base_url):
+        user = self.users_by_email.get(email) or self.invites.get(email)
+        if user is not None:
+            self.send_pw_email(user, base_url)
+
     def user(self, request):
-        uid = jwtauth.load(request, self.secret, 'uid')
-        if uid is not None:
+        data = jwtauth.load(request, self.secret)
+        uid = data and data.get('uid')
+        if uid:
             user = self.users_by_uid.get(uid)
-            return user.data
+            generation = data.get('generation')
+            if generation == user.generation:
+                return user.data
         return None
 
     def login_creds(self, email, password):
         user = self.users_by_email.get(email)
         if not user:
-            return bobo.redirect('/auth/login?message=Invalid+email.')
+            raise UserError("Invalid email or password.")
 
         password = password.strip()
         if not user.check_pw(password.encode('utf-8')):
-            return bobo.redirect('/auth/login?message=Invalid+password.')
+            raise UserError("Invalid email or password.")
 
-        response = bobo.redirect('/')
-        jwtauth.save(response, self.secret, uid=user.id)
-
-        return response
-
-    def invite_or_reset(self, email, name, baseurl='', admin=False):
-        user = self.users_by_email.get(email)
-        if user is None:
-            message = invite_message
-            subject = invite_subject
-            user = self.invites.get(email)
-            if user is None:
-                user = User(email, name, admin=admin)
-                self.invites[email] = user
-        else:
-            message = reset_message
-            subject = reset_subject
-
-        token = self.invite_token(email=email)
-        sendmail(user.to,
-                 subject % self.site.title,
-                 message % (self.site.title, baseurl, token),
-                 )
+        return user
 
     def login(self, request):
         return bobo.redirect('/auth/login')
@@ -143,24 +181,68 @@ class EmailPW(persistent.Persistent):
     def subroute(self, base):
         return Subroute(base, self.site)
 
+templates = jinja2.Environment(
+    loader=jinja2.PackageLoader('twotieredkanban', 'emailpw-templates'),
+    autoescape=jinja2.select_autoescape(['html'])
+)
+template = templates.get_template
 
 @bobo.subroute("", scan=True)
 class Subroute(Sync):
 
     @bobo.get("/login")
     def get_login(self, message=''):
-        with open(os.path.join(here, 'emailpw-login.html')) as f:
-            return f.read() % (self.context.title, clean(message))
+        return template('login.html').render(title=self.context.title,
+                                             message=message)
 
     @bobo.post("/login")
     def post_login(self, email, password):
-        return self.context.auth.login_creds(email, password)
+        try:
+            user = self.context.auth.login_creds(email, password)
+        except UserError as err:
+            response = bobo.redirect(
+                '/auth/login?message=' + urllib.parse.quote(str(err)))
+        else:
+            response = bobo.redirect('/')
+            jwtauth.save(response, self.context.auth.secret,
+                         uid=user.id, generation=user.generation)
 
-    @post("/invites")
-    def invite(self, email, name='', admin=False):
-        self.context.auth.invite_or_reset(
-            email, name, self.base.request.host_url, admin)
+        return response
+
+
+    @bobo.get("/request")
+    def get_request(self, message=''):
+        return template('request.html').render(title=self.context.title,
+                                               message=message)
+
+    @bobo.post("/request")
+    def post_request(self, email, name):
+        try:
+            message = self.context.auth.request(email, name,
+                                                self.base.request.host_url)
+        except UserError as err:
+            return bobo.redirect(
+                '/auth/request?message=' + urllib.parse.quote(str(err)))
+        else:
+            return template('message.html').render(
+                title=self.context.title,
+                heading="Thank you.",
+                message="""
+                Thank you for your request to use %s.
+                Your request will be reviewed and, if approved, you
+                will recieve an email with a link to set your
+                password.""" % self.context.title,
+                )
+
+    @put("/requests/:email")
+    def approve_request(self, email):
+        self.context.auth.approve(email, self.base.request.host_url)
         return self.response()
+
+    @get("/requests")
+    def admin_requests(self):
+        return self.response(
+            requests=[i.data for i in self.context.auth.invites.values()])
 
     @put("/user")
     def put_user(self, name=None, email=None, nick=None):
@@ -176,8 +258,8 @@ class Subroute(Sync):
             user.data for user in emailpw.users_by_uid.values())
         return self.response(send_user=user.data)
 
-    @put("/users/:id")
-    def admin_put_user_type(self, id, admin):
+    @put("/users/:id/promote")
+    def admin_promote_user(self, id):
         emailpw = self.context.auth
         user = emailpw.users_by_uid.get(id)
         user.admin = True
@@ -185,34 +267,45 @@ class Subroute(Sync):
             user.data for user in emailpw.users_by_uid.values())
         return self.response()
 
-    @bobo.get("/accept")
-    def get_accept(self, token, message='', reset=False):
-        email = self.context.auth.accept_email(token)
-        if email:
-            with open(os.path.join(here, 'emailpw-pw.html')) as f:
-                pw_form = f.read()
-            return pw_form % (
-                'Reset' if reset else 'Set',
-                self.context.title,
-                clean(message),
-                token
+    @bobo.get("/setpw")
+    def get_setpw(self, token, message=''):
+        user = self.context.auth.setpw_user(token)
+        if user is not None:
+            return template('pw.html').render(
+                action='Reset' if user.pwhash else 'Set',
+                title=self.context.title,
+                message=message,
+                token=token,
                 )
         else:
-            return (
-                '<div class="accept-expired">Sorry, your %s has expired</div>' %
-                ('password reset' if reset else 'invitation', )
-                )
+            return ('<div class="accept-expired">'
+                    'Sorry, your request has expired</div>')
 
-    @bobo.post("/accept")
-    def post_accept(self, token, password, confirm):
+    @bobo.post("/setpw")
+    def post_setpe(self, token, password, confirm):
         try:
-            err_message = self.context.auth.accept_invite(
-                token, password, confirm)
-        except BadPassword as err:
+            self.context.auth.setpw(token, password, confirm)
+        except UserError as err:
             return bobo.redirect(
-                '/auth/accept?token=%s&%s' % (token,
-                                              urllib.parse.quote(str(err))))
-        return err_message or bobo.redirect('/auth/login')
+                'setpw?token=%s&%s' % (token,
+                                       urllib.parse.quote(str(err))))
+
+        return bobo.redirect('login')
+
+    @bobo.get("/forgot")
+    def get_forgot(self):
+        return template('forgot.html').render()
+
+    @bobo.post("/forgot")
+    def post_forgot(self, email):
+        self.context.auth.forgot(email, self.base.request.host_url)
+        return template('message.html').render(
+            title=self.context.title,
+            heading="Thank you.",
+            message="""
+            If the email address you entered was associated with an account,
+            an email was sent to the account with a link to set your password.
+            """)
 
     @bobo.query('/logout')
     def logout(self):
@@ -222,27 +315,28 @@ class Subroute(Sync):
 
     @bobo.get('/emailpw.css', content_type="text/css")
     def css(self):
-        with open(os.path.join(here, 'emailpw.css')) as f:
-            return f.read()
+        return template('emailpw.css').render()
 
-invite_subject = "Invitation to %s"
-invite_message = """
-You've been invited to %s.
+approve_message = """
+Your request to use %s
+has been approved.
 
-Please use this URL to set your password:
+To set your password, please visit:
 
-%s/auth/accept?token=%s
+%s/auth/setpw?token=%s
+
+If you didn't request to use this site, you may ignore this message.
 """
 
-reset_subject = "%s password reset"
 reset_message = """
-Someone requested a password reset for your %s account.
+Someone has requested a password reset for your
+%s account.
 
-If this was you, please visit:
+To reset your password, visit:
 
-%s/auth/reset?token=%s
+%s/auth/setpw?token=%s
 
-If this wasn't you, you don't need to do anything.
+If you didn't request a password reset, you may ignore this message.
 """
 
 sendmail = print
@@ -252,7 +346,7 @@ def config(config):
         mod, expr = config['sendmail'].split(':')
         sendmail = eval(expr, __import__(mod, fromlist=['*']).__dict__)
 
-def bootstrap(db, site_name, email, name, admin=True, base_url='', title=None):
+def bootstrap(db, site_name, title, email, name, base_url=''):
 
     if isinstance(db, str):
         import ZODB.config
@@ -264,8 +358,7 @@ def bootstrap(db, site_name, email, name, admin=True, base_url='', title=None):
         site = get_site(conn.root, site_name, title)
         if site.auth is None:
             site.auth = EmailPW(site)
-        site.auth.invite_or_reset(
-            email, name, base_url or 'https://' + site_name, admin)
+        site.auth.bootstrap(email, name, base_url or 'http://' + site_name)
 
 def bootstrap_script(args=None):
     """Invite a user to use a site, and create the site, if necessary
