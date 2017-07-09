@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.11.0 (unreleased)
+0.11.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.11.0 (2017-07-09)
 =====================
 
 - Refactored user on-boarding. Users must now request access rather
