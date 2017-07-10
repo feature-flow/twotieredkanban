@@ -5,7 +5,7 @@ import {Button} from 'react-toolbox/lib/button';
 import Drawer from 'react-toolbox/lib/drawer';
 import {List, ListItem, ListSubHeader} from 'react-toolbox/lib/list';
 import Navigation from 'react-toolbox/lib/navigation';
-import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
+import {MenuItem} from 'react-toolbox/lib/menu';
 import ProgressBar from 'react-toolbox/lib/progress_bar';
 
 import version from '../version';
@@ -13,7 +13,16 @@ import version from '../version';
 import {Admin} from './admin';
 import {Avatar} from 'AuthUI';
 import {Dialog, Input, DialogBase} from './dialog';
-import {TooltipButton, TooltipIconButton} from './util';
+import {TooltipButton, TooltipIconButton, TooltipIconMenu} from './util';
+
+const send_us_email = () => {
+  window.open("mailto:feedback@valuenator.com", "_blank");
+}
+
+const report_bug = () => {
+  window.open("https://github.com/feature-flow/twotieredkanban/issues/new",
+              "_blank");
+}
 
 class Frame extends React.Component {
 
@@ -43,6 +52,19 @@ class Frame extends React.Component {
         {progress}
         <AppBar title={title} leftIcon='menu' onLeftIconClick={toggle_drawer}>
           <Navigation type='horizontal' className="kb-frame-nav">
+            <TooltipIconMenu icon="feedback"
+                             tooltip="Let is know what you think!">
+              <MenuItem
+                 icon="mail"
+                 caption='Send us an email'
+                 onClick={send_us_email}
+                 />
+              <MenuItem
+                 icon="bug_report"
+                 caption='Report a bug or make a suggestion'
+                 onClick={report_bug}
+                 />
+            </TooltipIconMenu>
             {extra_nav}
             <Avatar model={model} api={this.props.api} />
           </Navigation>

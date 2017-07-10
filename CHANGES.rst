@@ -5,7 +5,7 @@ Change history
 0.12.1 (unreleased)
 =====================
 
-Nothing changed yet
+- Added a very basic feedback mechanism.
 
 0.12.0 (2017-07-10)
 =====================
