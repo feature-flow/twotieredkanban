@@ -12,6 +12,7 @@ install_requires = [
     'passlib',
     'newt.db',
     'newt.qbe',
+    'email_validator',
     ]
 extras_require = dict(test=['zope.testing', 'webtest',
                             'zc.zodbwsgi', 'testvars'],

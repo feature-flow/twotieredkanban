@@ -5,7 +5,9 @@ Change history
 0.11.1 (unreleased)
 =====================
 
-Nothing changed yet
+- Added email verification and normalization for email+password login.
+
+- Added missing templates needed for email+password login.
 
 0.11.0 (2017-07-09)
 =====================

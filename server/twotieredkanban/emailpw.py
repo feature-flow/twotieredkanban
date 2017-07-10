@@ -2,6 +2,7 @@
 """
 import bobo
 import BTrees.OOBTree
+from email_validator import validate_email
 import jinja2
 import logging
 import os
@@ -143,6 +144,14 @@ class EmailPW(persistent.Persistent):
             raise UserError("Sorry, your password request has expired")
 
     def request(self, email, name, baseurl):
+        try:
+            v = validate_email(email)
+            email = v["email"]
+        except Exception as e:
+            # email is not valid, exception message is human-readable
+            raise UserError(str(e))
+
+        email = v["email"] # normalize
         if email in self.users_by_email:
             raise UserError("There is already a user with that email adress.")
         user = self.invites.get(email)
@@ -178,6 +187,11 @@ class EmailPW(persistent.Persistent):
         return None
 
     def login_creds(self, email, password):
+        try:
+            email = validate_email(email)['email']
+        except Exception:
+            email = self
+
         user = self.users_by_email.get(email)
         if not user:
             raise UserError("Invalid email or password.")

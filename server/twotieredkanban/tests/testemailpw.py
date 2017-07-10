@@ -42,14 +42,14 @@ class EmailPWTests(setupstack.TestCase):
     def test_request_access(self, sendmail):
         with self.db.transaction() as conn:
             auth = conn.root.sites['localhost'].auth
-            message = auth.request('tester@example.com', 'Testy Tester',
+            message = auth.request('tester@EXAMPLE.COM', 'Testy Tester',
                                    'http://localhost')
             self.assertEqual("Your request is awaiting approval.", message)
             self.assertEqual([], sendmail.mock_calls)
             self.assertEqual(0, len(auth.users_by_uid))
             self.assertEqual(0, len(auth.users_by_email))
             self.assertEqual(2, len(auth.invites))
-            user = auth.invites['tester@example.com']
+            user = auth.invites['tester@example.com'] # email was normalized
             self.assertEqual(dict(id=Vars().id, email='tester@example.com',
                                   name="Testy Tester", nick='', admin=False),
                              user.data)
@@ -122,6 +122,15 @@ class EmailPWTests(setupstack.TestCase):
                 self.assertEqual(True, vars.user.approved)
                 self.assertEqual(i+2, vars.user.resets)
 
+    def test_request_invalid_email(self):
+        with self.db.transaction() as conn:
+            auth = conn.root.sites['localhost'].auth
+            from ..emailpw import UserError
+            with self.assertRaises(UserError):
+                auth.request('foobar', '', '')
+            with self.assertRaises(UserError):
+                auth.request('foo@example.baddomain', '', '')
+
     @mock.patch('twotieredkanban.emailpw.sendmail')
     def test_approval(self, sendmail):
         with self.db.transaction() as conn:
@@ -140,6 +149,13 @@ class EmailPWTests(setupstack.TestCase):
             user = auth.invites['tester@example.com']
             self.assertEqual(True, user.approved)
             self.assertEqual(1, user.resets)
+
+    def test_login_creds_email_normalization(self):
+        self._add_user('t@example.com', pw='123')
+        with self.db.transaction() as conn:
+            auth = conn.root.sites['localhost'].auth
+            user = auth.login_creds('t@EXAMPLE.COM', '123')
+            self.assertEqual('t@example.com', user.email)
 
     def parse_token(self, call_args, base_url=''):
         return (call_args[0][2].split(base_url + '/auth/setpw?token=')[1]
