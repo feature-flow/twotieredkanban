@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.12.0 (unreleased)
+0.12.1 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.12.0 (2017-07-10)
 =====================
 
 - Added a progress bar (for server version).
