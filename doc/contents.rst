@@ -12,3 +12,4 @@ Welcome to Feature flow's documentation!
 
    index
    valuenator
+   try

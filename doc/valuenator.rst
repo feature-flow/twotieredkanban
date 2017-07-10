@@ -34,13 +34,12 @@ Teams should be self organizing
 Running Valuenator
 ==================
 
-The easiest way to try Valuenator is with the `demo version
-<http://valuenator.com/demo/#/board/sample>`_.  This lets you try out the
-application and get familiar with concepts very quickly without making
-any commitments or signing up for anything.
+The easiest way to try Valuenator is with the :ref:`demo version
+<demo-label>`.  This lets you try out the application and get familiar
+with concepts very quickly without making any commitments or signing
+up for anything.
 
-We're working on an on-line web-based version of Valuenator.  We'll be
-launching an on-line beta soon.
+You can participate in the :ref:`on-line beta <beta-label>`.
 
 Valuenator is an `open-source project
 <https://github.com/feature-flow/twotieredkanban>`_, which you can run
@@ -84,8 +83,8 @@ you click on the avatar and select "Profile" from the menu, you can
 change the email address to use an address registered with Gravatar,
 and get a real user image.
 
-To the left of the avatar are options for editing he board name and
-for hiding the action bar, which is useful during stand-up meetings.
+To the left of the avatar are various buttons.  Move your mouse over
+a button to get a brief description of what it does.
 
 Feature and task boards
 -----------------------
@@ -109,7 +108,7 @@ Let's see how this works by walking through the feature-flow process.
 
    Click on the "+", add button, below the backlog title.
 
-   A dialog is  displayed where we can enter a feature title and description.
+   A dialog is  displayed where you can enter a feature title and description.
    Enter  a   title  like:  "Support  multiple   browsers".   Enter  a
    description, if you wish and click the "Add" button.
 
@@ -136,7 +135,7 @@ Let's see how this works by walking through the feature-flow process.
    addition to a title and description, you can specify:
 
    Size
-     The estimated size of the projects in `points
+     The estimated size of the task in `points
      <https://www.mountaingoatsoftware.com/blog/what-are-story-points>`_.
      This is usually just a rough estimate.
 
@@ -176,7 +175,7 @@ Let's see how this works by walking through the feature-flow process.
    A common workflow might be to have `story times
    <http://smallwood-software.com/1/post/2011/10/story-time.html>`_
    [#times]_, after which someone does a work-break down to identify the
-   tasks.
+   tasks. They're likely to add a batch of initial tasks.
 
 #. Now that tasks have been defined, we indicate that the feature is
    ready to be worked on by dragging it to the "Ready" column on the
@@ -246,7 +245,7 @@ to task columns making them tasks.
 
 Features don't have to be done to be moved to the Bag. The Bag is a
 place to put features you don't want to think about any more. You may
-for example decide that a feature is too hard not worth the effort and
+for example decide that a feature is too hard and not worth the effort and
 drag it to the bag. (Bag it.)  If you change your mind later, you can
 pull it back out of the bag.
 
@@ -275,7 +274,25 @@ description and tasks.  Also shown, at the bottom, is a button to restore
 the feature from the bag. Clicking on this button restores the feature
 to the state it was in before it was bagged.
 
+How do I used Valuenator with Jira or github or (substitute your issue tracker)?
+================================================================================
 
+We believe that issue trackers should be used to capture problems and
+opportunities.  Tools like Valuenator should be used to create
+features that address issues.  While it might be a good idea to be
+able to trace from features to issues, we don't think it's a good idea
+to reuse issues as features directly.
+
+We'll likely integrate with tools like Jira and github in the
+future. Let is now how important this is to you and what sort of
+integration you'd like to see by creating or commenting on an issue in
+the `Valuenator issue tracker
+<https://github.com/feature-flow/twotieredkanban/issues>`_.
+
+Can I get my data out of Valuenator if I decode not to use it any more?
+=======================================================================
+
+You'll be able to export all of your data in a simple JSON format.
 
 .. [#states_editable_eventually] States will be editable eventually.
    This is a planned but so far unimplemented feature.  If this is
