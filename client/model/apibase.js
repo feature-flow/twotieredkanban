@@ -13,10 +13,14 @@ module.exports = class {
     this.base = base;
     this.generation = 0;
     this.config = {
+      transformRequest: axios.defaults.transformRequest.concat(
+        [(data) => this.transform_request(data)]),
       transformResponse: [(data) => this.transform_response(data)],
       responseType: 'json',
       headers: {'x-generation': this.generation}
     };
+    
+    this.calls = -1;            // -1 to account for long poll
   }
 
   start() {
@@ -38,7 +42,20 @@ module.exports = class {
 
   raven(err) {}
 
+  transform_request(data) {
+    this.calls += 1;
+    if (this.calls == 1) {
+      this.view.setState({calls: this.calls});
+    }
+    return data;
+  }
+  
   transform_response(data) {
+    this.calls -= 1;
+    if (this.calls == 0) {
+      this.view.setState({calls: this.calls});
+    }
+
     if (data && data.updates) {
       const updates = data.updates;
       if (updates.generation > this.generation) {
@@ -77,6 +94,7 @@ module.exports = class {
         this.raven(err);
       }
     }
+    this.transform_response({});
     throw err;
   }
 
@@ -99,6 +117,7 @@ module.exports = class {
       axios.get(this.base + this.poll_route, config)
         .catch((e) => {
           if (axios.isCancel(e)) {
+            this.transform_response({});
             console.log('Request canceled', e.message);
           }
           else {

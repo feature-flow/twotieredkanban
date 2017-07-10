@@ -6,6 +6,7 @@ import Drawer from 'react-toolbox/lib/drawer';
 import {List, ListItem, ListSubHeader} from 'react-toolbox/lib/list';
 import Navigation from 'react-toolbox/lib/navigation';
 import {IconMenu, MenuItem} from 'react-toolbox/lib/menu';
+import ProgressBar from 'react-toolbox/lib/progress_bar';
 
 import version from '../version';
 
@@ -26,14 +27,20 @@ class Frame extends React.Component {
   }
   
   render() {
-    const {title, model, api, extra_nav} = this.props;
+    const {api, calls, extra_nav, model, title} = this.props;
     
     const toggle_drawer = () => {
       this.setState({show_drawer: ! this.state.show_drawer});
     };
+
+    const progress = calls ? (
+      <ProgressBar className="kb-progress" mode="indeterminate"
+                   />
+    ) : null;
     
     return (
       <div className='kb-frame'>
+        {progress}
         <AppBar title={title} leftIcon='menu' onLeftIconClick={toggle_drawer}>
           <Navigation type='horizontal' className="kb-frame-nav">
             {extra_nav}

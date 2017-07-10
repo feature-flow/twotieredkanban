@@ -45,6 +45,7 @@ class Board extends Base {
            model={board}
            api={this.api}
            extra_nav={extra_nav}
+           calls={this.state.calls}
            />
         <Projects board={board} api={this.api} />
         <Rename ref="rename" rename={(name) => this.api.rename(name)} />
@@ -65,8 +66,6 @@ class Rename extends DialogBase {
       </Dialog>
     );
   }
-
-
 }
 
 

@@ -59,6 +59,7 @@ class AdminUI extends Site {
            title="Administrative functions"
            model={this.state.model}
            api={this.api}
+           calls={this.state.calls}
            />
         <Tabs index={this.state.tab_index}
               onChange={(index) => this.setState({tab_index: index})}>

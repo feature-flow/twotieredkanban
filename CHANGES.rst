@@ -2,8 +2,10 @@
 Change history
 ==============
 
-0.11.1 (unreleased)
+0.12.0 (unreleased)
 =====================
+
+- Added a progress bar (for server version).
 
 - Added email verification and normalization for email+password login.
 
