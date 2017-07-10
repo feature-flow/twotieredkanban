@@ -21,7 +21,7 @@ A teams activity should be readily visible
   The goal of this is to support stand-ups where people don't talk
   about what they're working on, because it's apparent on the board.
 
-  Instead, the stand-up is a chance for address issues, like blocked
+  Instead, the stand-up is a chance to address issues, like blocked
   work or pile-ups in the process, which should also be apparent on
   the board.
 

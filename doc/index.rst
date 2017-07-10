@@ -19,9 +19,9 @@ How it works
    :width: 40em
 
 Feature flow uses a two-level board.  At the top level, is a feature
-board, showing features in the product backlog and in in progress (or
-ready). The feature board provides a high-level view so stakeholder
-can see what's in progress and prioritize the backlog.
+board, showing features in progress or in the product backlog. The
+feature board provides a high-level view so stakeholder can see what's
+in progress and prioritize the backlog.
 
 When a feature enters development, a task board is used for the
 feature.  This is the low-level view.
@@ -103,9 +103,9 @@ Organizing around value rather than time has a number of advantages:
 
 - It focuses the team on what's important to stakeholders.
 
-  This may, for example, focus a team on activities outside of
-  traditional development, such as deployment or training, because the
-  team is focused on achieving value, not just finishing promised work.
+  This may, for example, include activities outside of traditional
+  development, such as deployment or training, because the team is
+  focused on achieving value, not just finishing promised work.
 
 - It provides value as soon as possible, not just at sprint boundaries.
 
