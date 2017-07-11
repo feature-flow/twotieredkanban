@@ -517,4 +517,10 @@ module.exports = class extends BaseAPI {
         }, cb);
       }, cb);
   }
+
+  export_url(f) {
+    this.export((data) => {
+      f("data:application/json," + encodeURI(JSON.stringify(data)));
+    });
+  }
 };

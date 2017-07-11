@@ -22,8 +22,8 @@ class Board extends Base {
   }
 
   download() {
-    this.api.export((data) => {
-      window.open("data:application/json," + encodeURI(JSON.stringify(data)), '_blank');
+    this.api.export_url((url) => {
+      window.open(url, '_blank');
     }); 
   }
   
@@ -39,14 +39,18 @@ class Board extends Base {
 
     const extra_nav = [
       (<TooltipIconButton
-       icon="file_download" tooltip="Download board data" key="download"
-         onMouseUp={() => this.download()}
-       />),
-      (<TooltipIconButton
          icon="mode_edit" tooltip="Rename board" key="edit"
          onMouseUp={() => this.show_rename()}
        />)
     ];
+    if (board.user.admin) {
+      extra_nav.unshift(
+        <TooltipIconButton
+          icon="file_download" tooltip="Download board data" key="download"
+          onMouseUp={() => this.download()}
+          />
+      );
+    }
     
     return (
       <div className="kb-board">
