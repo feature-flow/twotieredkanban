@@ -2,8 +2,10 @@
 Change history
 ==============
 
-0.12.1 (unreleased)
+0.13.0 (unreleased)
 =====================
+
+- Added a help button.
 
 - Added a download button for board data.
 

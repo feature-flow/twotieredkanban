@@ -17,12 +17,19 @@ import {TooltipButton, TooltipIconButton, TooltipIconMenu} from './util';
 
 const send_us_email = () => {
   window.open("mailto:feedback@valuenator.com", "_blank");
-}
+};
 
 const report_bug = () => {
   window.open("https://github.com/feature-flow/twotieredkanban/issues/new",
               "_blank");
-}
+};
+
+const get_help = () => {
+  window.open(
+    "http://feature-flow.readthedocs.io/en/latest/" +
+    "valuenator.html#using-valuenator",
+    "_blank");
+};
 
 class Frame extends React.Component {
 
@@ -34,7 +41,7 @@ class Frame extends React.Component {
   go_home() {
     window.location.hash = '#/';
   }
-  
+
   render() {
     const {api, calls, extra_nav, model, title} = this.props;
     
@@ -52,6 +59,11 @@ class Frame extends React.Component {
         {progress}
         <AppBar title={title} leftIcon='menu' onLeftIconClick={toggle_drawer}>
           <Navigation type='horizontal' className="kb-frame-nav">
+            <TooltipIconButton
+               icon='help'
+               onMouseUp={get_help}
+               tooltip="View Valuenator documentation."
+               />
             <TooltipIconMenu icon="feedback"
                              tooltip="Let is know what you think!">
               <MenuItem
