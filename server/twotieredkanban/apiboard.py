@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class Board(Sync):
 
     @put("/")
-    def post_board(self, name):
+    def admin_rename_board(self, name):
         self.base.site.rename(self.context.name, name)
         return self.response()
 

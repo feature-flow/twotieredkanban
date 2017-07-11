@@ -37,20 +37,16 @@ class Board extends Base {
     }
     document.title = board.name;
 
-    const extra_nav = [
+    const extra_nav = board.user.admin ? [
       (<TooltipIconButton
-         icon="mode_edit" tooltip="Rename board" key="edit"
-         onMouseUp={() => this.show_rename()}
+       icon="file_download" tooltip="Download board data" key="download"
+       onMouseUp={() => this.download()}
+       />),
+      (<TooltipIconButton
+       icon="mode_edit" tooltip="Rename board" key="edit"
+       onMouseUp={() => this.show_rename()}
        />)
-    ];
-    if (board.user.admin) {
-      extra_nav.unshift(
-        <TooltipIconButton
-          icon="file_download" tooltip="Download board data" key="download"
-          onMouseUp={() => this.download()}
-          />
-      );
-    }
+    ] : null;
     
     return (
       <div className="kb-board">

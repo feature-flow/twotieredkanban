@@ -5,7 +5,7 @@ Change history
 0.13.1 (unreleased)
 =====================
 
-Nothing changed yet
+- Only allow admins to rename boards.
 
 0.13.0 (2017-07-11)
 =====================
