@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.13.1 (unreleased)
+0.13.2 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.13.1 (2017-07-11)
 =====================
 
 - Only allow admins to rename boards.
