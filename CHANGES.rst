@@ -5,6 +5,8 @@ Change history
 0.12.1 (unreleased)
 =====================
 
+- Added a download button for board data.
+
 - Added a very basic feedback mechanism.
 
 0.12.0 (2017-07-10)

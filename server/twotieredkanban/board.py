@@ -82,15 +82,17 @@ class Board(persistent.Persistent):
         else:
             return None
 
-    def new_project(self, title, order, description=''):
-        self.tasks.add(
-            Task(self,
-                 title,
-                 description=description,
-                 order=order,
-                 state=self.default_project_state,
-                 )
-            )
+    def new_feature(self, title, order, description=''):
+        feature = Task(self,
+             title,
+             description=description,
+             order=order,
+             state=self.default_project_state,
+             )
+        self.tasks.add(feature)
+        return feature
+
+    new_project = new_feature
 
     def new_task(self, project_id, title, order,
                  description='', size=1, blocked=None, assigned=None,

@@ -78,6 +78,17 @@ class Board(Sync):
                     archive_where(board, text))
                 )
 
+    @get("/export")
+    def admin_export(self):
+        board = self.context
+        return self._response(dict(
+            board=board,
+            users=board.site.users,
+            states=list(board.states),
+            tasks=list(board.tasks),
+            archive=list(board.archive.values())
+            ))
+
 def archive_where(board, text=None):
     conn = board._p_jar
     q = dict(archived='true', board=u64(board._p_oid))

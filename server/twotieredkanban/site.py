@@ -61,8 +61,9 @@ class Site(persistent.Persistent):
     def add_board(self, name, title='', description=''):
         if name in self.boards:
             raise KeyError(name)
-        self.boards[name] = Board(self, name, title, description)
+        self.boards[name] = board = Board(self, name, title, description)
         self._changed()
+        return board
 
     def rename(self, old, name):
         if old == name:

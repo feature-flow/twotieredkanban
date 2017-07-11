@@ -1,8 +1,10 @@
 from zope.testing import setupstack
 import bobo
 import json
+import os
 import pkg_resources
 from testvars import Vars
+from unittest import mock
 import webtest
 
 from ..site import get_site
@@ -16,6 +18,8 @@ demo_db = '''
   </demostorage>
 </zodb>
 '''
+
+here = os.path.dirname(__file__)
 
 def make_app(config=demo_db):
     app = bobo.Application(
@@ -351,3 +355,66 @@ class APITests(setupstack.TestCase):
             site = get_site(conn.root, 'localhost')
             board = site.boards['test']
             self.assertEqual(0, len(board.tasks))
+
+    def load_sample(self, f, nfeatures=None, nusers=None):
+        from . import sample
+        with self._app.database.transaction() as conn:
+            site = get_site(conn.root, 'localhost')
+            if nusers:
+                site.update_users(sample.users[:nusers])
+            else:
+                site.update_users(sample.users)
+            board = site.add_board(sample.boards[0]['name'])
+            feature_ids = {}
+            for task in sample.tasks:
+                if 'parent' not in task:
+                    if nfeatures is not None and len(feature_ids) == nfeatures:
+                        continue
+
+                    feature = board.new_feature(
+                        task['title'], task['order'], task['description'])
+                    feature_ids[task['id']] = feature.id
+
+            for task in sample.tasks:
+                if task.get('parent') in feature_ids:
+                    board.new_task(
+                        feature_ids[task['parent']], task['title'],
+                                    task['order'], task['description'],
+                        task['size'])
+
+            if f is not None:
+                f(board)
+
+    @mock.patch('uuid.uuid1')
+    @mock.patch('twotieredkanban.board.now')
+    def test_export(self, now, uuid1):
+        now.return_value = '2017-06-08T10:02:00.004'
+        uuid1.side_effect = FauxUUID()
+        def f(board):
+            [fid] = [f.id for f in board.tasks if f.title == "Prototype board"]
+            board.archive_feature(fid)
+        self.load_sample(f, 2, 2)
+        with open(os.path.join(here, 'sample-export.json')) as f:
+            self.assertEqual(
+                json.load(f),
+                self.get('/board/sample/export').json)
+
+        # Non admin users can't export
+        with self._app.database.transaction() as conn:
+            get_site(conn.root, 'localhost').auth = auth.NonAdmin()
+
+        self.get('/board/sample/export', status=403)
+
+
+class FauxUUID:
+
+    def __init__(self, id=0):
+        self.id = id
+
+    def __call__(self):
+        self.id += 1
+        return self.__class__(self.id)
+
+    @property
+    def hex(self):
+        return hex(self.id)[2:]

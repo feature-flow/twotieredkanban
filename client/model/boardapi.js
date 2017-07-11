@@ -64,4 +64,8 @@ module.exports = class extends APIBase {
       this.view.setState({model: this.model});
     });
   }
+
+  export_url(f) {
+    f(this.base + 'export');
+  }
 };
