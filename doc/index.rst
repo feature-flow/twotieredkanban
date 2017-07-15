@@ -55,8 +55,8 @@ Task
   feature is used, allowing the team to coordinate effort to
   drive the feature to completion.
 
-How its implemented
-===================
+How it's implemented
+====================
 
 Feature flow can be implemented in a number of ways:
 
