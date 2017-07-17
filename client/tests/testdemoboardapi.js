@@ -2,8 +2,8 @@ import expect from 'expect';
 import MockDate from 'mockdate';
 
 import indexedDB from 'indexedDB';
-import BoardAPI from '../demo/boardapi';
-import SiteAPI from '../demo/siteapi';
+import {BoardAPI} from '../demo/boardapi';
+import {SiteAPI} from '../demo/siteapi';
 
 describe("demo board api", () => {
 

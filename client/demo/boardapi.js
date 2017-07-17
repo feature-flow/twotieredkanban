@@ -7,7 +7,7 @@ import default_states from './default-states.json';
 
 const now = () => (new Date()).toJSON().replace('Z', '');
 
-module.exports = class extends BaseAPI {
+export class BoardAPI extends BaseAPI {
 
   constructor(view, name, cb) {
     super(new Board(name), view, cb);

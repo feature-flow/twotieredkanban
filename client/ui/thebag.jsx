@@ -10,7 +10,7 @@ import {TooltipIconButton} from './util';
 
 const SEARCH_BATCH_SIZE = 9;
 
-class TheBag extends Revealable {
+export class TheBag extends Revealable {
 
   constructor(props) {
     super(props);
@@ -208,7 +208,3 @@ class ArchivedTask extends Revealable {
     );
   }
 }
-
-module.exports = {
-  TheBag: TheBag
-};

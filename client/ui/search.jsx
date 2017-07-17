@@ -1,7 +1,7 @@
 import React from 'react';
 import {TooltipIconButton} from './util';
 
-class Batch extends React.Component {
+export class Batch extends React.Component {
 
   render () {
     const {start, size, count, go} = this.props;
@@ -37,13 +37,6 @@ class Batch extends React.Component {
            />
 
       </div>
-
     );
-
   }
-
 }
-
-module.exports = {
-  Batch: Batch
-};

@@ -24,7 +24,7 @@ Nothing changed yet
 with open('release.cfg', 'w') as f:
     f.write("[buildout]\nrelease = %s\n" % version)
 with open('client/version.js', 'w') as f:
-    f.write("module.exports = %r;\n" % version)
+    f.write("export default %r;\n" % version)
 
 with open('CHANGES.rst', 'w') as f:
     f.write(changes)

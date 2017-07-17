@@ -4,7 +4,7 @@ import {Site} from '../model/site';
 
 import {BaseAPI} from './baseapi';
 
-module.exports = class extends BaseAPI {
+export class SiteAPI extends BaseAPI {
 
   constructor(view, cb) {
     super(new Site(), view, cb);

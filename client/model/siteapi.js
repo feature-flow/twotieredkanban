@@ -1,7 +1,7 @@
-import APIBase from './apibase';
+import {APIBase} from './apibase';
 import {Site} from './site';
 
-module.exports = class extends APIBase {
+export class SiteAPI extends APIBase {
   constructor(view) {
     super(new Site(), view, '/site/');
   }

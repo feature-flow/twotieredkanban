@@ -95,7 +95,7 @@ class Task extends TaskContainer {
   }
 }
 
-class Board extends TaskContainer {
+export class Board extends TaskContainer {
 
   constructor(name) {
     super();
@@ -314,7 +314,3 @@ class Board extends TaskContainer {
     }
   }
 }
-
-module.exports = {
-  Board: Board
-};

@@ -9,7 +9,7 @@ import {Dialog, DialogBase, Input} from './dialog';
 const TAvatar = Tooltip(Avatar);
 
 
-const UserAvatar = (props) => {
+export const UserAvatar = (props) => {
   const {email, size, title} = props;
   const src = 'https://www.gravatar.com/avatar/' +
           md5(email) + '.jpg?s=' + (size || 32) + '&d=wavatar';
@@ -21,7 +21,7 @@ const UserAvatar = (props) => {
   }
 };
 
-const User = (props) => (
+export const User = (props) => (
   <div className="kb-user">
     <UserAvatar email={props.user.email} />
     <div>
@@ -40,7 +40,7 @@ const user_select_template = (user) => {
   }
 };
 
-const UserSelect = (props) => {
+export const UserSelect = (props) => {
   const users = props.users.map(
     (u) => Object.assign({value: u.id}, u));
 
@@ -58,7 +58,7 @@ const UserSelect = (props) => {
           />);
 };
 
-class Profile extends DialogBase {
+export class UserProfile extends DialogBase {
   
   render() {
 
@@ -86,11 +86,3 @@ class Profile extends DialogBase {
     );
   }
 }
-
-
-module.exports = {
-  UserAvatar: UserAvatar,
-  User: User,
-  UserSelect: UserSelect,
-  UserProfile: Profile
-};

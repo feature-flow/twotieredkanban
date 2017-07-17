@@ -1,4 +1,4 @@
-class Site {
+export class Site {
 
   constructor() {
     this.boards = [];
@@ -15,7 +15,3 @@ class Site {
     }
   }
 }
-
-module.exports = {
-  Site: Site
-};

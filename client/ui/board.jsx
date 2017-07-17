@@ -2,7 +2,7 @@ import React from 'react';
 
 import {AddProject} from './project';
 import {Base} from './app'; 
-import BoardAPI from 'BoardAPI';
+import {BoardAPI} from 'BoardAPI';
 import {Dialog, DialogBase, Input} from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {Frame} from './frame';
@@ -10,7 +10,7 @@ import {TheBag} from './thebag';
 import {TooltipButton, TooltipIconButton} from './util';
 import {Project} from './project';
 
-class Board extends Base {
+export class Board extends Base {
 
   new_api(props) {
     return new BoardAPI(this, props.params.name);
@@ -208,8 +208,3 @@ class ProjectColumn extends React.Component {
     );
   }
 }
-
-
-module.exports = {
-  Board: Board
-};

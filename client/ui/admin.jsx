@@ -1,6 +1,6 @@
 import React from 'react';
 
-class Admin extends React.Component {
+export class Admin extends React.Component {
 
   render() {
     if (this.props.user.admin) {
@@ -11,5 +11,3 @@ class Admin extends React.Component {
     }
   }  
 }
-
-module.exports = {Admin: Admin};

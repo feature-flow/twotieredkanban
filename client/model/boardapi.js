@@ -1,7 +1,7 @@
-import APIBase from './apibase';
+import {APIBase} from './apibase';
 import {Board} from './board';
 
-module.exports = class extends APIBase {
+export class BoardAPI extends APIBase {
   
   constructor(view, name) {
     super(new Board(name), view, '/board/' + name + '/');
@@ -68,4 +68,4 @@ module.exports = class extends APIBase {
   export_url(f) {
     f(this.base + 'export');
   }
-};
+}

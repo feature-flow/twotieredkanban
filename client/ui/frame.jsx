@@ -31,7 +31,7 @@ const get_help = () => {
     "_blank");
 };
 
-class Frame extends React.Component {
+export class Frame extends React.Component {
 
   constructor(props) {
     super(props);
@@ -156,7 +156,3 @@ class  AddBoardDialog extends DialogBase {
     );
   }
 }
-
-module.exports = {
-  Frame: Frame
-};

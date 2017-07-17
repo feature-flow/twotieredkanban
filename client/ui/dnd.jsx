@@ -3,7 +3,7 @@
 import React from 'react';
 import classes from 'classnames';
 
-class Draggable extends React.Component {
+export class Draggable extends React.Component {
 
   constructor(props) {
     super(props);
@@ -36,7 +36,7 @@ class Draggable extends React.Component {
   }
 }
 
-class DropZone extends React.Component {
+export class DropZone extends React.Component {
   
   constructor(props) {
     super(props);
@@ -107,9 +107,3 @@ class DropZone extends React.Component {
 }
 
 DropZone.defaultProps = {disallow: []};
-
-
-module.exports = {
-  Draggable: Draggable,
-  DropZone: DropZone
-};

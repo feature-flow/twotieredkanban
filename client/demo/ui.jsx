@@ -21,23 +21,21 @@ class UserSwitch extends DialogBase {
   }
 }
 
-module.exports = {
-  Avatar: class extends React.Component {
-    render () {
-      const {model, api} = this.props;
-      const user = model.user;
-      return (
-        <IconMenu icon={<UserAvatar email={user.email}/>}
-                  position='topRight' menuRipple>
-          <MenuItem icon='edit' caption='Profile'
-                    onClick={show_dialog(this.refs.profile, user)} />
-          <UserProfile
-             ref="profile" finish={(data) => api.update_profile(data)} />
+export class Avatar extends React.Component {
+  render () {
+    const {model, api} = this.props;
+    const user = model.user;
+    return (
+      <IconMenu icon={<UserAvatar email={user.email}/>}
+                position='topRight' menuRipple>
+        <MenuItem icon='edit' caption='Profile'
+                  onClick={show_dialog(this.refs.profile, user)} />
+        <UserProfile
+           ref="profile" finish={(data) => api.update_profile(data)} />
           <MenuItem icon='directions_walk' caption='Switch user'
                     onClick={show_dialog(this.refs.switch, {user: user.id})} />
           <UserSwitch ref="switch" model={model} api={api} />
-        </IconMenu>
-      );
-    }
+      </IconMenu>
+    );
   }
-};
+}

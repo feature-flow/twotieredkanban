@@ -76,7 +76,7 @@ class TaskDialog extends DialogBase {
   }
 }
 
-class AddTask extends TaskDialog {
+export class AddTask extends TaskDialog {
 
   action() { return "Add"; }
 
@@ -158,7 +158,7 @@ class EditTask extends TaskDialog {
 }
 
 
-class TaskBoard extends React.Component {
+export class TaskBoard extends React.Component {
 
   render() {
 
@@ -212,7 +212,7 @@ class TaskBoard extends React.Component {
   }
 }
 
-class TaskColumn extends React.Component {
+export class TaskColumn extends React.Component {
 
   dropped(dt, before_id) {
     this.props.api.move(
@@ -317,7 +317,7 @@ class UnorderedTaskColumn extends React.Component {
   }
 }
 
-class Task extends Revealable {
+export class Task extends Revealable {
 
   shouldComponentUpdate(nextProps, nextState) {
     return (nextProps.task.rev !== this.rev ||
@@ -415,10 +415,3 @@ class Task extends Revealable {
     );
   }
 }
-
-module.exports = {
-  AddTask: AddTask,
-  Task: Task,
-  TaskBoard: TaskBoard,
-  TaskColumn: TaskColumn
-};

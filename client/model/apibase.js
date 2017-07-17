@@ -5,7 +5,7 @@ import version from '../version.js';
 
 const CancelToken = axios.CancelToken;
 
-module.exports = class {
+export class APIBase {
 
   constructor(model, view, base) {
     this.model = model;

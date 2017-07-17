@@ -1,7 +1,7 @@
 import expect from 'expect';
 import indexedDB from 'indexedDB';
 
-import SiteAPI from '../demo/siteapi';
+import {SiteAPI} from '../demo/siteapi';
 
 describe("demo site api", () => {
 

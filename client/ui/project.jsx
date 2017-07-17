@@ -26,7 +26,7 @@ class ProjectDialog extends DialogBase {
 
 }
 
-class AddProject extends ProjectDialog {
+export class AddProject extends ProjectDialog {
 
   action() { return "Add"; }
 
@@ -66,7 +66,7 @@ class EditProject extends ProjectDialog {
 
 }
 
-class Project extends Revealable {
+export class Project extends Revealable {
 
   shouldComponentUpdate(nextProps, nextState) {
     return (nextProps.project.rev !== this.rev ||
@@ -168,8 +168,3 @@ class Project extends Revealable {
   }
 
 }
-
-module.exports = {
-  Project: Project,
-  AddProject: AddProject
-};

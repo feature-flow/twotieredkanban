@@ -1,10 +1,10 @@
 import React from 'react';
-import Dialog from 'react-toolbox/lib/dialog';
+import RTDialog from 'react-toolbox/lib/dialog';
 import Dropdown from 'react-toolbox/lib/dropdown';
-import Input from 'react-toolbox/lib/input';
+import RTInput from 'react-toolbox/lib/input';
 import RichTextEditor from 'react-rte';
 
-class Dialog_ extends React.Component {
+export class Dialog extends React.Component {
 
   constructor() {
     super();
@@ -49,7 +49,7 @@ class Dialog_ extends React.Component {
             .concat(extra_actions || []);
     
     return (
-      <Dialog
+      <RTDialog
          actions={actions}
          active={this.state.active}
          onEscKeyDown={cancel}
@@ -59,12 +59,12 @@ class Dialog_ extends React.Component {
          className="kb-scrollable"
          >
         {children}
-      </Dialog>
+      </RTDialog>
     );
   }
 }
 
-class Input_ extends React.Component {
+export class Input extends React.Component {
 
   focus() {
     this.input.focus();
@@ -81,17 +81,18 @@ class Input_ extends React.Component {
     delete props.onEnter;
     
     return (
-      <Input {...props}
-             value={this.props.onChange()}
-             error={this.props.onChange.error()}
-             innerRef={(c) => {this.input = c;}}
-             onKeyPress={(ev) => this.on_key_press(ev)}
-        />
+      <RTInput
+         {...props}
+         value={this.props.onChange()}
+         error={this.props.onChange.error()}
+         innerRef={(c) => {this.input = c;}}
+         onKeyPress={(ev) => this.on_key_press(ev)}
+         />
     );
   }
 }
 
-class Editor extends React.Component {
+export class Editor extends React.Component {
 
   render () {
     return (
@@ -103,7 +104,7 @@ class Editor extends React.Component {
   }
 }
 
-class Select extends React.Component {
+export class Select extends React.Component {
 
   render() {
     const source = this.props.source.map(
@@ -122,7 +123,7 @@ const validate_required =
         (v, name) => v ? null : "Please provide a value for " + name + ".";
 
 
-class DialogBase extends React.Component {
+export class DialogBase extends React.Component {
 
   constructor() {
     super();
@@ -189,10 +190,12 @@ class DialogBase extends React.Component {
   }
 }
 
-class Confirm extends DialogBase {
+export const show_dialog = (dialog, state) => () => dialog.show(state);
+
+export class Confirm extends DialogBase {
   render() {
     return (
-      <Dialog_
+      <Dialog
          title={this.props.title || "Are you sure?"}
          action={this.props.action || "Ok"}
          ref="dialog"
@@ -200,17 +203,7 @@ class Confirm extends DialogBase {
          type="Small"
          >
         {this.props.text}
-      </Dialog_>
+      </Dialog>
     );
   }
 }
-
-module.exports = {
-  Dialog: Dialog_,
-  Editor: Editor,
-  Input: Input_,
-  DialogBase: DialogBase,
-  Select: Select,
-  show_dialog: (dialog, state) => () => dialog.show(state),
-  Confirm: Confirm
-};

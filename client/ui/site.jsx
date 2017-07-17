@@ -7,13 +7,13 @@ import {Base} from './app';
 import {Dialog, DialogBase, Input, Select} from './dialog';
 import {Frame} from './frame';
 import {Reveal} from './revealbutton';
-import SiteAPI from 'SiteAPI';
+import {SiteAPI} from 'SiteAPI';
 import {TooltipIconButton} from './util';
 import {UserAvatar} from "./who";
 
 import Intro from 'Intro';
 
-class Site extends Base {
+export class Site extends Base {
 
   new_api() {
     return new SiteAPI(this);
@@ -34,7 +34,7 @@ class Site extends Base {
   }
 }
 
-class AdminUI extends Site {
+export class AdminUI extends Site {
 
   constructor(props) {
     super(props);
@@ -176,8 +176,3 @@ class Requests extends React.Component {
     }
   }
 }
-
-module.exports = {
-  Site: Site,
-  AdminUI: AdminUI
-};
