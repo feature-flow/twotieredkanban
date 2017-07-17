@@ -11,7 +11,7 @@ describe("demo board api", () => {
 
   const inc_date = () => {
     seconds += 1;
-    MockDate.set(new Date(2017, 5, 8, 6, 2, seconds, 4), -300);
+    MockDate.set(Date.UTC(2017, 5, 8, 10, 2, seconds, 4));
   };
 
   beforeEach("Set mock date & Add board", (done) => {
