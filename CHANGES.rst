@@ -2,10 +2,10 @@
 Change history
 ==============
 
-0.13.2 (unreleased)
+0.14.0 (unreleased)
 =====================
 
-Nothing changed yet
+- Added Firefox support.
 
 0.13.1 (2017-07-11)
 =====================

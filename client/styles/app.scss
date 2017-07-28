@@ -1,24 +1,14 @@
 
 .kb-board {
-    table {
-        border-collapse:collapse;
-        min-height: 14ex;
+    .kb-table {
+        display: flex;
         width: 100%;
-    }
-
-    table,td,th {
-        border: 1px solid grey;
-    }
-
-    th {
-        border-bottom: 2px solid black;
-        text-align: center;
-        padding: 3px;
-        background-color: #eee;
-    }
-
-    td {
-        height: 1px;
+        border: 1px solid black;
+        align-items: stretch;
+        > div {
+            flex-grow: 1;
+            display: flex;
+        }
     }
 }
 
@@ -66,32 +56,44 @@
 }
 
 .kb-column {
-    height: 100%;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
+    border-right: 1px solid grey;
+    /* min-height: 14ex; */
+
+    > h1 {
+        margin: 0;
+        font-size: 120%;
+        border-bottom: 2px solid black;
+        text-align: center;
+        padding: 3px;
+        background-color: #eee;
+        white-space: nowrap;
+    }
 
     .kb-task.blocked {
         background-color: #fdd;
     }
+
+    .kb-unordered-column {
+        flex-grow: 1;
+        padding-top: 1ex; /* to match top divider in ordered columns*/
+    }
+
+    .kb-unordered-column.dragover {
+        background-color: #ccff99;
+    }
+}
+
+.kb-table.kb-empty > .kb-column {
+    height: 14ex;
 }
 
 .kb-column.working {
     .kb-task {
         background-color: #dfd;
     }
-}
-
-.kb-column.complete {
-    height: 100%;
-    overflow-y: scroll;
-    .kb-task {
-        background-color: #ddf;
-    }
-}
-
-.kb-column.kb-unordered-column.dragover {
-    /* border: 5px solid #ccff99; */
-    background-color: #ccff99;
 }
 
 .kb-scrollable {
@@ -144,12 +146,16 @@
 }
 
 .kb-backlog {
-    margin: 1em;
-    > h1 {
-        font-size: 120%;
-    }
-    > h1::after {
-        content: ":"
+    margin: 0 1em 0 1em;
+    .kb-column {
+        border: none;
+        > h1 {
+            background-color: white;
+            border: none;
+        }
+        > h1::after {
+            content: ":"
+        }
     }
 }
 
@@ -254,4 +260,29 @@ p.kb-warning {
     top: 0;
     left: 0;
     z-index: 1;
+}
+
+.kb-task-board {
+    position: relative;
+
+    .kb-table {
+        padding-right: 20%;
+    }
+
+    .kb-column.complete {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        height: 100%;
+        width: 20%;
+        border-top: 1px solid grey;
+        border-right: 1px solid grey;
+        border-bottom: 1px solid black;
+        .kb-unordered-column {
+            overflow-y: scroll;
+        }
+        .kb-task {
+            background-color: #ddf;
+        }
+    }
 }

@@ -160,53 +160,75 @@ class EditTask extends TaskDialog {
 
 export class TaskBoard extends React.Component {
 
+  column_width(state) {
+    return this.props.project.subtasks(state.id).reduce(
+      (w, task) => w + Math.min(task.title.length, 12),
+      state.title.length);
+  }
+
   render() {
 
     const {project} = this.props;
+    const substates = project.state.substates;
+    const undone_states = substates.slice(0, project.state.substates.length -1);
 
-    const headers = () => {
-      return project.state.substates.map((state) => {
-        return <th key={state.id}>{state.title}</th>;
-      });
-    };
+    const columns =
+            undone_states.map((state) => {
+              if (state.working) {
+                return (
+                  <UnorderedTaskColumn
+                     key={state.id}
+                     project={project}
+                     state={state}
+                     tasks={project.subtasks(state.id)}
+                     board={this.props.board}
+                     api={this.props.api}
+                     />
+                );
+              }
+              else {
+                return (
+                  <TaskColumn
+                     key={state.id}
+                     project={project}
+                     state={state}
+                     tasks={project.subtasks(state.id)}
+                     board={this.props.board}
+                     api={this.props.api}
+                     />
+                );
+              }
+            });
 
-    const columns = () => {
-      return project.state.substates.map((state) => {
-        if (state.working || state.complete) {
-          return (
-            <td key={state.id}>
-              <UnorderedTaskColumn
-                 project={project}
-                 state={state}
-                 tasks={project.subtasks(state.id)}
-                 board={this.props.board}
-                 api={this.props.api}
-                 />
-            </td>
-          );
-        }
-        else {
-          return (
-            <td key={state.id}>
-              <TaskColumn
-                 project={project}
-                 state={state}
-                 tasks={project.subtasks(state.id)}
-                 board={this.props.board}
-                 api={this.props.api}
-                 />
-            </td>
-          );
-        }
-      });
-    };
+    const done_state = substates[substates.length-1];
+    const done_width = this.column_width(done_state);
+    const total_width = undone_states.reduce(
+      (w, state) => w + this.column_width(state),
+      done_width);
+    const width_percent =
+      Math.min(40, Math.max(20, Math.round(done_width*100/total_width))) + '%';
+    const size = undone_states.reduce(
+      (w, state) => w + project.subtasks(state.id).length,
+      0);
+    const className = classes('kb-table', {'kb-empty': ! size});
+    const done = (
+      <UnorderedTaskColumn
+         key={done_state.id}
+         project={project}
+         state={done_state}
+         tasks={project.subtasks(done_state.id)}
+         board={this.props.board}
+         api={this.props.api}
+         style={{width: width_percent}}
+         />
+    );
 
     return (
       <div className="kb-task-board">
-        <table>
-          <thead><tr>{headers()}</tr></thead>
-          <tbody><tr>{columns()}</tr></tbody>
-        </table>
+        <div className={className} style={{paddingRight: width_percent}}>
+          {columns}
+        </div>
+        {done}
       </div>
     ); 
   }
@@ -225,6 +247,10 @@ export class TaskColumn extends React.Component {
 
   tasks() {
     const result = [];
+
+    if (this.props.state.title) {
+      result.push(<h1 key='h'>{this.props.state.title}</h1>);
+    }
     
     this.props.tasks.forEach((task) => {
 
@@ -268,7 +294,7 @@ export class TaskColumn extends React.Component {
       });
 
     return (
-      <div className={className}>
+      <div className={className} style={this.props.style}>
         {this.tasks()}
       </div>
     );
@@ -300,7 +326,7 @@ class UnorderedTaskColumn extends React.Component {
 
   render() {
     const className = classes(
-      'kb-column', 'kb-unordered-column',
+      'kb-unordered-column',
       {
         working: this.props.state.working,
         complete: this.props.state.complete
@@ -310,9 +336,15 @@ class UnorderedTaskColumn extends React.Component {
     const dropped = (dt) => this.dropped(dt);
 
     return (
-      <DropZone className={className} disallow={disallowed} dropped={dropped}>
-        {this.tasks()}
-      </DropZone>
+      <div className={classes("kb-column",
+                              {complete: this.props.state.complete})}
+           style={this.props.style}
+           >
+        <h1>{this.props.state.title}</h1>
+        <DropZone className={className} disallow={disallowed} dropped={dropped}>
+          {this.tasks()}
+        </DropZone>
+      </div>
     );
   }
 }

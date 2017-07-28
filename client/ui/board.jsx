@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from 'classnames';
 
 import {AddProject} from './project';
 import {Base} from './app'; 
@@ -89,37 +90,33 @@ class Projects extends React.Component {
       return <div></div>;
     }
 
-    const headers = () => {
-      return states.slice(1).map((state) => {
-        return <th key={state.id}>{state.title}</th>;
-      });
-    };
-
     const columns = () => {
       return states.slice(1).map((state) => {
         return (
-          <td key={state.id}>
             <ProjectColumn
+               key={state.id}
                state={state}
                projects={board.subtasks(state.id)}
                board={board}
                api={this.props.api}
                />
-          </td>
         );
       });
     };
 
+    const size = states.slice(1).reduce(
+      (n, state) => n + board.subtasks(state.id).length,
+      0
+    );
+
     return (
       <div className="kb-board">
-        <table>
-          <thead><tr>{headers()}</tr></thead>
-          <tbody><tr>{columns()}</tr></tbody>
-        </table>
+        <div className={classes('kb-table', { "kb-empty": ! size })}>
+          {columns()}
+        </div>
 
         <div className="kb-w-right-thing">
           <div className='kb-backlog'>
-            <h1>{states[0].title}</h1>
             <ProjectColumn
                state={states[0]}
                projects={board.subtasks(states[0].id)}
@@ -203,6 +200,7 @@ class ProjectColumn extends React.Component {
   render() {
     return (
       <div className="kb-column">
+        <h1>{this.props.state.title}</h1>
         {this.projects()}
       </div>
     );
