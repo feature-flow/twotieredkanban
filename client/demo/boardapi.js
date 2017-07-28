@@ -256,8 +256,14 @@ export class BoardAPI extends BaseAPI {
     this.transaction('tasks', 'readwrite', (trans) => {
       const tasks = trans.objectStore('tasks');
       this.r(tasks.get(task_id), (task) => {
+        if (task == undefined) {
+          throw "Bad task id: " + task_id;
+        }
         if (parent_id) {
           this.r(tasks.get(parent_id), (new_parent) => {
+            if (new_parent == undefined) {
+              throw "Bad parent id: " + parent_id;
+            }
             if (new_parent.parent != undefined) {
               throw "can't move task into a (sub)task";
             }
