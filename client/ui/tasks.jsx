@@ -6,7 +6,8 @@ import Snackbar from 'react-toolbox/lib/snackbar';
 
 import {has_text} from '../model/hastext';
 
-import {Confirm, Dialog, DialogBase, Editor, Input, Select} from './dialog';
+import {Confirm, Dialog, DialogBase, Editor, Input, Select, large
+       } from './dialog';
 import {Draggable, DropZone} from './dnd';
 import {Reveal, Revealable, RevealButton} from './revealbutton';
 import {TooltipIconButton, TooltipInput} from './util';
@@ -41,7 +42,7 @@ class TaskDialog extends DialogBase {
     return (
       <Dialog
          title={action + " task"} action={action} ref="dialog"
-         finish={() => this.finish()} type="large"
+         finish={() => this.finish()} type={large}
          extra_actions={this.extra_actions()}
         >
         <Input

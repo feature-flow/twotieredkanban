@@ -7,6 +7,8 @@ Change history
 
 - Added Firefox support.
 
+- Added Safari support.
+
 0.13.1 (2017-07-11)
 =====================
 

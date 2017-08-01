@@ -207,3 +207,10 @@ export class Confirm extends DialogBase {
     );
   }
 }
+
+export const large =
+  navigator.userAgent.indexOf('Safari/') >= 0 &&
+  navigator.userAgent.indexOf('Chrome/') < 0 &&
+  navigator.userAgent.indexOf('Chromium/') < 0
+  ? 'normal' : 'large';
+

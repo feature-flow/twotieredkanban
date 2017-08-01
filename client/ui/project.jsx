@@ -4,7 +4,7 @@ import RichTextEditor from 'react-rte';
 
 import {has_text} from '../model/hastext';
 
-import {Confirm, Dialog, DialogBase, Input, Editor} from './dialog';
+import {Confirm, Dialog, DialogBase, Input, Editor, large} from './dialog';
 import {Reveal, Revealable, RevealButton} from './revealbutton';
 import {AddTask, Task, TaskBoard, TaskColumn} from './tasks';
 import {TooltipIconButton} from './util';
@@ -16,7 +16,7 @@ class ProjectDialog extends DialogBase {
     
     return (
       <Dialog title={this.action() + " feature"} action={action} ref="dialog"
-              finish={() => this.finish(this.state)} type="large">
+              finish={() => this.finish(this.state)} type={large}>
         <Input label='Title' required={true} onChange={this.required("title")}
                ref="focus" />
         <Editor onChange={this.val("description")} />
