@@ -13,7 +13,7 @@ export class Draggable extends React.Component {
   render() {
 
     const dragstart = (ev) => {
-      if (! ev.dataTransfer.types.length) {
+      if (! (ev.dataTransfer.types && ev.dataTransfer.types.length)) {
         const data = this.props.data;
         console.log('dragging', data);
         for (const name in data) {
