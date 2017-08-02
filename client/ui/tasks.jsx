@@ -237,13 +237,12 @@ export class TaskBoard extends React.Component {
 
 export class TaskColumn extends React.Component {
 
-  dropped(dt, before_id) {
+  dropped(id, before_id) {
     this.props.api.move(
-      dt.getData('text/id'), // id of task to be moved
+      id,                    // id of task to be moved
       this.props.project.id, // id of destination project
       this.props.state.id,   // destination state id
       before_id);            // move before task with before_id (optional)
-    console.log(before_id, dt.getData('text/id'));
   } 
 
   tasks() {
@@ -255,25 +254,22 @@ export class TaskColumn extends React.Component {
     
     this.props.tasks.forEach((task) => {
 
-      const dropped = (dt) => this.dropped(dt, task.id);
-
-      const ddata = {'text/id': task.id, 'text/task': task.id};
-      ddata['text/' + task.id] = task.id;
+      const dropped = (data) => this.dropped(data.id, task.id);
 
       result.push(
         <DropZone className="kb-divider" key={"above-" + task.id}
-                  disallow={['children', task.id]} dropped={dropped} />
+                  disallow={['feature', task.id]} dropped={dropped} />
       );
       result.push(
-        <Draggable data={ddata} key={task.id}>
+        <Draggable data={{id: task.id, type: 'task'}} key={task.id}>
           <Task task={task} board={this.props.board} api={this.props.api} />
         </Draggable>
       );
     });
 
-    const dropped = (dt) => this.dropped(dt); 
+    const dropped = (data) => this.dropped(data.id); 
 
-    const disallow = ['children'];
+    const disallow = ['feature'];
     if (this.props.tasks.length > 0) {
       disallow.push(this.props.tasks.slice(-1)[0].id);
     }
@@ -304,21 +300,19 @@ export class TaskColumn extends React.Component {
 
 class UnorderedTaskColumn extends React.Component {
 
-  dropped(dt) {
+  dropped(id) {
     this.props.api.move(
-      dt.getData('text/id'), // id of task to be moved
+      id,                    // id of task to be moved
       this.props.project.id, // id of destination project
       this.props.state.id,   // destination state id
       undefined, true);      // Move to front(/top)
-  } 
+  }
 
   tasks() {
     return this.props.tasks.map((task) => {
-      const ddata = {'text/id': task.id, 'text/task': task.id};
-      ddata['text/' + task.id] = task.id;
 
       return (
-        <Draggable data={ddata} key={task.id}>
+        <Draggable data={{id: task.id, type: 'task'}} key={task.id}>
           <Task task={task} board={this.props.board} api={this.props.api} />
         </Draggable>
       );
@@ -334,7 +328,8 @@ class UnorderedTaskColumn extends React.Component {
       });
 
     const disallowed = this.props.tasks.map((task) => task.id);
-    const dropped = (dt) => this.dropped(dt);
+    disallowed.push('feature');
+    const dropped = (data) => this.dropped(data.id);
 
     return (
       <div className={classes("kb-column",

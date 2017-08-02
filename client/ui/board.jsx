@@ -141,9 +141,8 @@ class Projects extends React.Component {
 
 class ProjectColumn extends React.Component {
 
-  dropped(dt, before_id) {
+  dropped(feature_id, before_id) {
     const {api, board, state} = this.props;
-    const feature_id = dt.getData('text/id');
     api.move(
       feature_id,
       undefined,             // id of destination project
@@ -167,19 +166,17 @@ class ProjectColumn extends React.Component {
     const {board, api} = this.props;
 
     this.props.projects.forEach((project) => {
-      const dropped = (dt) => this.dropped(dt, project.id);
-      const ddata = {'text/id': project.id};
-      ddata['text/' + project.id] = project.id;
-      if (project.count > 0) {
-        ddata['text/children'] = project.count;
-      }
+      const dropped = (data) => this.dropped(data.id, project.id);
 
       result.push(
         <DropZone className="kb-divider" dropped={dropped}
                   disallow={[project.id]} key={"above-" + project.id} />
       );
       result.push(
-        <Draggable data={ddata} key={project.id}>
+        <Draggable
+           data={{id: project.id, type: project.count ? 'feature': 'empty'}}
+           key={project.id}
+           >
           <Project project={project} board={board} api={api} />
         </Draggable>
       );
@@ -189,7 +186,7 @@ class ProjectColumn extends React.Component {
     const disallow = projects.length > 0 ? [projects.slice(-1)[0].id] : [];
     result.push(
         <DropZone className="kb-divider kb-tail" key='tail'
-                  dropped={(dt) => this.dropped(dt)}
+                  dropped={(data) => this.dropped(data.id)}
                   disallow={disallow}
                   />
     );

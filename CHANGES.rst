@@ -5,6 +5,8 @@ Change history
 0.14.0 (unreleased)
 =====================
 
+- Added Microsoft Edge support for online-version.
+
 - Added Firefox support.
 
 - Added Safari support.

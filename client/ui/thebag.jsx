@@ -21,8 +21,8 @@ export class TheBag extends Revealable {
     return '(' + this.props.board.archive_count + ')';
   }
 
-  dropped(dt) {
-    this.props.api.archive(dt.getData('text/id'));
+  dropped(id) {
+    this.props.api.archive(id);
   }
 
   search(start=0) {
@@ -91,7 +91,7 @@ export class TheBag extends Revealable {
 
     return (
       <DropZone className="kb-the-bag" disallow={['task']}
-                dropped={(dt) => this.dropped(dt)} >
+                dropped={(data) => this.dropped(data.id)} >
         <div className="kb-w-right-thing">
           <h1>The Bag {this.size()}</h1>
           <RevealButton expanded={this.state.expanded}
