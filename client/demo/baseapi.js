@@ -12,7 +12,7 @@ const state = (board, order, props) => {
              working: false, complete: false, task: false};
   Object.assign(s, typeof props == 'string'? {title: props} : props);
   s.id = s.id || s.title;
-  s.key = [board, s.id];
+  s.key = board + '/' + s.id;
   return s;
 };
 
