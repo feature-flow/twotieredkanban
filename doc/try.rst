@@ -15,8 +15,6 @@ The demo has all of the core features of the online version.
 
 The demo version has some limitations:
 
-- Only the Chrome browser is supported at this time.
-
 - Because data are stored in your browser, you can't collaborate with
   other people. You also can't view data from multiple browsers.
 
@@ -25,7 +23,11 @@ The demo version has some limitations:
   substring searches, while the on-line version uses a language-aware
   full-text search engine.
 
-To run the demo, open the following URL with the **Chrome browser**:
+- It requires a modern web browser.  It is known to work with current
+  versions of Chrome, Edge, Firefox, and Safari.  Desktop browsers are
+  required to drag tasks between states.
+
+To run the demo, open the following URL:
 
   http://valuenator.com/demo#/board/sample
 
@@ -54,6 +56,9 @@ To request beta access, fill out the `beta request form
 
 When we're ready, we'll get back to you with instructions for getting
 started.
+
+As with the demo version, the on-line beta requires a modern browser,
+such as Chrome, Edge, Firefox, or Safari.
 
 Valuenator is open-source
 =========================
