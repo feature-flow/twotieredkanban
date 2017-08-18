@@ -1,3 +1,5 @@
+import smtplib
+from email.mime.text import MIMEText
 
 def sendmail(from_, host, port=0, user=None, password=None, tls=None):
     port = int(port)
