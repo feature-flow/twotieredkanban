@@ -14,9 +14,11 @@ install_requires = [
     'newt.qbe',
     'email_validator',
     ]
-extras_require = dict(test=['zope.testing', 'webtest',
-                            'zc.zodbwsgi', 'testvars'],
-                      ses=['boto'])
+extras_require = dict(
+    test=['zope.testing', 'webtest', 'zc.zodbwsgi', 'testvars'],
+    ses=['boto'],
+    raven=['raven', 'j1m.ravenzconfig'],
+    )
 
 entry_points = """
 [zc.buildout]
