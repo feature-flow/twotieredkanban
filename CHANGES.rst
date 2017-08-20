@@ -10,7 +10,7 @@ Nothing changed yet
 0.15.1 (2017-08-20)
 =====================
 
-Nothing changed yet
+Accidental release with no real changes.c
 
 0.15.0 (2017-08-20)
 =====================
