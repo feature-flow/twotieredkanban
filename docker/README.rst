@@ -128,7 +128,9 @@ Examples
 Bootstrap a (test) site that runs on localhost
 ----------------------------------------------
 
-docker run -it \
+::
+
+   docker run -it \
        -e 'DSN=postgresql://myserver/kanban' \
        -e 'SMTP=support@example.com' \
        -e 'SMTP_HOST=email-smtp.us-east-1.amazonaws.com' \
@@ -145,7 +147,9 @@ docker run -it \
 Run the server, listening on port 8080
 --------------------------------------
 
-docker run -it \
+::
+
+   docker run -d \
        -e 'DSN=postgresql://myserver/kanban' \
        -e 'SMTP=support@example.com' \
        -e 'SMTP_HOST=email-smtp.us-east-1.amazonaws.com' \
