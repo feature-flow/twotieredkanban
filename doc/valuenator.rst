@@ -276,6 +276,38 @@ description and tasks.  Also shown, at the bottom, is a button to restore
 the feature from the bag. Clicking on this button restores the feature
 to the state it was in before it was bagged.
 
+Users
+=====
+
+User types
+----------
+
+There are currently two types of users: regular and administrative
+users.
+
+Administrative users can:
+
+- create and rename boards
+
+- adjust user types
+
+- export board data
+
+- In the future, adjust board states
+
+User-management in the on-line version
+--------------------------------------
+
+The online version currently supports user login using email addresses
+and passwords [#sso]_.  When you set up Valuenator, you need to
+`create a site and bootstrap administrative user
+<https://github.com/feature-flow/twotieredkanban/blob/master/docker/README.rst#bootstrapping>`_.
+
+Once a site and administrative user have been set up, other users can
+request access.  The administrative user can then review and approve
+access requests and users are send links to set their passwords.
+
+
 How do I used Valuenator with Jira or github or (substitute your issue tracker)?
 ================================================================================
 
@@ -291,7 +323,7 @@ integration you'd like to see by creating or commenting on an issue in
 the `Valuenator issue tracker
 <https://github.com/feature-flow/twotieredkanban/issues>`_.
 
-Can I get my data out of Valuenator if I decode not to use it any more?
+Can I get my data out of Valuenator if I decide not to use it any more?
 =======================================================================
 
 You'll be able to export all of your data in a simple JSON format.
@@ -304,3 +336,6 @@ You'll be able to export all of your data in a simple JSON format.
 
 .. [#times] It's common to iterate on stories and multiple meetings
    are often needed.
+
+.. [#sso] In the future, we plan to also provide login using
+   single-signon services.
