@@ -20,7 +20,7 @@ How it works
 
 Feature flow uses a two-level board.  At the top level, is a feature
 board, showing features in progress or in the product backlog. The
-feature board provides a high-level view so stakeholder can see what's
+feature board provides a high-level view so stakeholders can see what's
 in progress and prioritize the backlog.
 
 When a feature enters development, a task board is used for the
