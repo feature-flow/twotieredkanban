@@ -60,15 +60,19 @@ started.
 As with the demo version, the on-line beta requires a modern browser,
 such as Chrome, Edge, Firefox, or Safari.
 
+Docker image
+============
+
+There's a `Valuenator docker image
+<https://github.com/feature-flow/twotieredkanban/blob/master/docker/README.rst>`_
+that you can use to easily deploy Valuenator yourself using Docker.
+
 Valuenator is open-source
 =========================
 
 Valuenator is `open source
 <https://github.com/feature-flow/twotieredkanban>`_. You can check it
-out from github and run it yourself, however this will be a lot easier
-later.  For example, email support is limited now to either not
-sending email or sending it using AWS Simple Email Service and only
-email and password authentication is supported now.  Other options
-will be added over time.
+out from github and run it yourself, although the easiest way to run
+Valuenator yourself is with the docker image.
 
 
