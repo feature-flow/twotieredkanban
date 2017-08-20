@@ -388,6 +388,15 @@ def bootstrap(db, site_name, title, email, name, base_url=''):
             site.auth = EmailPW(site)
         site.auth.bootstrap(email, name, base_url or 'http://' + site_name)
 
+def env_sendmail_config():
+    if 'SMTP' in os.environ:
+        from .smtp import from_env
+    elif 'SES' in os.environ:
+        from .ses import from_env
+    else:
+        raise ValueError('No email config found in environment')
+    return from_env()
+
 def bootstrap_script(args=None):
     """Invite a user to use a site, and create the site, if necessary
     """
@@ -405,10 +414,15 @@ def bootstrap_script(args=None):
     parser.add_argument('-A', '--non-admin', action='store_true')
     parser.add_argument('-t', '--title',
                         help="Create a site with the given title")
+    parser.add_argument('--env-config', action='store_true')
     options = parser.parse_args(args)
+
+    if options.env_config:
+        global sendmail
+        sendmail = env_sendmail_config()
 
     if options.base_url == 'd':
         options.base_url = 'http://localhost:8000'
 
-    bootstrap(options.config, options.site, options.email, options.name,
-              not options.non_admin, options.base_url, options.title)
+    bootstrap(options.config, options.site, options.title,
+              options.email, options.name, options.base_url)

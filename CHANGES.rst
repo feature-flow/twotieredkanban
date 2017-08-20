@@ -2,10 +2,20 @@
 Change history
 ==============
 
-0.14.1 (unreleased)
+0.15.2 (unreleased)
 =====================
 
 Nothing changed yet
+
+0.15.1 (2017-08-20)
+=====================
+
+Nothing changed yet
+
+0.15.0 (2017-08-20)
+=====================
+
+- Added support for Docker-based deployment.
 
 0.14.0 (2017-08-03)
 =====================
