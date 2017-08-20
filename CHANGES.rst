@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.15.1 (unreleased)
+0.15.2 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.15.1 (2017-08-20)
 =====================
 
 Nothing changed yet
