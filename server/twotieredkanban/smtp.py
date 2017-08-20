@@ -18,3 +18,14 @@ def sendmail(from_, host, port=0, user=None, password=None, tls=None):
         s.quit()
 
     return sendmail
+
+def from_env():
+    import os
+    return sendmail(
+        os.environ['SMTP'],
+        os.environ['SMTP_HOST'],
+        os.environ['SMTP_PORT'],
+        os.environ['SMTP_USER'],
+        os.environ['SMTP_PW'],
+        os.environ['SMTP_TLS'],
+        )
