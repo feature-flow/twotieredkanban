@@ -14,7 +14,7 @@ The core ideas should be automated
   explicit.  Task boards are hierarchically displayed within the
   feature board when features enter a development state.
 
-A teams activity should be readily visible
+A team's activity should be readily visible
   It should be possible to see important information on who and what
   on a computer monitor without scrolling.
 
@@ -41,11 +41,13 @@ up for anything.
 
 You can participate in the :ref:`on-line beta <beta-label>`.
 
+There's a `Docker image
+<https://github.com/feature-flow/twotieredkanban/blob/master/docker/README.rst>`_
+that makes deploying Valuenator easy.
+
 Valuenator is an `open-source project
-<https://github.com/feature-flow/twotieredkanban>`_, which you can run
-yourself, however, making this easy to do isn't a priority at this
-time.  It's not very hard, but we're not putting effort into making it
-easy at this time, and the software is evolving rapidly.
+<https://github.com/feature-flow/twotieredkanban>`_, which you can
+modify and run yourself.
 
 Using Valuenator
 ================
@@ -94,7 +96,7 @@ represents a feature state [#states_editable_eventually]_. Each
 feature is shown as a card on the board.  You can drag a card with
 your mouse to move it to a new state.
 
-When a feature is in the development state, it's card contains a task
+When a feature is in the development state, its card contains a task
 board, showing the tasks needed to implement the feature.  Tasks are
 shown as cards on the task board and can be dragged between columns to
 change their state.
