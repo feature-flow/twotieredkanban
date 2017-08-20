@@ -55,8 +55,8 @@ Task
   feature is used, allowing the team to coordinate effort to
   drive the feature to completion.
 
-How its implemented
-===================
+How it's implemented
+====================
 
 Feature flow can be implemented in a number of ways:
 
@@ -87,14 +87,14 @@ value.
 How it fits in with other agile practices
 =========================================
 
-Like any other agile practice, feature-flow is a part of a larger
+Like any other agile practice, feature flow is a part of a larger
 agile process that teams should tailor to their needs and experience
 through a process of "inspect and adapt".  Just as software should be
 built incrementally, so should you evolve your agile processes
-incrementally.  Feature-flow is one part.
+incrementally.  Feature flow is one part.
 
-Feature-flow is an alternative to Scrum sprints. Rather than
-organizing work into fixed time increments, feature-flow organizes
+Feature flow is an alternative to Scrum sprints. Rather than
+organizing work into fixed time increments, feature flow organizes
 around units of value. Features play a similar role to sprints,
 focusing a team on a shared goal and features are often similar in
 size to sprints.
@@ -123,7 +123,7 @@ Feature flow is based on two-tiered Kanban boards as described in the
 book `Kanban, by David Anderson
 <https://www.amazon.com/dp/B0057H2M70>`_ (and elsewhere).
 
-Feature-flow can and should be used with other agile practices, as
+Feature flow can and should be used with other agile practices, as
 part of a larger process.
 
 
@@ -137,5 +137,5 @@ part of a larger process.
    to avoid large software changes, to mitigate the risk of breakage.
    It can be argued that this provides value, but it's value that's
    not really visible to stake holders.  Which isn't to say that
-   feature-flow and continuous deployment can't be used together, but
+   feature flow and continuous deployment can't be used together, but
    they represent different kinds of flow.
