@@ -5,7 +5,7 @@ Change history
 0.15.2 (unreleased)
 =====================
 
-Nothing changed yet
+- Fixed: working task cards weren't green.
 
 0.15.1 (2017-08-20)
 =====================
