@@ -2,7 +2,12 @@
 Change history
 ==============
 
-0.15.2 (unreleased)
+0.15.3 (unreleased)
+=====================
+
+Nothing changed yet
+
+0.15.2 (2017-08-21)
 =====================
 
 - Fixed: working task cards weren't green.
