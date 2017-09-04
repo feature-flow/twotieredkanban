@@ -382,6 +382,19 @@ export class BoardAPI extends BaseAPI {
         }, cb);
     });
   }
+
+  add_state(props, cb) {
+    this.transaction('states', 'readwrite', (trans) => {
+      const id = uuid();
+      const state = Object.assign({
+        board: this.name, id: id, key: this.name + '/' + id,
+        working: false, complete: false, task: false
+      }, props);
+      this.r(trans.objectStore('states').add(state), () => {
+        this.update(trans, {states: {adds: [state]}}, cb);
+      }, cb);
+    });
+  }
   
   archive(feature_id, cb) {
     this.transaction(['tasks', 'archive', 'boards'], 'readwrite', (trans) => {

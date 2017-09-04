@@ -1093,4 +1093,67 @@ describe("demo board api", () => {
       });
     });
   });
+
+  it("should add states", (done) => {
+    const view = {setState: expect.createSpy()};
+    let state;
+    promise((cb) => {
+      new BoardAPI(view, 'test', (api) => {
+        view.setState.restore();
+        const model = api.model;
+        api.add_state({title: "Accept", order: 1.5}, (api, updates) => {
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          state = updates.states.adds[0];
+          expect(updates).toEqual({states: {adds: [state]}});
+          cb();
+        });
+      });
+    })
+    .then(() => promise((cb) => {
+      new BoardAPI(view, 'test', (api) => {
+        api.transaction('states', 'readonly', (trans) => {
+          api.r(trans.objectStore('states').get(state.key), (s) => {
+            expect(s).toEqual(
+              {board: 'test', id: state.id, key: state.key,
+               title: "Accept", order: 1.5,
+               complete: false, task: false, working: false});
+          }, cb());
+        });
+      });
+    }))
+    .then((err) => done());
+  });
+
+  it("should add substates", (done) => {
+    const view = {setState: expect.createSpy()};
+    let state;
+    promise((cb) => {
+      new BoardAPI(view, 'test', (api) => {
+        view.setState.restore();
+        const model = api.model;
+        api.add_state(
+          {
+            title: "Accept", order: 1.5, task: true, working: true
+          }, (api, updates) => {
+          expect(view.setState).toHaveBeenCalledWith({model: model});
+          state = updates.states.adds[0];
+          expect(updates).toEqual({states: {adds: [state]}});
+          cb();
+        });
+      });
+    })
+    .then(() => promise((cb) => {
+      new BoardAPI(view, 'test', (api) => {
+        api.transaction('states', 'readonly', (trans) => {
+          api.r(trans.objectStore('states').get(state.key), (s) => {
+            expect(s).toEqual(
+              {board: 'test', id: state.id, key: state.key,
+               title: "Accept", order: 1.5,
+               complete: false, task: true, working: true});
+          }, cb());
+        });
+      });
+    }))
+    .then((err) => done());
+  });
 });
