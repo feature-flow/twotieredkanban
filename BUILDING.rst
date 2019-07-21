@@ -55,7 +55,7 @@ To run::
 Before accessing the Kanban for the first time, you will need to
 invite a (bootstrap) user::
 
-  bin/emailpw-bootstrap -bd db.cfg localhost jim@jimfulton.info 'Jim Fulton'
+  bin/emailpw-bootstrap -bd -t "mysite" db.cfg localhost jim@jimfulton.info 'Jim Fulton'
 
 This will print an "email" message with a URL, which will look
 something like::
