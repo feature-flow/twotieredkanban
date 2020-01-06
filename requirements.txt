@@ -31,7 +31,7 @@ pycparser == 2.17
 repoze.retry == 1.4
 six == 1.10.0
 transaction == 2.1.2
-waitress == 1.4.1
+waitress == 1.4.2
 webencodings == 0.5.1
 zc.generationalset == 0.4.0
 zc.lockfile == 1.2.1
