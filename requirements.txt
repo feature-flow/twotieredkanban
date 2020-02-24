@@ -9,7 +9,7 @@ ZConfig == 3.1.0
 ZEO == 5.1.0
 ZODB == 5.2.4
 beautifulsoup4 == 4.6.0
-bleach == 2.0.0
+bleach == 3.1.1
 bobo == 2.4.0
 cffi == 1.10.0
 collective.recipe.cmd == 0.11
