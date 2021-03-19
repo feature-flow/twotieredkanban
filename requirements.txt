@@ -16,7 +16,7 @@ collective.recipe.cmd == 0.11
 gevent == 1.2.2
 greenlet == 0.4.12
 html5lib == 0.999999999
-jinja2 == 2.9.6
+jinja2 == 2.11.3
 manuel == 1.8.0
 mock == 2.0.0
 newt.db == 0.8.0
